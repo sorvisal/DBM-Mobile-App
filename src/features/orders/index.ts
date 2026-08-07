@@ -10,5 +10,5 @@ export * from "./components/OrderConfirmModal";
 export * from "./hooks/useOrderList";
 export * from "./hooks/useOrderDetail";
 export * from "./hooks/useUpdateOrderStatus";
-export * from "./types/order.types";
+export * from "./types/types";
 export * from "./constants/order.constants";

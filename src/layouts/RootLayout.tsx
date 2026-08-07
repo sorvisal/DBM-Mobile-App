@@ -7,6 +7,7 @@ import { DetailLayout } from "./DetailLayout";
 
 import { DashboardScreen } from "../features/dashboard/screens/DashboardScreen";
 import { StockScreen } from "../features/stock/screens/StockScreen";
+import { OrdersScreen } from "../features/orders/screens/OrdersScreen";
 
 type TabKey = "dashboard" | "stock" | "orders" | "customers" | "income";
 
@@ -19,12 +20,14 @@ export function RootLayout() {
         return <DashboardScreen />;
       case "stock":
         return <StockScreen />;
+      case "orders":
+        return <OrdersScreen />;
       default:
         return <DashboardScreen />;
     }
   };
 
-  const usesDetailLayout = activeTab === "stock";
+  const usesDetailLayout = activeTab === "stock" || activeTab === "orders" || activeTab === "customers" || activeTab === "income";
   const Layout = usesDetailLayout ? DetailLayout : MainLayout;
 
   return (
