@@ -48,14 +48,14 @@ export function Footer({ activeTab, onTabPress }: FooterProps) {
           >
             <Ionicons
               name={isActive ? tab.activeIcon : tab.icon}
-              size={22}
+              size={30}
               color={isActive ? "#2563EB" : "#9CA3AF"}
             />
             <Text
               className={
                 isActive
-                  ? "font-khmer text-[10px] text-blue-600 mt-1"
-                  : "font-khmer text-[10px] text-gray-400 mt-1"
+                  ? "font-khmer text-[15px] text-blue-600 mt-1"
+                  : "font-khmer text-[15px] text-gray-400 mt-1"
               }
             >
               {tab.label}

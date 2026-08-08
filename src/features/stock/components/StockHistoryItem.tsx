@@ -20,26 +20,26 @@ export function StockHistoryItem({ productName, note, time, quantityChange }: St
       >
         <Ionicons
           name={isIncoming ? "arrow-down-outline" : "arrow-up-outline"}
-          size={16}
+          size={20}
           color={isIncoming ? "#16A34A" : "#DC2626"}
         />
       </View>
 
       <View className="flex-1 ml-3">
-        <Text className="font-khmerMedium text-gray-900 text-sm" numberOfLines={1}>
+        <Text className="font-khmerMedium text-gray-900 text-xl" numberOfLines={1}>
           {productName}
         </Text>
-        <Text className="font-khmer text-gray-400 text-[11px] mt-0.5" numberOfLines={1}>
+        <Text className="font-khmer text-gray-400 text-[16px] mt-0.5" numberOfLines={1}>
           {note}
         </Text>
       </View>
 
       <View className="items-end">
-        <Text className={`font-khmerBold text-sm ${isIncoming ? "text-green-600" : "text-red-600"}`}>
+        <Text className={`font-khmerBold text-xl ${isIncoming ? "text-green-600" : "text-red-600"}`}>
           {isIncoming ? "+" : ""}
           {quantityChange} កេស
         </Text>
-        <Text className="font-khmer text-gray-400 text-[11px] mt-0.5">{time}</Text>
+        <Text className="font-khmer text-gray-400 text-[16px] mt-0.5">{time}</Text>
       </View>
     </View>
   );

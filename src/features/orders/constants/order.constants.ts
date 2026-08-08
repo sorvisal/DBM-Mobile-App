@@ -1,33 +1,37 @@
-import { Order, OrderStatus }  from "../types/types";
+import { Order, OrderStatus } from "../types/types";
 
 export const STATUS_LABELS: Record<OrderStatus, string> = {
+  [OrderStatus.New]: "ថ្មី",
   [OrderStatus.Pending]: "រង់ចាំ",
   [OrderStatus.Confirmed]: "បញ្ជាក់",
   [OrderStatus.Shipping]: "កំពុងដឹក",
   [OrderStatus.Completed]: "បញ្ចប់",
+  [OrderStatus.Cancelled]: "លុបចោល",
 };
 
 export const STATUS_COLORS: Record<OrderStatus, { bg: string; text: string }> = {
+  [OrderStatus.New]: { bg: "bg-gray-50", text: "text-gray-600" },
   [OrderStatus.Pending]: { bg: "bg-orange-50", text: "text-orange-600" },
   [OrderStatus.Confirmed]: { bg: "bg-blue-50", text: "text-blue-600" },
   [OrderStatus.Shipping]: { bg: "bg-purple-50", text: "text-purple-600" },
   [OrderStatus.Completed]: { bg: "bg-green-50", text: "text-green-600" },
+  [OrderStatus.Cancelled]: { bg: "bg-red-50", text: "text-red-600" },
 };
 
+// Only these 4 statuses appear as filter tabs; counts are computed live, not hardcoded here.
 export const ORDER_FILTERS: { key: OrderStatus | "all"; label: string }[] = [
-  { key: "all", label: "ទាំងអស់" },
-  { key: OrderStatus.Pending, label: "រង់ចាំ" },
-  { key: OrderStatus.Confirmed, label: "បញ្ជាក់" },
+  { key: "all", label: "ថ្មីៗ" },
   { key: OrderStatus.Shipping, label: "កំពុងដឹក" },
-  { key: OrderStatus.Completed, label: "បញ្ចប់" },
+  { key: OrderStatus.Completed, label: "បានបញ្ចប់" },
+  { key: OrderStatus.Cancelled, label: "លុបចោល" },
 ];
 
 export const MOCK_ORDERS: Order[] = [
   {
     id: "1",
-    code: "ORD-250525-001",
-    status: OrderStatus.Pending,
-    customer: { name: "លោក សុភា", phone: "012 345 678" },
+    code: "PO-250525-001",
+    status: OrderStatus.New,
+    customer: { name: "ជា សុភា", phone: "012 345 678" },
     createdAt: "25/05/2025 10:30 AM",
     items: [
       { id: "i1", name: "Milk Bottle 1L", imageUrl: "https://picsum.photos/seed/milk/100", price: 2.0, quantity: 2 },
@@ -40,9 +44,9 @@ export const MOCK_ORDERS: Order[] = [
   },
   {
     id: "2",
-    code: "ORD-250525-002",
+    code: "PO-250525-002",
     status: OrderStatus.Confirmed,
-    customer: { name: "លោក ដារា", phone: "093 456 789" },
+    customer: { name: "ណាត ដារា", phone: "093 456 789" },
     createdAt: "25/05/2025 11:00 AM",
     items: [
       { id: "i4", name: "Coca-Cola 330ml", imageUrl: "https://picsum.photos/seed/coke/100", price: 0.5, quantity: 6 },
@@ -53,9 +57,9 @@ export const MOCK_ORDERS: Order[] = [
   },
   {
     id: "3",
-    code: "ORD-250525-003",
+    code: "PO-250525-003",
     status: OrderStatus.Shipping,
-    customer: { name: "អ្នកនាង សុវណ្ណ", phone: "070 123 456" },
+    customer: { name: "ធី សុវណ្ណ", phone: "070 123 456" },
     createdAt: "24/05/2025 02:45 PM",
     items: [
       { id: "i5", name: "Pepsi 330ml", imageUrl: "https://picsum.photos/seed/pepsi/100", price: 0.5, quantity: 12 },
@@ -72,9 +76,9 @@ export const MOCK_ORDERS: Order[] = [
   },
   {
     id: "4",
-    code: "ORD-250525-004",
-    status: OrderStatus.Pending,
-    customer: { name: "លោក ចន្ទ្រា", phone: "081 222 333" },
+    code: "PO-250525-004",
+    status: OrderStatus.Confirmed,
+    customer: { name: "នឹម ចន្ទ្រា", phone: "081 222 333" },
     createdAt: "24/05/2025 03:18 PM",
     items: [
       { id: "i6", name: "ទឹកសុទ្ធ 1.5L", imageUrl: "https://picsum.photos/seed/water/100", price: 1.0, quantity: 4 },
@@ -85,9 +89,9 @@ export const MOCK_ORDERS: Order[] = [
   },
   {
     id: "5",
-    code: "ORD-250525-005",
+    code: "PO-250525-005",
     status: OrderStatus.Completed,
-    customer: { name: "អ្នកនាង សុភាព", phone: "012 987 654" },
+    customer: { name: "ប្រាក់ សុភាព", phone: "012 987 654" },
     createdAt: "23/05/2025 09:15 AM",
     items: [
       { id: "i7", name: "Sprite 330ml", imageUrl: "https://picsum.photos/seed/sprite/100", price: 0.5, quantity: 8 },
@@ -102,5 +106,83 @@ export const MOCK_ORDERS: Order[] = [
       confirmedAt: "23/05/2025 09:30 AM",
       deliveredAt: "23/05/2025 02:15 PM",
     },
+  },
+  {
+    id: "6",
+    code: "PO-250525-006",
+    status: OrderStatus.Confirmed,
+    customer: { name: "ប៉ាល់ សត្យា", phone: "011 222 999" },
+    createdAt: "22/05/2025 04:00 PM",
+    items: [
+      { id: "i8", name: "IDOL 330ml", imageUrl: "https://picsum.photos/seed/idol/100", price: 0.5, quantity: 3 },
+    ],
+    subtotal: 1.5,
+    deliveryFee: 0.5,
+    total: 2.0,
+  },
+    {
+    id: "7",
+    code: "PO-250525-007",
+    status: OrderStatus.Cancelled,
+    customer: { name: "ខែល មករា", phone: "011 222 999" },
+    createdAt: "22/05/2025 04:00 PM",
+    items: [
+      { id: "i8", name: "IDOL 330ml", imageUrl: "https://picsum.photos/seed/idol/100", price: 0.5, quantity: 3 },
+    ],
+    subtotal: 1.5,
+    deliveryFee: 0.5,
+    total: 2.0,
+  },
+    {
+    id: "8",
+    code: "PO-250525-008",
+    status: OrderStatus.Cancelled,
+    customer: { name: "ម៉ុត ម៉ៃ", phone: "011 222 999" },
+    createdAt: "22/05/2025 04:00 PM",
+    items: [
+      { id: "i8", name: "IDOL 330ml", imageUrl: "https://picsum.photos/seed/idol/100", price: 0.5, quantity: 3 },
+    ],
+    subtotal: 1.5,
+    deliveryFee: 0.5,
+    total: 2.0,
+  },
+    {
+    id: "9",
+    code: "PO-250525-009",
+    status: OrderStatus.Cancelled,
+    customer: { name: "ផៃ ឆៃយី", phone: "011 222 999" },
+    createdAt: "22/05/2025 04:00 PM",
+    items: [
+      { id: "i8", name: "IDOL 330ml", imageUrl: "https://picsum.photos/seed/idol/100", price: 0.5, quantity: 3 },
+    ],
+    subtotal: 1.5,
+    deliveryFee: 0.5,
+    total: 2.0,
+  },
+    {
+    id: "10",
+    code: "PO-250525-010",
+    status: OrderStatus.Cancelled,
+    customer: { name: "ឡុង អ៊ាងទ្រី", phone: "011 222 999" },
+    createdAt: "22/05/2025 04:00 PM",
+    items: [
+      { id: "i8", name: "IDOL 330ml", imageUrl: "https://picsum.photos/seed/idol/100", price: 0.5, quantity: 3 },
+    ],
+    subtotal: 1.5,
+    deliveryFee: 0.5,
+    total: 2.0,
+  },
+    {
+    id: "11",
+    code: "PO-250525-011",
+    status: OrderStatus.Cancelled,
+    customer: { name: "សោ វិសាល", phone: "011 222 999" },
+    createdAt: "22/05/2025 04:00 PM",
+    items: [
+      { id: "i8", name: "IDOL 330ml", imageUrl: "https://picsum.photos/seed/idol/100", price: 0.5, quantity: 3 },
+    ],
+    subtotal: 1.5,
+    deliveryFee: 0.5,
+    total: 2.0,
   },
 ];

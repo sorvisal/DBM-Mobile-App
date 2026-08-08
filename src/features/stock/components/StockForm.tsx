@@ -50,7 +50,7 @@ const BRAND_OPTIONS = [
 function FormField({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
     <View className="mb-4">
-      <Text className="font-khmerMedium text-sm text-gray-900 mb-1.5">
+      <Text className="font-khmerMedium text-xl text-gray-900 mb-1.5">
         {label} {required && <Text className="text-red-500">*</Text>}
       </Text>
       {children}
@@ -92,7 +92,7 @@ export function StockForm({ onSubmit }: StockFormProps) {
             keyboardType="numeric"
             placeholder="បញ្ចូលចំនួន"
             placeholderTextColor="#D1D5DB"
-            className="font-khmer border border-gray-200 rounded-xl  px-3 h-11 flex-1 text-sm text-gray-800"
+            className="font-khmer border border-gray-200 rounded-xl  px-3 h-11 flex-1 text-xl text-gray-800"
           />
         </View>
       </FormField>
@@ -106,7 +106,7 @@ export function StockForm({ onSubmit }: StockFormProps) {
               keyboardType="decimal-pad"
               placeholder="0.00"
               placeholderTextColor="#D1D5DB"
-              className="font-khmer border border-gray-200 rounded-xl px-3 h-11 text-sm text-gray-800"
+              className="font-khmer border border-gray-200 rounded-xl px-3 h-11 text-xl text-gray-800"
             />
           </FormField>
         </View>
@@ -118,7 +118,7 @@ export function StockForm({ onSubmit }: StockFormProps) {
               keyboardType="decimal-pad"
               placeholder="0.00"
               placeholderTextColor="#D1D5DB"
-              className="font-khmer border border-gray-200 rounded-xl px-3 h-11 text-sm text-gray-800"
+              className="font-khmer border border-gray-200 rounded-xl px-3 h-11 text-xl text-gray-800"
             />
           </FormField>
         </View>
@@ -147,7 +147,7 @@ export function StockForm({ onSubmit }: StockFormProps) {
           placeholder="បញ្ចូលកំណត់ចំណាំ"
           placeholderTextColor="#D1D5DB"
           multiline
-          className="font-khmer border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 h-20"
+          className="font-khmer border border-gray-200 rounded-xl px-3 py-2.5 text-xl text-gray-800 h-20"
           style={{ textAlignVertical: "top" }}
         />
       </FormField>
@@ -156,7 +156,7 @@ export function StockForm({ onSubmit }: StockFormProps) {
         onPress={() => onSubmit(values)}
         className="bg-blue-600 rounded-xl h-12 items-center justify-center mt-2 mb-8"
       >
-        <Text className="font-khmerBold text-white text-sm">រក្សាទុក</Text>
+        <Text className="font-khmerBold text-white text-2xl">រក្សាទុក</Text>
       </TouchableOpacity>
     </ScrollView>
   );

@@ -28,18 +28,18 @@ export function TotalProductCard({
       <Image source={{ uri: imageUrl }} className="w-12 h-16 rounded-xl" />
 
       <View className="flex-1 ml-3">
-        <Text className="font-khmerMedium text-gray-900 text-sm" numberOfLines={1}>
+        <Text className="font-khmerMedium text-gray-900 text-xl" numberOfLines={1}>
           {name}
         </Text>
-        <Text className="font-khmer text-gray-400 text-[11px] mt-0.5">{unit}</Text>
-        <Text className="font-khmer text-gray-400 text-[11px] mt-1">
+        <Text className="font-khmer text-gray-400 text-[16px] mt-0.5">{unit}</Text>
+        <Text className="font-khmer text-gray-400 text-[16px] mt-1">
           តម្លៃទិញ: {buyPrice}  |  តម្លៃលក់: {sellPrice}
         </Text>
       </View>
 
       <View className="items-end">
-        <Text className="font-khmerBold text-blue-600 text-base">{quantity}</Text>
-        <Text className="font-khmer text-gray-400 text-[11px] mt-0.5">កេស</Text>
+        <Text className="font-khmerBold text-blue-600 text-2xl">{quantity}</Text>
+        <Text className="font-khmer text-gray-400 text-[17px] mt-0.5">កេស</Text>
       </View>
     </TouchableOpacity>
   );

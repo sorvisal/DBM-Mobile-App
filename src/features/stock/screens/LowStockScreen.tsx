@@ -42,8 +42,8 @@ export function LowStockScreen({ onNavigate }: LowStockScreenProps) {
       <View className="flex-row gap-2 px-5 pt-3 pb-2">
         {EXPIRY_SUMMARY.map((item) => (
           <View key={item.label} className={`${item.bg} flex-1 rounded-xl p-2.5 items-center`}>
-            <Text className={`font-khmerBold text-xs ${item.text}`}>{item.label}</Text>
-            <Text className={`font-khmerBold text-sm mt-1 ${item.text}`}>
+            <Text className={`font-khmerBold text-2xl ${item.text}`}>{item.label}</Text>
+            <Text className={`font-khmerBold text-xl mt-1 ${item.text}`}>
               {item.count} {item.unit}
             </Text>
           </View>

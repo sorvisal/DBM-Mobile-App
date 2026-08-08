@@ -41,15 +41,15 @@ export function StockListScreen({ onNavigate }: StockListScreenProps) {
 
       <View className="px-5 pt-3 pb-2 bg-gray-50">
         <View className="flex-row items-center bg-white border border-gray-200 rounded-xl px-3 h-11">
-          <Ionicons name="search-outline" size={18} color="#9CA3AF" />
+          <Ionicons name="search-outline" size={24} color="#9CA3AF" />
           <TextInput
             value={search}
             onChangeText={setSearch}
             placeholder="ស្វែងរកទំនិញ..."
             placeholderTextColor="#9CA3AF"
-            className="font-khmer flex-1 ml-2 text-sm text-gray-800"
+            className="font-khmer flex-1 ml-2 text-2xl text-gray-800"
           />
-          <Ionicons name="options-outline" size={18} color="#9CA3AF" />
+          <Ionicons name="options-outline" size={24} color="#9CA3AF" />
         </View>
       </View>
 

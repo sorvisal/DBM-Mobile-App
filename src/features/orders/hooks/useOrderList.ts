@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { Order, OrderStatus, OrderDelivery }  from "../types/types";
+import { Order, OrderStatus, OrderDelivery } from "../types/types";
 import { MOCK_ORDERS } from "../constants/order.constants";
 
 let orders: Order[] = [...MOCK_ORDERS];
@@ -16,11 +16,14 @@ export function getOrders() {
 export function setOrderStatus(orderId: string, status: OrderStatus, deliveryPatch?: Partial<OrderDelivery>) {
   orders = orders.map((order) =>
     order.id === orderId
-      ? deliveryPatch
-        ? { ...order, status, delivery: { ...order.delivery, ...deliveryPatch } }
-        : { ...order, status }
+      ? { ...order, status, delivery: { ...order.delivery, ...deliveryPatch } }
       : order
   );
+  emitChange();
+}
+
+export function addOrder(order: Order) {
+  orders = [order, ...orders];
   emitChange();
 }
 
@@ -31,11 +34,16 @@ export function subscribeToOrders(listener: () => void) {
   };
 }
 
-export function useOrderList(filterStatus: OrderStatus | "all" = "all") {
+export function useOrderList(filterStatus: OrderStatus | "all") {
   const allOrders = useSyncExternalStore(subscribeToOrders, getOrders, getOrders);
 
   const filteredOrders =
     filterStatus === "all" ? allOrders : allOrders.filter((order) => order.status === filterStatus);
 
-  return { orders: filteredOrders, isLoading: false };
+  const counts: Partial<Record<OrderStatus | "all", number>> = { all: allOrders.length };
+  allOrders.forEach((order) => {
+    counts[order.status] = (counts[order.status] ?? 0) + 1;
+  });
+
+  return { orders: filteredOrders, counts, isLoading: false };
 }

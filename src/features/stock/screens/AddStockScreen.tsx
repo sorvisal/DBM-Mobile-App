@@ -16,7 +16,7 @@ export function AddStockScreen({ onNavigate }: AddStockScreenProps) {
         <TouchableOpacity onPress={() => onNavigate("products")}>
           <Ionicons name="chevron-back" size={24} color="white" />
         </TouchableOpacity>
-        <Text className="font-khmerBold text-white text-lg">ស្តុក</Text>
+        <Text className="font-khmerBold text-white text-2xl">ស្តុក</Text>
         <TouchableOpacity>
           <Ionicons name="bookmark-outline" size={22} color="white" />
         </TouchableOpacity>

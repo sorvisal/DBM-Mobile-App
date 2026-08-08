@@ -29,12 +29,12 @@ export function DashboardScreen() {
 
       {/* Greeting */}
       <View className="px-5 pt-2 pb-4">
-        <Text className="font-khmerBold text-lg text-gray-900">
+        <Text className="font-khmerBold text-2xl text-gray-900">
           សួស្ដី, វិសាល 👋
         </Text>
-        <Text className="font-khmer text-sm text-gray-400 mt-0.5">
+        <Text className="font-khmer text-2xl text-gray-400 mt-0.5">
           សូមស្វាគមន៍មកកាន់{" "}
-          <Text className="font-bold text-sm text-gray-400">DBM App</Text>
+          <Text className="font-bold text-2xl text-gray-400">DBM App</Text>
         </Text>
       </View>
 
@@ -42,9 +42,9 @@ export function DashboardScreen() {
       <View className="mx-5 bg-blue-600 rounded-2xl p-4">
         <View className="flex-row items-center gap-1.5 mb-4">
           <View className="bg-white/30 rounded-full p-1">
-            <Feather name="trending-up" size={14} color="rgba(255,255,255,0.85)" />
+            <Feather name="trending-up" size={24} color="rgba(255,255,255,0.85)" />
           </View>
-          <Text className="font-khmerMedium text-white/85 text-xs">
+          <Text className="font-khmerMedium text-white/85 text-2xl">
             សង្ខេបព័ត៌មានប្រចាំថ្ងៃ
           </Text>
         </View>
@@ -56,22 +56,22 @@ export function DashboardScreen() {
                 <View
                   className={`${stat.iconBg} h-11 w-11 items-center justify-center rounded-full`}
                 >
-                  <Ionicons name={stat.icon} size={20} color="white" />
+                  <Ionicons name={stat.icon} size={24} color="white" />
                 </View>
 
                 <Text
-                  className="font-khmer text-white/80 text-[14px] text-center mt-2"
+                  className="font-khmer text-white/80 text-[16px] text-center mt-2"
                   numberOfLines={1}
                 >
                   {stat.title}
                 </Text>
 
-                <Text className="font-khmerBold text-white text-lg mt-1">
+                <Text className="font-khmerBold text-white text-3xl mt-1">
                   {stat.value}
                 </Text>
 
                 <Text
-                  className="font-khmerMedium text-white/70 text-[13px] text-center mt-1"
+                  className="font-khmerMedium text-white/70 text-[16px] text-center mt-1"
                   numberOfLines={1}
                 >
                   {stat.unit}
@@ -99,16 +99,16 @@ export function DashboardScreen() {
             }}
           >
             <View className={`${action.iconBg} w-10 h-10 rounded-full items-center justify-center mb-3`}>
-              <Ionicons name={action.icon} size={20} color={action.iconColor} />
+              <Ionicons name={action.icon} size={28} color={action.iconColor} />
             </View>
             <View className="flex-row items-center justify-between">
               <View className="flex-1">
-                <Text className="font-khmerMedium text-gray-900 text-sm">{action.title}</Text>
-                <Text className="font-khmer text-gray-400 text-[14px] mt-0.5" numberOfLines={1}>
+                <Text className="font-khmerMedium text-gray-900 text-2xl">{action.title}</Text>
+                <Text className="font-khmer text-gray-400 text-[16px] mt-0.5" numberOfLines={1}>
                   {action.subtitle}
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={16} color="#9CA3AF" />
+              <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
             </View>
           </TouchableOpacity>
         ))}
@@ -117,11 +117,11 @@ export function DashboardScreen() {
       {/* Recent Activity */}
       <View className="px-5 mt-6 mb-6">
         <View className="flex-row items-center justify-between mb-3">
-          <Text className="font-khmerMedium text-gray-900 text-base">
+          <Text className="font-khmerMedium text-gray-900 text-2xl">
             ការជូនដំណឹងថ្មីៗ
           </Text>
           <TouchableOpacity className="flex-row items-center gap-1">
-            <Text className="font-khmerMedium text-blue-600 text-sm">មើលទាំងអស់</Text>
+            <Text className="font-khmerMedium text-blue-600 text-2xl">មើលទាំងអស់</Text>
             <Ionicons name="chevron-forward" size={12} color="#2563EB" />
           </TouchableOpacity>
         </View>
@@ -134,13 +134,13 @@ export function DashboardScreen() {
                 index !== RECENT_ACTIVITY.length - 1 ? "border-b border-gray-50" : ""
               }`}
             >
-              <View className={`${item.iconBg} w-9 h-9 rounded-full items-center justify-center mr-3`}>
-                <Ionicons name={item.icon} size={16} color={item.iconColor} />
+              <View className={`${item.iconBg} w-12 h-12 rounded-full items-center justify-center mr-3`}>
+                <Ionicons name={item.icon} size={26} color={item.iconColor} />
               </View>
-              <Text className="font-khmer text-gray-800 text-sm flex-1" numberOfLines={1}>
+              <Text className="font-khmer text-gray-800 text-xl flex-1" numberOfLines={1}>
                 {item.title}
               </Text>
-              <Text className="font-khmer text-gray-400 text-xs ml-2">{item.time}</Text>
+              <Text className="font-khmer text-gray-400 text-xl ml-2">{item.time}</Text>
             </View>
           ))}
         </View>

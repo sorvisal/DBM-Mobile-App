@@ -25,7 +25,7 @@ export function Dropdown({ placeholder, options, value, onChange }: DropdownProp
         onPress={() => setOpen(true)}
         className="flex-row items-center justify-between border border-gray-200 rounded-xl px-3 h-11"
       >
-        <Text className={`font-khmer text-sm ${selectedLabel ? "text-gray-800" : "text-gray-400"}`}>
+        <Text className={`font-khmer text-xl ${selectedLabel ? "text-gray-800" : "text-gray-400"}`}>
           {selectedLabel ?? placeholder}
         </Text>
         <Ionicons name="chevron-down" size={16} color="#9CA3AF" />
@@ -38,9 +38,9 @@ export function Dropdown({ placeholder, options, value, onChange }: DropdownProp
         >
           <Pressable className="bg-white rounded-t-2xl max-h-[60%]" onPress={() => {}}>
             <View className="flex-row items-center justify-between px-5 py-4 border-b border-gray-100">
-              <Text className="font-khmerBold text-gray-900 text-sm">{placeholder}</Text>
+              <Text className="font-khmerBold text-gray-900 text-xl">{placeholder}</Text>
               <TouchableOpacity onPress={() => setOpen(false)}>
-                <Ionicons name="close" size={20} color="#6B7280" />
+                <Ionicons name="close" size={16} color="#6B7280" />
               </TouchableOpacity>
             </View>
 
@@ -57,10 +57,10 @@ export function Dropdown({ placeholder, options, value, onChange }: DropdownProp
                     }}
                     className="flex-row items-center justify-between px-5 py-3.5 border-b border-gray-50"
                   >
-                    <Text className={`font-khmer text-sm ${isSelected ? "text-blue-600" : "text-gray-800"}`}>
+                    <Text className={`font-khmer text-2xl ${isSelected ? "text-blue-600" : "text-gray-800"}`}>
                       {item.label}
                     </Text>
-                    {isSelected && <Ionicons name="checkmark" size={18} color="#2563EB" />}
+                    {isSelected && <Ionicons name="checkmark" size={20} color="#2563EB" />}
                   </TouchableOpacity>
                 );
               }}

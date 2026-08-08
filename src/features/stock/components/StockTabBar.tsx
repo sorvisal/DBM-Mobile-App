@@ -22,10 +22,10 @@ export function StockTabBar({ active, onChange }: StockTabBarProps) {
         const isActive = tab.key === active;
         return (
           <TouchableOpacity key={tab.key} onPress={() => onChange(tab.key)} className="flex-1 items-center">
-            <View className="w-9 h-9 rounded-full items-center justify-center" style={{ backgroundColor: isActive ? tab.color : `${tab.color}1A` }}>
-              <Ionicons name={tab.icon} size={20} color={isActive ? "white" : tab.color} />
+            <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: isActive ? tab.color : `${tab.color}1A` }}>
+              <Ionicons name={tab.icon} size={24} color={isActive ? "white" : tab.color} />
             </View>
-            <Text className={`font-khmerMedium text-[13px] mt-1 text-center ${ isActive ? "text-gray-900" : "text-gray-400" }`} numberOfLines={1}>
+            <Text className={`font-khmerMedium text-[18px] mt-1 text-center ${ isActive ? "text-gray-900" : "text-gray-400" }`} numberOfLines={1}>
               {tab.label}
             </Text>
           </TouchableOpacity>

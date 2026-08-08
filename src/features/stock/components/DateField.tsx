@@ -25,7 +25,7 @@ export function DateField({ placeholder, value, onChange }: DateFieldProps) {
         onPress={() => setPickerVisible(true)}
         className="flex-row items-center justify-between border border-gray-200 rounded-xl px-3 h-11"
       >
-        <Text className={`font-khmer text-sm ${value ? "text-gray-800" : "text-gray-400"}`}>
+        <Text className={`font-khmer text-xl ${value ? "text-gray-800" : "text-gray-400"}`}>
           {value ? formatDate(value) : placeholder}
         </Text>
         <Ionicons name="calendar-outline" size={16} color="#9CA3AF" />

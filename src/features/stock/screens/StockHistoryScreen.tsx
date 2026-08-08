@@ -68,14 +68,12 @@ export function StockHistoryScreen({ onNavigate }: StockHistoryScreenProps) {
 
       {/* Sub navbar */}
       <StockTabBar active="history" onChange={onNavigate} />
-
       <StockFilterTabs
         activePeriod={activePeriod}
         onSelectPeriod={setActivePeriod}
         selectedDate={formatDate(selectedDate)}
         onPressDate={() => setPickerVisible(true)}
       />
-
       <DatePickerModal
         visible={pickerVisible}
         initialDate={selectedDate}
@@ -85,11 +83,10 @@ export function StockHistoryScreen({ onNavigate }: StockHistoryScreenProps) {
           setPickerVisible(false);
         }}
       />
-
       <ScrollView className="flex-1 px-5 pt-1" showsVerticalScrollIndicator={false}>
         {filteredHistory.map((group) => (
           <View key={group.date} className="mb-1">
-            <Text className="font-khmer text-gray-400 text-xs mb-2 mt-2">{group.date}</Text>
+            <Text className="font-khmer text-gray-400 text-xl mb-2 mt-2">{group.date}</Text>
             {group.items.map((item) => (
               <StockHistoryItem
                 key={item.id}

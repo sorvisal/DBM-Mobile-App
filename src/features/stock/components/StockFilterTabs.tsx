@@ -32,7 +32,7 @@ export function StockFilterTabs({
             onPress={() => onSelectPeriod(period)}
             className={`px-4 py-2 rounded-full ${isActive ? PERIOD_COLORS[period] : "bg-gray-100"}`}
           >
-            <Text className={`font-khmer text-sm ${isActive ? "text-white" : "text-gray-600"}`}>
+            <Text className={`font-khmer text-xl ${isActive ? "text-white" : "text-gray-600"}`}>
               {period}
             </Text>
           </TouchableOpacity>
@@ -43,7 +43,7 @@ export function StockFilterTabs({
         onPress={onPressDate}
         className="flex-1 flex-row items-center justify-end gap-1.5"
       >
-        <Text className="font-khmer text-sm text-gray-600">{selectedDate}</Text>
+        <Text className="font-khmer text-xl text-gray-600">{selectedDate}</Text>
         <Ionicons name="calendar-outline" size={16} color="#6B7280" />
       </TouchableOpacity>
     </View>

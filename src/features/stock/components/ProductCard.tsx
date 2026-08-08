@@ -31,10 +31,10 @@ export function ProductCard({
       <Image source={{ uri: imageUrl }} className="w-12 h-16 rounded-xl" />
 
       <View className="flex-1 ml-3">
-        <Text className="font-khmerMedium text-gray-900 text-sm" numberOfLines={1}>
+        <Text className="font-khmerMedium text-gray-900 text-xl" numberOfLines={1}>
           {name}
         </Text>
-        <Text className="font-khmer text-gray-400 text-[11px] mt-0.5">
+        <Text className="font-khmer text-gray-400 text-[14px] mt-0.5">
           {unit}
           {expiryDate ? `  •  ${expiryDate}` : ""}
         </Text>
@@ -42,8 +42,8 @@ export function ProductCard({
       </View>
 
       <View className="items-end">
-        <Text className="font-khmerBold text-gray-900 text-sm">{price}</Text>
-        <Text className="font-khmer text-gray-400 text-[11px] mt-1">{quantity} កេស</Text>
+        <Text className="font-khmerBold text-gray-900 text-2xl">{price}</Text>
+        <Text className="font-khmer text-gray-400 text-[14px] mt-1">{quantity} កេស</Text>
       </View>
     </TouchableOpacity>
   );
