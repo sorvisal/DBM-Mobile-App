@@ -70,7 +70,7 @@ export function CreateCustomerModal({ visible, onClose, onSubmit }: CreateCustom
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View className="flex-1 justify-end">
         <View className="bg-white rounded-t-3xl max-h-[85%]">
-          <View className="flex-row items-center justify-between px-5 pt-4 pb-3 bg-blue-600  border-gray-100">
+          <View className="flex-row items-center justify-between px-5 pt-4 pb-3 bg-blue-600 rounded-t-xl border-gray-100">
             <Text className="font-khmerBold text-white text-xl">បង្កើតអតិថិជនថ្មី</Text>
             <TouchableOpacity onPress={onClose}>
               <Ionicons name="close" size={28} color="#FFFFFF" />

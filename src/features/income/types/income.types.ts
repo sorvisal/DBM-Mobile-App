@@ -1,27 +1,71 @@
-export type IncomeTimeRange = "today" | "week" | "month" | "year" | "custom";
+export type IncomeOrderStatus = "completed" | "shipping" | "cancelled";
 
-export interface IncomeSummary {
-  totalIncome: number;
-  outstandingDebt: number;
-  changePercent: number;
-  range: IncomeTimeRange;
-}
-
-export interface DebtorEntry {
+export type IncomeOrder = {
   id: string;
+  code: string;
+  time: string;
+  customerCode: string;
   customerName: string;
   amount: number;
-  dueDate: string;
-}
+  status: IncomeOrderStatus;
+};
 
-export interface IncomeOrder {
+export type Debtor = {
   id: string;
-  orderCode: string;
+  code: string;
+  name: string;
+  initials: string;
+  avatarColor: string;
+  phone: string;
   amount: number;
-  createdAt: string;
-}
+  dueDate: string;
+};
 
-export interface ChartDataPoint {
+export type ChartPoint = {
   label: string;
-  value: number;
-}
+  amount: number;
+};
+
+export type DailyIncomeSummary = {
+  date: string;
+  totalIncome: number;
+  orderCount: number;
+  orders: IncomeOrder[];
+  cashCollected: number;
+  discount: number;
+  otherExpense: number;
+  netTotal: number;
+};
+
+export type MonthlyIncomeSummary = {
+  month: string;
+  totalIncome: number;
+  orderCount: number;
+  dailyChart: ChartPoint[];
+  debtors: Debtor[];
+  totalDebt: number;
+};
+
+export type IncomeOverview = {
+  todayIncome: number;
+  todayDate: string;
+  monthIncome: number;
+  monthLabel: string;
+  monthGrowthPercent: number;
+  yearIncome: number;
+  yearLabel: string;
+  yearGrowthPercent: number;
+  totalDebt: number;
+  debtorCount: number;
+  weeklyChart: ChartPoint[];
+  topDebtors: Debtor[];
+};
+export type YearlyIncomeSummary = {
+  year: string;
+  totalIncome: number;
+  orderCount: number;
+  monthlyChart: ChartPoint[];
+  debtors: Debtor[];
+  totalDebt: number;
+  growthPercent: number;
+};

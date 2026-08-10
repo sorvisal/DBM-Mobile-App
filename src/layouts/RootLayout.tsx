@@ -9,7 +9,7 @@ import { DashboardScreen } from "../features/dashboard/screens/DashboardScreen";
 import { StockScreen } from "../features/stock/screens/StockScreen";
 import { OrdersScreen } from "../features/orders/screens/OrdersScreen";
 import { CustomersScreen } from "../features/customers/screens/CustomersScreen";
-
+import { IncomeScreen } from "../features/income/screens/IncomeScreen";
 type TabKey = "dashboard" | "stock" | "orders" | "customers" | "income";
 
 export function RootLayout() {
@@ -25,8 +25,8 @@ export function RootLayout() {
         return <OrdersScreen />;
       case "customers":
         return <CustomersScreen />;
-      default:
-        return <DashboardScreen />;
+      case "income":
+        return <IncomeScreen />;
     }
   };
 

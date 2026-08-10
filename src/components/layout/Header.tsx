@@ -34,9 +34,9 @@ export function Header({
         onPress={onNotificationPress}
         accessibilityRole="button"
         accessibilityLabel="Notifications"
-        className="w-15 h-15 rounded-full bg-gray-100 items-center justify-center"
+        className="w-9 h-9 rounded-full bg-gray-100 items-center justify-center"
       >
-        <Ionicons name="notifications-outline" size={27} color="#1F2937" />
+        <Ionicons name="notifications-outline" size={18} color="#1F2937" />
         {notificationCount > 0 && (
           <View className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-red-500" />
         )}

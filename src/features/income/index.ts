@@ -12,3 +12,4 @@ export * from "./hooks/useDailyIncome";
 export * from "./hooks/useMonthlyIncome";
 export * from "./hooks/useDebtors";
 export * from "./types/income.types";
+export * from "./types/income.types";
