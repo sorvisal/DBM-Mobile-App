@@ -12,13 +12,13 @@ export function AddStockScreen({ onNavigate }: AddStockScreenProps) {
   return (
     <View className="flex-1 bg-gray-50" style={{ minHeight: 0 }}>
       {/* Top navbar */}
-      <View className="bg-blue-600 px-5 pt-3 pb-3 flex-row items-center justify-between border-b border-gray-100">
+      <View className="bg-white  px-5 pt-3 pb-3 flex-row items-center justify-between border-b border-gray-100">
         <TouchableOpacity onPress={() => onNavigate("products")}>
-          <Ionicons name="chevron-back" size={24} color="white" />
+          <Ionicons name="menu-outline" size={36} color="#1F2937" />
         </TouchableOpacity>
-        <Text className="font-khmerBold text-white text-2xl">ស្តុក</Text>
+        <Text className="font-khmerBold text-gray-900 text-3xl">ស្តុក</Text>
         <TouchableOpacity>
-          <Ionicons name="bookmark-outline" size={22} color="white" />
+          <Ionicons name="search-outline" size={22} color="white" />
         </TouchableOpacity>
       </View>
 

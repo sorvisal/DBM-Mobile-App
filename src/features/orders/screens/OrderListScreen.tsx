@@ -33,40 +33,40 @@ export function OrderListScreen({ onSelectOrder }: OrderListScreenProps) {
   );
 
   const handleCreateOrder = (values: CreateOrderValues) => {
-    const price = Number(values.price) || 0;
-    const quantity = Number(values.quantity) || 1;
-    const subtotal = price * quantity;
+  const price = Number(values.price) || 0;
+  const quantity = Number(values.quantity) || 1;
+  const subtotal = price * quantity;
 
-    const newOrder: Order = {
-      id: String(Date.now()),
-      code: values.code || `ORD-${Date.now()}`,
-      status: OrderStatus.New,
-      customer: { name: values.customerName, phone: "" },
-      createdAt: formatDate(values.date),
-      items: [
-        {
-          id: String(Date.now()),
-          name: values.item,
-          imageUrl: "https://picsum.photos/seed/neworder/100",
-          price,
-          quantity,
-        },
-      ],
-      subtotal,
-      deliveryFee: 0.5,
-      total: subtotal + 0.5,
-    };
-
-    addOrder(newOrder);
-    setCreateModalVisible(false);
+  const newOrder: Order = {
+    id: String(Date.now()),
+    code: values.code || `ORD-${Date.now()}`,
+    status: OrderStatus.Pending, // was OrderStatus.New
+    customer: { name: values.customerName, phone: "" },
+    createdAt: formatDate(values.date),
+    items: [
+      {
+        id: String(Date.now()),
+        name: values.item,
+        imageUrl: "https://picsum.photos/seed/neworder/100",
+        price,
+        quantity,
+      },
+    ],
+    subtotal,
+    deliveryFee: 0.5,
+    total: subtotal + 0.5,
   };
+
+  addOrder(newOrder);
+  setCreateModalVisible(false);
+};
 
   return (
     <View className="flex-1 bg-gray-50" style={{ minHeight: 0 }}>
       {/* Top navbar */}
       <View className="bg-white px-5 pt-3 pb-3 flex-row items-center justify-between border-b border-gray-100">
          <Ionicons name="menu-outline" size={36} color="#1F2937" />
-        <Text className="font-khmerBold text-gray-900 text-lg">ការបញ្ជាទិញ</Text>
+        <Text className="font-khmerBold text-gray-900 text-3xl">ការបញ្ជាទិញ</Text>
         <TouchableOpacity className="w-9 h-9 rounded-full bg-gray-100 items-center justify-center">
           <Ionicons name="notifications-outline" size={18} color="#1F2937" />
         </TouchableOpacity>
@@ -83,16 +83,16 @@ export function OrderListScreen({ onSelectOrder }: OrderListScreenProps) {
       {/* Search */}
       <View className="px-5 pt-3 pb-2 bg-gray-50">
         <View className="flex-row items-center bg-white border border-gray-200 rounded-xl px-3 h-11">
-          <Ionicons name="search-outline" size={18} color="#9CA3AF" />
+          <Ionicons name="search-outline" size={24} color="#9CA3AF" />
           <TextInput
             value={search}
             onChangeText={setSearch}
             placeholder="ស្វែងរកលេខ ORD ឬឈ្មោះអតិថិជន..."
             placeholderTextColor="#9CA3AF"
-            className="font-khmer flex-1 ml-2 text-sm text-gray-800"
+            className="font-khmer flex-1 ml-2 text-xl text-gray-800"
             style={{ outlineWidth: 0, borderWidth: 0, backgroundColor: "transparent" }}
           />
-          <Ionicons name="options-outline" size={18} color="#9CA3AF" />
+          <Ionicons name="options-outline" size={26} color="#9CA3AF" />
         </View>
       </View>
 
@@ -103,7 +103,7 @@ export function OrderListScreen({ onSelectOrder }: OrderListScreenProps) {
           {filteredOrders.length === 0 ? (
             <View className="items-center justify-center py-16">
               <Ionicons name="receipt-outline" size={36} color="#D1D5DB" />
-              <Text className="font-khmer text-gray-400 text-xs mt-2">មិនមានការបញ្ជាទិញទេ</Text>
+              <Text className="font-khmer text-gray-400 text-xl mt-2">មិនមានការបញ្ជាទិញទេ</Text>
             </View>
           ) : (
             filteredOrders.map((order) => (

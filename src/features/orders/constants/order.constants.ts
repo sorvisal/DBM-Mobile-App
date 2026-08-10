@@ -29,10 +29,13 @@ export const ORDER_FILTERS: { key: OrderStatus | "all"; label: string }[] = [
 export const MOCK_ORDERS: Order[] = [
   {
     id: "1",
-    code: "PO-250525-001",
-    status: OrderStatus.New,
-    customer: { name: "ជា សុភា", phone: "012 345 678" },
+    code: "ORD-250525-001",
+    status: OrderStatus.Pending,
+    customer: { name: "លោក សុភា", phone: "012 345 678" },
     createdAt: "25/05/2025 10:30 AM",
+    paymentMethod: "ទាមទារ",
+    address: "ភ្នំពេញ, ខណ្ឌចំការមន",
+    note: "-",
     items: [
       { id: "i1", name: "Milk Bottle 1L", imageUrl: "https://picsum.photos/seed/milk/100", price: 2.0, quantity: 2 },
       { id: "i2", name: "Nivea Men Deodorant", imageUrl: "https://picsum.photos/seed/nivea/100", price: 3.5, quantity: 1 },
@@ -48,6 +51,9 @@ export const MOCK_ORDERS: Order[] = [
     status: OrderStatus.Confirmed,
     customer: { name: "ណាត ដារា", phone: "093 456 789" },
     createdAt: "25/05/2025 11:00 AM",
+    paymentMethod: "សាច់ប្រាក់",
+    address: "ភ្នំពេញ, ខណ្ឌទួលគោក",
+    note: "-",
     items: [
       { id: "i4", name: "Coca-Cola 330ml", imageUrl: "https://picsum.photos/seed/coke/100", price: 0.5, quantity: 6 },
     ],
@@ -61,6 +67,9 @@ export const MOCK_ORDERS: Order[] = [
     status: OrderStatus.Shipping,
     customer: { name: "ធី សុវណ្ណ", phone: "070 123 456" },
     createdAt: "24/05/2025 02:45 PM",
+    paymentMethod: "ABA Pay",
+    address: "ភ្នំពេញ, ខណ្ឌសែនសុខ",
+    note: "ទូរស័ព្ទមុនមកដល់",
     items: [
       { id: "i5", name: "Pepsi 330ml", imageUrl: "https://picsum.photos/seed/pepsi/100", price: 0.5, quantity: 12 },
     ],
@@ -80,6 +89,9 @@ export const MOCK_ORDERS: Order[] = [
     status: OrderStatus.Confirmed,
     customer: { name: "នឹម ចន្ទ្រា", phone: "081 222 333" },
     createdAt: "24/05/2025 03:18 PM",
+    paymentMethod: "ទាមទារ",
+    address: "ភ្នំពេញ, ខណ្ឌដូនពេញ",
+    note: "-",
     items: [
       { id: "i6", name: "ទឹកសុទ្ធ 1.5L", imageUrl: "https://picsum.photos/seed/water/100", price: 1.0, quantity: 4 },
     ],
@@ -93,6 +105,9 @@ export const MOCK_ORDERS: Order[] = [
     status: OrderStatus.Completed,
     customer: { name: "ប្រាក់ សុភាព", phone: "012 987 654" },
     createdAt: "23/05/2025 09:15 AM",
+    paymentMethod: "សាច់ប្រាក់",
+    address: "ភ្នំពេញ, ខណ្ឌចំការមន",
+    note: "-",
     items: [
       { id: "i7", name: "Sprite 330ml", imageUrl: "https://picsum.photos/seed/sprite/100", price: 0.5, quantity: 8 },
     ],
@@ -113,6 +128,9 @@ export const MOCK_ORDERS: Order[] = [
     status: OrderStatus.Confirmed,
     customer: { name: "ប៉ាល់ សត្យា", phone: "011 222 999" },
     createdAt: "22/05/2025 04:00 PM",
+    paymentMethod: "ABA Pay",
+    address: "ភ្នំពេញ, ខណ្ឌមានជ័យ",
+    note: "-",
     items: [
       { id: "i8", name: "IDOL 330ml", imageUrl: "https://picsum.photos/seed/idol/100", price: 0.5, quantity: 3 },
     ],
@@ -120,12 +138,15 @@ export const MOCK_ORDERS: Order[] = [
     deliveryFee: 0.5,
     total: 2.0,
   },
-    {
+  {
     id: "7",
     code: "PO-250525-007",
     status: OrderStatus.Cancelled,
     customer: { name: "ខែល មករា", phone: "011 222 999" },
     createdAt: "22/05/2025 04:00 PM",
+    paymentMethod: "ទាមទារ",
+    address: "ភ្នំពេញ, ខណ្ឌប៉ោសែនជ័យ",
+    note: "អតិថិជនលុបចោល",
     items: [
       { id: "i8", name: "IDOL 330ml", imageUrl: "https://picsum.photos/seed/idol/100", price: 0.5, quantity: 3 },
     ],
@@ -133,12 +154,15 @@ export const MOCK_ORDERS: Order[] = [
     deliveryFee: 0.5,
     total: 2.0,
   },
-    {
+  {
     id: "8",
     code: "PO-250525-008",
     status: OrderStatus.Cancelled,
     customer: { name: "ម៉ុត ម៉ៃ", phone: "011 222 999" },
     createdAt: "22/05/2025 04:00 PM",
+    paymentMethod: "សាច់ប្រាក់",
+    address: "ភ្នំពេញ, ខណ្ឌឫស្សីកែវ",
+    note: "-",
     items: [
       { id: "i8", name: "IDOL 330ml", imageUrl: "https://picsum.photos/seed/idol/100", price: 0.5, quantity: 3 },
     ],
@@ -146,12 +170,15 @@ export const MOCK_ORDERS: Order[] = [
     deliveryFee: 0.5,
     total: 2.0,
   },
-    {
+  {
     id: "9",
     code: "PO-250525-009",
     status: OrderStatus.Cancelled,
     customer: { name: "ផៃ ឆៃយី", phone: "011 222 999" },
     createdAt: "22/05/2025 04:00 PM",
+    paymentMethod: "ABA Pay",
+    address: "ភ្នំពេញ, ខណ្ឌចំការមន",
+    note: "-",
     items: [
       { id: "i8", name: "IDOL 330ml", imageUrl: "https://picsum.photos/seed/idol/100", price: 0.5, quantity: 3 },
     ],
@@ -159,12 +186,15 @@ export const MOCK_ORDERS: Order[] = [
     deliveryFee: 0.5,
     total: 2.0,
   },
-    {
+  {
     id: "10",
     code: "PO-250525-010",
     status: OrderStatus.Cancelled,
     customer: { name: "ឡុង អ៊ាងទ្រី", phone: "011 222 999" },
     createdAt: "22/05/2025 04:00 PM",
+    paymentMethod: "ទាមទារ",
+    address: "ភ្នំពេញ, ខណ្ឌទួលគោក",
+    note: "ផលិតផលអស់ស្តុក",
     items: [
       { id: "i8", name: "IDOL 330ml", imageUrl: "https://picsum.photos/seed/idol/100", price: 0.5, quantity: 3 },
     ],
@@ -172,12 +202,15 @@ export const MOCK_ORDERS: Order[] = [
     deliveryFee: 0.5,
     total: 2.0,
   },
-    {
+  {
     id: "11",
     code: "PO-250525-011",
-    status: OrderStatus.Cancelled,
+    status: OrderStatus.Confirmed,
     customer: { name: "សោ វិសាល", phone: "011 222 999" },
     createdAt: "22/05/2025 04:00 PM",
+    paymentMethod: "សាច់ប្រាក់",
+    address: "ភ្នំពេញ, ខណ្ឌសែនសុខ",
+    note: "-",
     items: [
       { id: "i8", name: "IDOL 330ml", imageUrl: "https://picsum.photos/seed/idol/100", price: 0.5, quantity: 3 },
     ],

@@ -1,18 +1,30 @@
-export type CustomerStatus = "active" | "inactive";
+export enum CustomerStatus {
+  Active = "active",
+  Inactive = "inactive",
+}
 
-export interface Customer {
+export type CustomerOrderSummary = {
   id: string;
+  code: string;
+  date: string;
+  status: string;
+  total: number;
+  itemCount: number;
+};
+
+export type Customer = {
+  id: string;
+  code: string;
   name: string;
+  initials: string;
+  avatarColor: string;
   phone: string;
   location: string;
   status: CustomerStatus;
-  orderCount: number;
+  totalOrders: number;
   totalSpent: number;
-}
-
-export interface CustomerOrder {
-  id: string;
-  createdAt: string;
-  total: number;
-  status: string;
-}
+  memberSince: string;
+  customerType: string;
+  note: string;
+  orders: CustomerOrderSummary[];
+};

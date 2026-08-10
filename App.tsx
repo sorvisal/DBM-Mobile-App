@@ -1,9 +1,12 @@
 import "./global.css";
 import { useEffect, useCallback } from "react";
 import { StatusBar } from "expo-status-bar";
-import { Text, View } from "react-native";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+
+import { RootLayout } from "./src/layouts/RootLayout";
 
 // Keep splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -30,14 +33,11 @@ export default function App() {
   }
 
   return (
-    <View
-      className="flex-1 items-center justify-center bg-white"
-      onLayout={onLayoutRootView}
-    >
-      <Text className="text-2xl font-khmerBold text-blue-500">
-        DBM_App 🎉 NativeWind v4 ជាមួយពុម្ពអក្សរខ្មែរដំណើរការហើយ!
-      </Text>
-      <StatusBar style="auto" />
-    </View>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <RootLayout />
+        <StatusBar style="light" />
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

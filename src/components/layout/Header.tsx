@@ -13,7 +13,7 @@ export function Header({
   notificationCount = 0,
 }: HeaderProps) {
   return (
-    <View className="bg-white px-5 pt-8 pb-3 flex-row items-center justify-between relative">
+    <View className="bg-white px-5 pt-3 pb-3 flex-row items-center justify-between relative">
       <TouchableOpacity
         onPress={onMenuPress}
         accessibilityRole="button"
@@ -23,11 +23,11 @@ export function Header({
       </TouchableOpacity>
 
       <View className="absolute left-0 right-0 items-center justify-center pointer-events-none">
-        <Text className="font-bold text-2xl text-blue-600">
-          DBM
-          <Text className="font-bold  text-sm text-blue-600 p-1">App</Text>
-        </Text>
-       
+        <View className="flex-row items-center gap-2"> 
+          <Text className="font-extrabold text-3xl text-gray-900">
+            DBM<Text className="text-blue-600 text-2xl"> App</Text>
+          </Text>
+        </View>
       </View>
 
       <TouchableOpacity

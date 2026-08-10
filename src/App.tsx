@@ -2,9 +2,10 @@ import { useEffect, useCallback } from "react";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { ReducedMotionConfig, ReduceMotion } from "react-native-reanimated";
 
 import { RootLayout } from "./layouts/RootLayout";
-import { DashboardScreen } from "./features/dashboard/screens/DashboardScreen";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -38,12 +39,11 @@ export default function App() {
 
 
   return (
-    <SafeAreaProvider>
-      <RootLayout>
-
-        <DashboardScreen />
-
-      </RootLayout>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ReducedMotionConfig mode={ReduceMotion.Never} />
+      <SafeAreaProvider>
+        <RootLayout />
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

@@ -27,6 +27,11 @@ export function addOrder(order: Order) {
   emitChange();
 }
 
+export function deleteOrder(orderId: string) {
+  orders = orders.filter((order) => order.id !== orderId);
+  emitChange();
+}
+
 export function subscribeToOrders(listener: () => void) {
   listeners.push(listener);
   return () => {

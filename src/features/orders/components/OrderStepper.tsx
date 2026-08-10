@@ -1,62 +1,63 @@
 import { View, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { OrderStatus }  from "../types/types";
+import { OrderStatus } from "../types/types";
 
 type OrderStepperProps = {
   status: OrderStatus;
 };
 
 const STEPS = [
-  { key: OrderStatus.Confirmed, label: "បញ្ជាក់" },
-  { key: OrderStatus.Shipping, label: "កំពុងដឹក" },
-  { key: OrderStatus.Completed, label: "បានបញ្ចប់" },
+  { key: OrderStatus.Confirmed, label: "បញ្ជាក់", icon: "checkmark" as const },
+  { key: OrderStatus.Shipping, label: "កំពុងដឹក", icon: "bicycle" as const },
+  { key: OrderStatus.Completed, label: "បញ្ចប់", icon: "checkmark-done" as const },
 ];
 
 function getStepIndex(status: OrderStatus) {
-  if (status === OrderStatus.Pending) return -1;
+  if (status === OrderStatus.New || status === OrderStatus.Pending) return -1;
   if (status === OrderStatus.Confirmed) return 0;
   if (status === OrderStatus.Shipping) return 1;
-  return 2;
+  return 2; // Completed or Cancelled treated as fully passed
 }
 
 export function OrderStepper({ status }: OrderStepperProps) {
   const currentIndex = getStepIndex(status);
 
   return (
-    <View className="flex-row items-center">
+    <View className="flex-row items-start">
       {STEPS.map((step, index) => {
-        const isDone = index < currentIndex || (index === currentIndex && status === OrderStatus.Completed) || (status === OrderStatus.Completed);
-        const isActive = index === currentIndex && status !== OrderStatus.Completed;
-        const isUpcoming = index > currentIndex;
+        const isDone = index < currentIndex;
+        const isActive = index === currentIndex;
+        const isCompleted = status === OrderStatus.Completed;
+        const showAsDone = isDone || (isActive && isCompleted);
 
         return (
           <View key={step.key} className="flex-1 items-center">
             <View className="flex-row items-center w-full">
-              {index !== 0 && (
-                <View className={`flex-1 h-0.5 ${index <= currentIndex ? "bg-green-500" : "bg-gray-200"}`} />
-              )}
               <View
-                className={`w-6 h-6 rounded-full items-center justify-center ${
-                  isDone
-                    ? "bg-green-500"
-                    : isActive
-                    ? "bg-blue-600"
-                    : "bg-gray-200"
+                className={`flex-1 h-0.5 ${
+                  index === 0 ? "opacity-0" : isDone || (isActive && !isCompleted) ? "bg-green-500" : "bg-gray-200"
+                }`}
+              />
+              <View
+                className={`w-11 h-11 rounded-full items-center justify-center ${
+                  showAsDone ? "bg-green-500" : isActive ? "bg-blue-600" : "bg-gray-200"
                 }`}
               >
-                {isDone ? (
-                  <Ionicons name="checkmark" size={14} color="white" />
-                ) : (
-                  <View className={`w-2 h-2 rounded-full ${isUpcoming ? "bg-gray-400" : "bg-white"}`} />
-                )}
+                <Ionicons
+                  name={showAsDone ? "checkmark" : isActive ? step.icon : "ellipse"}
+                  size={showAsDone || isActive ? 16 : 8}
+                  color={isActive || showAsDone ? "white" : "#9CA3AF"}
+                />
               </View>
-              {index !== STEPS.length - 1 && (
-                <View className={`flex-1 h-0.5 ${index < currentIndex ? "bg-green-500" : "bg-gray-200"}`} />
-              )}
+              <View
+                className={`flex-1 h-0.5 ${
+                  index === STEPS.length - 1 ? "opacity-0" : showAsDone ? "bg-green-500" : "bg-gray-200"
+                }`}
+              />
             </View>
             <Text
-              className={`font-khmer text-[10px] mt-1.5 ${
-                isDone || isActive ? "text-gray-900" : "text-gray-400"
+              className={`font-khmer text-[14px] mt-1.5 ${
+                showAsDone || isActive ? "text-gray-900" : "text-gray-400"
               }`}
             >
               {step.label}

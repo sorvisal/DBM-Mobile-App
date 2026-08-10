@@ -37,10 +37,10 @@ export function Dropdown({ placeholder, options, value, onChange }: DropdownProp
           onPress={() => setOpen(false)}
         >
           <Pressable className="bg-white rounded-t-2xl max-h-[60%]" onPress={() => {}}>
-            <View className="flex-row items-center justify-between px-5 py-4 border-b border-gray-100">
-              <Text className="font-khmerBold text-gray-900 text-xl">{placeholder}</Text>
+            <View className="flex-row items-center bg-blue-600 justify-between px-5 py-4 rounded-t-xl">
+              <Text className="font-khmerBold text-white text-xl">{placeholder}</Text>
               <TouchableOpacity onPress={() => setOpen(false)}>
-                <Ionicons name="close" size={16} color="#6B7280" />
+                <Ionicons name="close" size={26} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
 

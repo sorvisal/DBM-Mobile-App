@@ -8,6 +8,7 @@ import { DetailLayout } from "./DetailLayout";
 import { DashboardScreen } from "../features/dashboard/screens/DashboardScreen";
 import { StockScreen } from "../features/stock/screens/StockScreen";
 import { OrdersScreen } from "../features/orders/screens/OrdersScreen";
+import { CustomersScreen } from "../features/customers/screens/CustomersScreen";
 
 type TabKey = "dashboard" | "stock" | "orders" | "customers" | "income";
 
@@ -22,6 +23,8 @@ export function RootLayout() {
         return <StockScreen />;
       case "orders":
         return <OrdersScreen />;
+      case "customers":
+        return <CustomersScreen />;
       default:
         return <DashboardScreen />;
     }

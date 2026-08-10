@@ -10,3 +10,4 @@ export * from "./components/CustomerOrderHistoryList";
 export * from "./hooks/useCustomerList";
 export * from "./hooks/useCustomerDetail";
 export * from "./types/customer.types";
+export * from "./types/customer.types";

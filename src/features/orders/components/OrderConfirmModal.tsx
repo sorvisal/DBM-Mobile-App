@@ -16,10 +16,10 @@ export function OrderConfirmModal({ visible, onConfirm, onCancel }: OrderConfirm
             <Ionicons name="checkmark-circle" size={40} color="#16A34A" />
           </View>
 
-          <Text className="font-khmerBold text-gray-900 text-base text-center">
+          <Text className="font-khmerBold text-gray-900 text-xl text-center">
             បញ្ជាក់ការទិញជោគជ័យ!
           </Text>
-          <Text className="font-khmer text-gray-400 text-xs text-center mt-1.5">
+          <Text className="font-khmer text-gray-400 text-xl text-center mt-1.5">
             តើអ្នកចង់បញ្ជាក់ការទិញនេះឬទេ ដើម្បីចាប់ផ្តើមដឹកជញ្ជូន?
           </Text>
 
@@ -27,11 +27,11 @@ export function OrderConfirmModal({ visible, onConfirm, onCancel }: OrderConfirm
             onPress={onConfirm}
             className="bg-blue-600 rounded-xl h-12 items-center justify-center w-full mt-5"
           >
-            <Text className="font-khmerBold text-white text-sm">យល់ព្រម</Text>
+            <Text className="font-khmerBold text-white text-xl">យល់ព្រម</Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={onCancel} className="items-center justify-center w-full mt-2 py-2">
-            <Text className="font-khmer text-gray-400 text-xs">បោះបង់</Text>
+            <Text className="font-khmer text-gray-400 text-xl">បោះបង់</Text>
           </TouchableOpacity>
         </View>
       </View>

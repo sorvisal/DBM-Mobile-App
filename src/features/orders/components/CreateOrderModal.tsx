@@ -55,14 +55,14 @@ export function CreateOrderModal({ visible, onClose, onSubmit }: CreateOrderModa
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View className="flex-1 justify-end">
         <View className="bg-white rounded-t-3xl max-h-[85%] shadow-slate-50">
-          <View className="flex-row bg-blue-600 items-center justify-between px-5 pt-4 pb-3 border-b border-gray-100 rounded-t-xl">
+          <View className="flex-row bg-blue-600 items-center justify-between px-5 pt-4 pb-3 rounded-t-xl">
             <Text className="font-khmerBold text-white text-xl">បង្កើតការបញ្ជាទិញថ្មី</Text>
             <TouchableOpacity onPress={onClose}>
               <Ionicons name="close" size={22} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
 
-          <ScrollView className="px-5 pt-4" showsVerticalScrollIndicator={false}>
+          <ScrollView className="px-5 pt-3" showsVerticalScrollIndicator={false}>
             <FormField label="លេខកូដ" required>
               <TextInput
                 value={values.code}

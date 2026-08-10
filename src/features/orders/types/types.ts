@@ -39,4 +39,8 @@ export type Order = {
   deliveryFee: number;
   total: number;
   delivery?: OrderDelivery;
+  paymentMethod?: string;
+  address?: string;
+  note?: string;
+  paymentStatus?: string;
 };
