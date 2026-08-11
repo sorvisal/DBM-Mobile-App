@@ -1,18 +1,26 @@
-export interface DashboardStats {
-  totalStock: number;
-  totalOrders: number;
-  totalCustomers: number;
-  totalIncome: number;
-}
+export type DashboardStat = {
+  key: string;
+  icon: string;
+  iconBg: string;
+  title: string;
+  value: string;
+  unit: string;
+};
 
-export interface ActivityItem {
+export type QuickAction = {
+  key: string;
+  icon: string;
+  iconBg: string;
+  iconColor: string;
+  title: string;
+  subtitle: string;
+};
+
+export type RecentActivity = {
   id: string;
-  type: string;
-  description: string;
-  createdAt: string;
-}
-
-export interface DashboardSummary {
-  stats: DashboardStats;
-  recentActivity: ActivityItem[];
-}
+  icon: string;
+  iconBg: string;
+  iconColor: string;
+  title: string;
+  time: string;
+};

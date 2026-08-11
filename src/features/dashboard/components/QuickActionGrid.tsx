@@ -1,9 +1,18 @@
-import { View, Text } from "react-native";
+import { View } from "react-native";
+import { QuickAction } from "../types/dashboard.types";
+import { QuickActionCard } from "./QuickActionCard";
 
-export function QuickActionGrid() {
+type QuickActionGridProps = {
+  actions: QuickAction[];
+  onPressAction?: (key: string) => void;
+};
+
+export function QuickActionGrid({ actions, onPressAction }: QuickActionGridProps) {
   return (
-    <View>
-      <Text>QuickActionGrid</Text>
+    <View className="flex-row flex-wrap px-5 mt-4 gap-3">
+      {actions.map((action) => (
+        <QuickActionCard key={action.key} action={action} onPress={() => onPressAction?.(action.key)} />
+      ))}
     </View>
   );
 }

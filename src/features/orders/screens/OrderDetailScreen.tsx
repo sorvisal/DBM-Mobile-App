@@ -59,7 +59,7 @@ const handleConfirmOrder = () => {
     {/* Header */}
     <View className="bg-white px-5 pt-3 pb-3 flex-row items-center justify-between relative border-b border-gray-100">
       <TouchableOpacity onPress={onBack}>
-        <Ionicons name="chevron-back" size={26} color="#1F2937" />
+        <Ionicons name="arrow-back" size={26} color="#1F2937" />
       </TouchableOpacity>
 
       <View className="absolute left-0 right-0 items-center justify-center pointer-events-none">

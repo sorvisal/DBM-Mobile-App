@@ -7,3 +7,4 @@ export * from "./components/RecentActivityList";
 export * from "./components/RecentActivityItem";
 export * from "./hooks/useDashboardSummary";
 export * from "./types/dashboard.types";
+export * from "./types/dashboard.types";

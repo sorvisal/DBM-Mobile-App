@@ -18,7 +18,7 @@ export function RootLayout() {
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard":
-        return <DashboardScreen />;
+      return <DashboardScreen onNavigateTab={setActiveTab} />;
       case "stock":
         return <StockScreen />;
       case "orders":

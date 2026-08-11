@@ -7,7 +7,7 @@ import { AddStockScreen } from "./AddStockScreen";
 export type StockTabKey = "add" | "history" | "products" | "expiry";
 
 export function StockScreen() {
-  const [activeStockTab, setActiveStockTab] = useState<StockTabKey>("add");
+  const [activeStockTab, setActiveStockTab] = useState<StockTabKey>("products");
 
   switch (activeStockTab) {
     case "add":
