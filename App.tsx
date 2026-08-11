@@ -1,10 +1,8 @@
-import "./global.css";
 import { useEffect, useCallback, useState } from "react";
-import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import * as SplashScreenNative from "expo-splash-screen";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ReducedMotionConfig, ReduceMotion } from "react-native-reanimated";
 
 import { RootLayout } from "./src/layouts/RootLayout";
@@ -44,8 +42,7 @@ export default function App() {
       <SafeAreaProvider>
         {stage === "splash" && <SplashScreen onFinish={() => setStage("auth")} />}
         {stage === "auth" && <AuthLayout onAuthenticated={() => setStage("main")} />}
-        {stage === "main" && <RootLayout />}
-        <StatusBar style="light" />
+        {stage === "main" && <RootLayout onLogout={() => setStage("auth")} />}
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

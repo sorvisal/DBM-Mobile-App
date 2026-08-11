@@ -1,3 +1,3 @@
 export { Header } from "./Header";
 export { Footer } from "./Footer";
-export { TabBar } from "./TabBar";
+export { SideMenu } from "./SideMenu";

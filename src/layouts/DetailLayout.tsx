@@ -6,6 +6,7 @@ type TabKey = "dashboard" | "stock" | "orders" | "customers" | "income";
 type DetailLayoutProps = {
   activeTab: TabKey;
   onTabPress: (tab: TabKey) => void;
+  onOpenMenu: () => void;
   children: React.ReactNode;
 };
 

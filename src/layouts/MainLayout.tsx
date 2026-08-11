@@ -7,13 +7,14 @@ type TabKey = "dashboard" | "stock" | "orders" | "customers" | "income";
 type MainLayoutProps = {
   activeTab: TabKey;
   onTabPress: (tab: TabKey) => void;
+  onOpenMenu: () => void;
   children: React.ReactNode;
 };
 
-export function MainLayout({ activeTab, onTabPress, children }: MainLayoutProps) {
+export function MainLayout({ activeTab, onTabPress, onOpenMenu, children }: MainLayoutProps) {
   return (
     <View className="flex-1" style={{ height: "100%" }}>
-      <Header />
+      <Header onMenuPress={onOpenMenu} />
 
       <View className="flex-1" style={{ minHeight: 0 }}>
         {children}

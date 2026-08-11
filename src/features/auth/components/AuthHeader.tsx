@@ -21,7 +21,7 @@ export function AuthHeader() {
 
       {/* App name + tagline */}
       <Text className="font-khmerBold text-white text-3xl">DBM App</Text>
-      <Text className="font-khmer text-white/70 text-2xl mt-1">ប្រព័ន្ធគ្រប់គ្រងហាង</Text>
+      <Text className="font-khmer text-white/70 text-2xl mt-1">ប្រព័ន្ធគ្រប់គ្រងស្តុក</Text>
     </View>
   );
 }
