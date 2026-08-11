@@ -1,9 +1,9 @@
-import { View, Text } from "react-native";
+import { AuthScreen } from "../features/auth/screens/AuthScreen";
 
-export function AuthLayout() {
-  return (
-    <View>
-      <Text>AuthLayout</Text>
-    </View>
-  );
+type AuthLayoutProps = {
+  onAuthenticated: () => void;
+};
+
+export function AuthLayout({ onAuthenticated }: AuthLayoutProps) {
+  return <AuthScreen onAuthenticated={onAuthenticated} />;
 }

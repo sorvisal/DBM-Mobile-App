@@ -1,15 +1,19 @@
 import "./global.css";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
-import * as SplashScreen from "expo-splash-screen";
+import * as SplashScreenNative from "expo-splash-screen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { ReducedMotionConfig, ReduceMotion } from "react-native-reanimated";
 
 import { RootLayout } from "./src/layouts/RootLayout";
+import { AuthLayout } from "./src/layouts/AuthLayout";
+import { SplashScreen } from "./src/screens/SplashScreen";
 
-// Keep splash screen visible while we fetch resources
-SplashScreen.preventAutoHideAsync();
+SplashScreenNative.preventAutoHideAsync();
+
+type AppStage = "splash" | "auth" | "main";
 
 export default function App() {
   const [fontsLoaded, fontError] = useFonts({
@@ -18,9 +22,11 @@ export default function App() {
     "KantumruyPro-Bold": require("./src/assets/fonts/KantumruyPro-Bold.ttf"),
   });
 
+  const [stage, setStage] = useState<AppStage>("splash");
+
   const onLayoutRootView = useCallback(async () => {
     if (fontsLoaded || fontError) {
-      await SplashScreen.hideAsync();
+      await SplashScreenNative.hideAsync();
     }
   }, [fontsLoaded, fontError]);
 
@@ -34,8 +40,11 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <ReducedMotionConfig mode={ReduceMotion.Never} />
       <SafeAreaProvider>
-        <RootLayout />
+        {stage === "splash" && <SplashScreen onFinish={() => setStage("auth")} />}
+        {stage === "auth" && <AuthLayout onAuthenticated={() => setStage("main")} />}
+        {stage === "main" && <RootLayout />}
         <StatusBar style="light" />
       </SafeAreaProvider>
     </GestureHandlerRootView>
