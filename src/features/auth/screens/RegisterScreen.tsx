@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,23 +7,27 @@ import {
   KeyboardAvoidingView,
   Platform,
   TextInput,
+  Alert,
 } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import { AuthHeader } from "../components/AuthHeader";
 import { AuthInput } from "../components/AuthInput";
 import { AuthButton } from "../components/AuthButton";
 import { validateRegister } from "../hooks/useAuthValidation";
 import { RegisterFormValues, FormErrors } from "../types";
+import { api, setAccessToken, setTokens } from "@/services";
 
 type RegisterScreenProps = {
   onRegisterSuccess: () => void;
   onGoLogin: () => void;
 };
 
-const initialValues: RegisterFormValues = { username: "", email: "", mobile: "", password: "" };
+const initialValues: RegisterFormValues = { username: "", email: "", mobile: "", password: "", confirmPassword: "" };
 
 export function RegisterScreen({ onRegisterSuccess, onGoLogin }: RegisterScreenProps) {
   const [values, setValues] = useState<RegisterFormValues>(initialValues);
   const [errors, setErrors] = useState<FormErrors<RegisterFormValues>>({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const emailRef = useRef<TextInput>(null);
   const mobileRef = useRef<TextInput>(null);
@@ -34,16 +38,39 @@ export function RegisterScreen({ onRegisterSuccess, onGoLogin }: RegisterScreenP
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: undefined }));
   };
 
-  const handleRegister = () => {
+  const handleRegister = useCallback(async () => {
     const validationErrors = validateRegister(values);
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length === 0) {
-      onRegisterSuccess();
+      if (values.password !== values.confirmPassword) {
+        setErrors({ password: "ពាក្យសម្ងាត់មិនត្រឹមត្រូវ" });
+        return;
+      }
+      setIsLoading(true);
+      try {
+        const res = await api.auth.register({
+          fullName: values.username,
+          usernameOrEmail: values.email,
+          password: values.password,
+          storeName: values.username,
+          phone: values.mobile,
+        });
+        setAccessToken(res.tokens.accessToken);
+        await setTokens(res.tokens);
+        onRegisterSuccess();
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "ចុះឈ្មោះបរាជ័យ";
+        Alert.alert("ចុះឈ្មោះ", message);
+        setErrors({ email: message });
+      } finally {
+        setIsLoading(false);
+      }
     }
-  };
+  }, [values]);
 
   return (
     <KeyboardAvoidingView className="flex-1 bg-blue-600" behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <StatusBar style="light" />
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ flexGrow: 1 }}
@@ -100,11 +127,22 @@ export function RegisterScreen({ onRegisterSuccess, onGoLogin }: RegisterScreenP
             onChangeText={(v) => update("password", v)}
             error={errors.password}
             isPassword
+            returnKeyType="next"
+            onSubmitEditing={() => {}}
+          />
+
+          <AuthInput
+            label="បញ្ជាក់ពាក្យសម្ងាត់"
+            placeholder="បញ្ជាក់ពាក្យសម្ងាត់"
+            value={values.confirmPassword}
+            onChangeText={(v) => update("confirmPassword", v)}
+            error={errors.confirmPassword}
+            isPassword
             returnKeyType="done"
             onSubmitEditing={handleRegister}
           />
 
-          <AuthButton label="ចុះឈ្មោះ" onPress={handleRegister} />
+          <AuthButton label={isLoading ? "កំពុងចុះឈ្មោះ..." : "ចុះឈ្មោះ"} onPress={handleRegister} />
 
           <View className="flex-row items-center justify-center mt-6 mb-8">
             <Text className="font-khmer text-gray-500 text-xl">មានគណនីរួចហើយ? </Text>

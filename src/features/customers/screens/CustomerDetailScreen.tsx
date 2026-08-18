@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Modal, Pressable } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Modal, Pressable, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useCustomerDetail } from "../hooks/useCustomerDetail";
 import { deleteCustomer, updateCustomer } from "../hooks/useCustomerList";
@@ -15,11 +15,12 @@ type CustomerDetailScreenProps = {
 };
 
 export function CustomerDetailScreen({ customerId, onBack, onViewHistory }: CustomerDetailScreenProps) {
-  const { customer } = useCustomerDetail(customerId);
+  const { customer, isLoading } = useCustomerDetail(customerId);
   const [menuVisible, setMenuVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
 
-  if (!customer) {
+  // Only show "not found" once loading has finished and there's really no customer
+  if (!isLoading && !customer) {
     return (
       <View className="flex-1 bg-gray-50 items-center justify-center" style={{ minHeight: 0 }}>
         <Text className="font-khmer text-gray-400 text-sm">រកមិនឃើញអតិថិជន</Text>
@@ -28,12 +29,11 @@ export function CustomerDetailScreen({ customerId, onBack, onViewHistory }: Cust
   }
 
   const handleSaveEdit = (values: EditCustomerValues) => {
+    if (!customer) return;
     updateCustomer(customer.id, {
       name: values.name,
       phone: values.phone,
-      location: values.address,
-      customerType: values.category,
-      note: values.description || "-",
+      address: values.address,
       status: values.status,
     });
     setEditModalVisible(false);
@@ -56,19 +56,21 @@ export function CustomerDetailScreen({ customerId, onBack, onViewHistory }: Cust
         </TouchableOpacity>
       </View>
 
-      <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
-        <CustomerInfoCard customer={customer} />
-        <CustomerSpendingCard customer={customer} />
-        <CustomerActionButtons
-          customer={customer}
-          onEdit={() => setEditModalVisible(true)}
-          onDelete={() => {
-            deleteCustomer(customer.id);
-            onBack();
-          }}
-        />
-        <View className="h-6" />
-      </ScrollView>
+      {customer && (
+        <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
+          <CustomerInfoCard customer={customer} />
+          <CustomerSpendingCard customer={customer} />
+          <CustomerActionButtons
+            customer={customer}
+            onEdit={() => setEditModalVisible(true)}
+            onDelete={() => {
+              deleteCustomer(customer.id);
+              onBack();
+            }}
+          />
+          <View className="h-6" />
+        </ScrollView>
+      )}
 
       {/* Dropdown menu triggered by "..." */}
       <Modal visible={menuVisible} transparent animationType="fade" onRequestClose={() => setMenuVisible(false)}>
@@ -77,7 +79,7 @@ export function CustomerDetailScreen({ customerId, onBack, onViewHistory }: Cust
             <TouchableOpacity
               onPress={() => {
                 setMenuVisible(false);
-                onViewHistory(customer.id);
+                onViewHistory(customer!.id);
               }}
               className="flex-row items-center px-4 py-3"
             >
@@ -88,12 +90,25 @@ export function CustomerDetailScreen({ customerId, onBack, onViewHistory }: Cust
         </Pressable>
       </Modal>
 
-      <EditCustomerModal
-        visible={editModalVisible}
-        customer={customer}
-        onClose={() => setEditModalVisible(false)}
-        onSubmit={handleSaveEdit}
-      />
+      {customer && (
+        <EditCustomerModal
+          visible={editModalVisible}
+          customer={customer}
+          onClose={() => setEditModalVisible(false)}
+          onSubmit={handleSaveEdit}
+        />
+      )}
+
+      {/* Loading overlay — sits on top of the screen while the request is in flight */}
+      {isLoading && (
+        <View
+          className="absolute inset-0 items-center justify-center bg-white"
+          style={{ zIndex: 50 }}
+        >
+          <ActivityIndicator size="large" color="#2563EB" />
+          <Text className="font-khmer text-gray-400 text-sm mt-3">កំពុងផ្ទុក...</Text>
+        </View>
+      )}
     </View>
   );
 }

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { View, Text } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 
 type SplashScreenProps = {
@@ -15,6 +16,7 @@ export function SplashScreen({ onFinish, duration = 1800 }: SplashScreenProps) {
 
   return (
     <View className="flex-1 bg-blue-600 items-center justify-center">
+      <StatusBar style="light" />
       <View className="w-24 h-24 rounded-3xl bg-white/15 items-center justify-center mb-4">
         <Ionicons name="cube" size={60} color="white" />
       </View>

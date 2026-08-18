@@ -1,139 +1,195 @@
-import { useSyncExternalStore } from "react";
-import { Customer, CustomerStatus } from "../types/customer.types";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { api, cacheGet, cacheGetStale, cacheSet, cacheClearKeySync, CacheTTL, suppressGlobalLoading, unsuppressGlobalLoading } from "@/services";
+import { resolveMediaUrl } from "@/services/http";
+import { CustomerStatus } from "../types/customer.types";
 
-let customers: Customer[] = [
-  {
-    id: "1",
-    code: "CUS-001",
-    name: "ហេង សុភា",
-    initials: "HS",
-    avatarColor: "#2563EB",
-    phone: "012 345 678",
-    location: "ភ្នំពេញ",
-    status: CustomerStatus.Active,
-    totalOrders: 12,
-    totalSpent: 350.0,
-    memberSince: "15/01/2024",
-    customerType: "អតិថិជនប្រចាំ",
-    note: "-",
-    orders: [
-      { id: "o1", code: "ORD-250525-001", date: "25/05/2025 10:30 AM", status: "កំពុងដឹក", total: 120.0, itemCount: 3 },
-      { id: "o2", code: "ORD-250525-002", date: "20/05/2025 11:20 AM", status: "កំពុងដឹក", total: 85.5, itemCount: 2 },
-      { id: "o3", code: "ORD-250525-003", date: "18/05/2025 09:45 AM", status: "បានបញ្ចប់", total: 150.75, itemCount: 4 },
-      { id: "o4", code: "ORD-250524-004", date: "15/05/2025 03:10 PM", status: "បានបញ្ចប់", total: 60.0, itemCount: 1 },
-      { id: "o5", code: "ORD-250524-005", date: "10/05/2025 09:15 AM", status: "បោះបង់", total: 45.0, itemCount: 1 },
-      { id: "o6", code: "ORD-250520-006", date: "05/05/2025 02:20 PM", status: "បានបញ្ចប់", total: 200.0, itemCount: 5 },
-    ],
-  },
-  {
-    id: "2",
-    code: "CUS-002",
-    name: "លី ដារា",
-    initials: "LD",
-    avatarColor: "#EA580C",
-    phone: "098 765 432",
-    location: "សៀមរាប",
-    status: CustomerStatus.Active,
-    totalOrders: 8,
-    totalSpent: 210.0,
-    memberSince: "03/03/2024",
-    customerType: "អតិថិជនប្រចាំ",
-    note: "-",
-    orders: [
-      { id: "o7", code: "ORD-250521-001", date: "21/05/2025 01:00 PM", status: "បានបញ្ចប់", total: 90.0, itemCount: 2 },
-    ],
-  },
-  {
-    id: "3",
-    code: "CUS-003",
-    name: "ស្រី ចន្ថា",
-    initials: "SR",
-    avatarColor: "#16A34A",
-    phone: "097 111 222",
-    location: "បាត់ដំបង",
-    status: CustomerStatus.Active,
-    totalOrders: 15,
-    totalSpent: 480.0,
-    memberSince: "20/11/2023",
-    customerType: "អតិថិជនធំ",
-    note: "ទិញញឹកញាប់",
-    orders: [
-      { id: "o8", code: "ORD-250519-001", date: "19/05/2025 04:00 PM", status: "កំពុងដឹក", total: 130.0, itemCount: 3 },
-    ],
-  },
-  {
-    id: "4",
-    code: "CUS-004",
-    name: "ផៅ ពិដា",
-    initials: "PT",
-    avatarColor: "#9333EA",
-    phone: "088 333 444",
-    location: "កំពត",
-    status: CustomerStatus.Inactive,
-    totalOrders: 3,
-    totalSpent: 95.0,
-    memberSince: "10/02/2025",
-    customerType: "អតិថិជនថ្មី",
+interface FeatureCustomer {
+  id: string;
+  code: string;
+  name: string;
+  initials: string;
+  avatarColor: string;
+  phone: string;
+  location: string;
+  status: CustomerStatus;
+  totalOrders: number;
+  totalSpent: number;
+  memberSince: string;
+  customerType: string;
+  note: string;
+  orders: { id: string; code: string; date: string; status: string; total: number; itemCount: number }[];
+  imageUrl?: string | null;
+  _photoPath?: string | null;
+}
+
+const AVATAR_COLORS = ["#2563EB", "#EA580C", "#16A34A", "#9333EA", "#CA8A04", "#DC2626"];
+const PAGE_SIZE = 20;
+const STALE_TTL = CacheTTL.LONG;
+
+function cacheKeyForPage(p: number) {
+  return `customers:list:p${p}`;
+}
+
+function getInitials(name: string) {
+  return name.trim().split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
+}
+
+function formatDate(iso: string) {
+  const d = new Date(iso);
+  return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+}
+
+function mapCustomer(c: { id: string; name: string; phone?: string; address?: string; status: string; balance: number; totalOrders?: number; createdAt: string; photoPath?: string | null }, index: number): FeatureCustomer {
+  return {
+    id: c.id,
+    code: `CUS-${c.id}`,
+    name: c.name,
+    initials: getInitials(c.name),
+    avatarColor: AVATAR_COLORS[index % AVATAR_COLORS.length],
+    phone: c.phone ?? "",
+    location: c.address ?? "",
+    status: c.status === "inactive" ? CustomerStatus.Inactive : CustomerStatus.Active,
+    totalOrders: c.totalOrders ?? 0,
+    totalSpent: c.balance ?? 0,
+    memberSince: formatDate(c.createdAt),
+    customerType: "អតិថិជន",
     note: "-",
     orders: [],
-  },
-  {
-    id: "5",
-    code: "CUS-005",
-    name: "គង់ គុសល",
-    initials: "KK",
-    avatarColor: "#CA8A04",
-    phone: "060 555 666",
-    location: "ព្រៃវែង",
-    status: CustomerStatus.Active,
-    totalOrders: 6,
-    totalSpent: 175.0,
-    memberSince: "05/06/2024",
-    customerType: "អតិថិជនប្រចាំ",
-    note: "-",
-    orders: [],
-  },
-];
-
-let listeners: Array<() => void> = [];
-
-function emitChange() {
-  listeners.forEach((listener) => listener());
-}
-
-export function getCustomers() {
-  return customers;
-}
-
-export function addCustomer(customer: Customer) {
-  customers = [customer, ...customers];
-  emitChange();
-}
-
-export function deleteCustomer(customerId: string) {
-  customers = customers.filter((c) => c.id !== customerId);
-  emitChange();
-}
-export function updateCustomer(customerId: string, patch: Partial<Customer>) {
-  customers = customers.map((c) => (c.id === customerId ? { ...c, ...patch } : c));
-  emitChange();
-}
-export function subscribeToCustomers(listener: () => void) {
-  listeners.push(listener);
-  return () => {
-    listeners = listeners.filter((l) => l !== listener);
+    imageUrl: resolveMediaUrl(c.photoPath),
+    _photoPath: c.photoPath ?? null,
   };
 }
 
 export function useCustomerList() {
-  const allCustomers = useSyncExternalStore(subscribeToCustomers, getCustomers, getCustomers);
+  const [allCustomers, setAllCustomers] = useState<FeatureCustomer[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [stale, setStale] = useState(false);
+  const customersRef = useRef(allCustomers);
+  customersRef.current = allCustomers;
+
+  const loadPage = useCallback(async (p: number, append = false) => {
+    if (append) setIsFetchingMore(true);
+    else { setIsLoading(true); setAllCustomers([]); }
+    try {
+      const res = await api.customers.list({ page: p, pageSize: PAGE_SIZE });
+      const mapped = (res.items ?? [])
+        .map((c, i) => mapCustomer(c, (p - 1) * PAGE_SIZE + i))
+        .filter((c: FeatureCustomer, idx: number, arr: FeatureCustomer[]) => arr.findIndex((x) => x.id === c.id) === idx);
+      // Cache each page individually for instant loadMore
+            cacheSet(cacheKeyForPage(p), mapped, STALE_TTL).catch(() => {});
+      if (p === 1) {
+        setAllCustomers(mapped);
+        setTotal(res.total ?? mapped.length);
+      } else {
+        const existingIds = new Set(allCustomers.map((c) => c.id));
+        setAllCustomers((prev) => [...prev, ...mapped.filter((c) => !existingIds.has(c.id))]);
+      }
+      setPage(p);
+      setStale(false);
+    } catch {
+      if (!append) setAllCustomers([]);
+    } finally {
+      setIsLoading(false);
+      setIsFetchingMore(false);
+    }
+  }, []);
+
+  const prefetchRemainingPages = useCallback(async (currentTotal: number, fromPage: number) => {
+    const totalPages = Math.ceil(currentTotal / PAGE_SIZE);
+    const promises: Promise<void>[] = [];
+    for (let p = fromPage + 1; p <= totalPages; p++) {
+      promises.push(
+        cacheGet<FeatureCustomer[]>(cacheKeyForPage(p)).then((cached) => {
+          if (cached) return; // already cached
+          api.customers.list({ page: p, pageSize: PAGE_SIZE }).then((res) => {
+            const mapped = (res.items ?? []).map((c, i) => mapCustomer(c, (p - 1) * PAGE_SIZE + i));
+      cacheSet(cacheKeyForPage(p), mapped, STALE_TTL).catch(() => {});
+          }).catch(() => {});
+        })
+      );
+    }
+    await Promise.allSettled(promises);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    // Clear old cache that may lack imageUrl/_photoPath
+    cacheClearKeySync(cacheKeyForPage(1));
+    for (let p = 2; p <= 10; p++) cacheClearKeySync(cacheKeyForPage(p));
+
+    (async () => {
+      // Restore page 1 from cache instantly
+      const cached = await cacheGet<FeatureCustomer[]>(cacheKeyForPage(1));
+      if (cached && !cancelled) {
+        const ensured = cached.map((c) => c.imageUrl ? c : { ...c, imageUrl: resolveMediaUrl(c._photoPath) });
+        const seen = new Set<string>();
+        const unique = ensured.filter((c) => { if (seen.has(c.id)) return false; seen.add(c.id); return true; });
+        setAllCustomers(unique);
+        setTotal(unique.length);
+        setIsLoading(false);
+        setStale(true);
+      }
+
+      if (!cancelled) {
+        // Suppress global overlay if we already have cached data visible
+        if (cached) suppressGlobalLoading();
+        try {
+          await loadPage(1);
+        } catch {
+          // error already handled in loadPage
+        } finally {
+          if (cached) unsuppressGlobalLoading();
+        }
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const hasMore = allCustomers.length < total;
+  const loadMore = useCallback(() => {
+    if (isFetchingMore || !hasMore) return;
+    const nextPage = page + 1;
+    // Check cache first for instant loading
+    cacheGet<FeatureCustomer[]>(cacheKeyForPage(nextPage)).then((cached) => {
+      if (cached) {
+        const ensured = cached.map((c) => c.imageUrl ? c : { ...c, imageUrl: resolveMediaUrl(c._photoPath) });
+        const existingIds = new Set(allCustomers.map((c) => c.id));
+        setAllCustomers((prev) => [...prev, ...ensured.filter((c) => !existingIds.has(c.id))]);
+        setPage(nextPage);
+        setIsFetchingMore(false);
+        // Prefetch the next pages in background
+        prefetchRemainingPages(total, nextPage);
+        return;
+      }
+      loadPage(nextPage, true);
+    });
+  }, [isFetchingMore, hasMore, page, total, loadPage, prefetchRemainingPages]);
 
   const stats = {
-    totalCustomers: allCustomers.length,
+    totalCustomers: total,
     activeCustomers: allCustomers.filter((c) => c.status === CustomerStatus.Active).length,
     totalOrders: allCustomers.reduce((sum, c) => sum + c.totalOrders, 0),
     totalSpent: allCustomers.reduce((sum, c) => sum + c.totalSpent, 0),
   };
 
-  return { customers: allCustomers, stats, isLoading: false };
+  return { allCustomers, stats, isLoading, isFetchingMore, hasMore, loadMore, stale };
+}
+
+export async function addCustomer(values: { name: string; phone?: string; address?: string }) {
+  await api.customers.create({ name: values.name, phone: values.phone, address: values.address });
+  cacheClearKeySync(cacheKeyForPage(1));
+}
+
+export async function updateCustomer(id: string, patch: { name?: string; phone?: string; address?: string; status?: "active" | "inactive" }) {
+  await api.customers.update(id, patch);
+  cacheClearKeySync(cacheKeyForPage(1));
+}
+
+export async function deleteCustomer(id: string) {
+  await api.customers.remove(id);
+  cacheClearKeySync(cacheKeyForPage(1));
 }

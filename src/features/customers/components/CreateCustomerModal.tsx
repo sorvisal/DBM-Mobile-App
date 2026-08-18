@@ -1,15 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, Modal, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { DateField } from "../../stock/components/DateField";
 import { Dropdown } from "../../stock/components/Dropdown";
 import { CustomerStatus } from "../types/customer.types";
+import { androidInputStyle } from "@/theme/inputStyles";
+import { AddressAutocomplete, type AddressResult } from "@/components/AddressAutocomplete";
+
+const generateCode = () => `CUS-${String(Math.floor(Math.random() * 900) + 100)}`;
 
 export type CreateCustomerValues = {
   code: string;
   name: string;
   phone: string;
   address: string;
+  latitude: string;
+  longitude: string;
   category: string;
   joinDate: Date | null;
   description: string;
@@ -21,6 +27,8 @@ const initialValues: CreateCustomerValues = {
   name: "",
   phone: "",
   address: "",
+  latitude: "",
+  longitude: "",
   category: "",
   joinDate: null,
   description: "",
@@ -61,9 +69,15 @@ export function CreateCustomerModal({ visible, onClose, onSubmit }: CreateCustom
   const update = (key: keyof CreateCustomerValues, value: string) =>
     setValues((prev) => ({ ...prev, [key]: value }));
 
+  useEffect(() => {
+    if (visible) {
+      setValues((prev) => ({ ...prev, code: generateCode() }));
+    }
+  }, [visible]);
+
   const handleSubmit = () => {
-    onSubmit(values);
-    setValues(initialValues);
+    onSubmit({ ...values, code: values.code || generateCode() });
+    setValues({ ...initialValues, code: generateCode() });
   };
 
   return (
@@ -78,14 +92,13 @@ export function CreateCustomerModal({ visible, onClose, onSubmit }: CreateCustom
           </View>
 
           <ScrollView className="px-5 pt-4" showsVerticalScrollIndicator={false}>
-            <FormField label="លេខកូដអតិថិជន" required>
+            <FormField label="លេខកូដអតិថិជន">
               <TextInput
                 value={values.code}
                 onChangeText={(v) => update("code", v)}
-                placeholder="CUS-006"
                 placeholderTextColor="#D1D5DB"
-                className="font-khmer border border-gray-200 rounded-xl px-3 h-11 text-xl text-gray-800"
-                style={{ outlineWidth: 0 }}
+                className="font-khmer border border-gray-200 rounded-xl px-3 h-11 text-lg text-gray-800"
+                style={androidInputStyle}
               />
             </FormField>
 
@@ -95,8 +108,8 @@ export function CreateCustomerModal({ visible, onClose, onSubmit }: CreateCustom
                 onChangeText={(v) => update("name", v)}
                 placeholder="បញ្ចូលឈ្មោះអតិថិជន"
                 placeholderTextColor="#D1D5DB"
-                className="font-khmer border border-gray-200 rounded-xl px-3 h-11 text-xl text-gray-800"
-                style={{ outlineWidth: 0 }}
+                className="font-khmer border border-gray-200 rounded-xl px-3 h-11 text-lg text-gray-800"
+                style={{ outlineWidth: 0, paddingVertical: 0, includeFontPadding: false, textAlignVertical: "center" }}
               />
             </FormField>
 
@@ -107,19 +120,24 @@ export function CreateCustomerModal({ visible, onClose, onSubmit }: CreateCustom
                 keyboardType="phone-pad"
                 placeholder="012 345 678"
                 placeholderTextColor="#D1D5DB"
-                className="font-khmer border border-gray-200 rounded-xl px-3 h-11 text-xl text-gray-800"
-                style={{ outlineWidth: 0 }}
+                className="font-khmer border border-gray-200 rounded-xl px-3 h-11 text-lg text-gray-800"
+                style={{ outlineWidth: 0, paddingVertical: 0, includeFontPadding: false, textAlignVertical: "center" }}
               />
             </FormField>
 
             <FormField label="អាសយដ្ឋាន">
-              <TextInput
+              <AddressAutocomplete
                 value={values.address}
-                onChangeText={(v) => update("address", v)}
+                onChange={(v) => update("address", v)}
+                onSelect={(place: AddressResult) => {
+                  setValues((prev) => ({
+                    ...prev,
+                    address: place.displayName,
+                    latitude: place.latitude,
+                    longitude: place.longitude,
+                  }));
+                }}
                 placeholder="ភ្នំពេញ, ខណ្ឌចំការមន"
-                placeholderTextColor="#D1D5DB"
-                className="font-khmer border border-gray-200 rounded-xl px-3 h-11 text-xl text-gray-800"
-                style={{ outlineWidth: 0 }}
               />
             </FormField>
 
@@ -156,8 +174,8 @@ export function CreateCustomerModal({ visible, onClose, onSubmit }: CreateCustom
                 placeholder="កំណត់ចំណាំបន្ថែម"
                 placeholderTextColor="#D1D5DB"
                 multiline
-                className="font-khmer border border-gray-200 rounded-xl px-3 py-2.5 text-xl text-gray-800 h-20"
-                style={{ textAlignVertical: "top", outlineWidth: 0 }}
+                className="font-khmer border border-gray-200 rounded-xl px-3 py-2.5 text-lg text-gray-800 h-20"
+                style={{ ...androidInputStyle, textAlignVertical: "top" }}
               />
             </FormField>
 

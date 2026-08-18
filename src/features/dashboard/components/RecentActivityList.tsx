@@ -1,14 +1,15 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { RecentActivity } from "../types/dashboard.types";
 import { RecentActivityItem } from "./RecentActivityItem";
+import type { RecentActivity } from "../types/dashboard.types";
 
 type RecentActivityListProps = {
   items: RecentActivity[];
+  isLoading?: boolean;
   onViewAll?: () => void;
 };
 
-export function RecentActivityList({ items, onViewAll }: RecentActivityListProps) {
+export function RecentActivityList({ items, isLoading = false, onViewAll }: RecentActivityListProps) {
   return (
     <View className="px-5 mt-6 mb-6">
       <View className="flex-row items-center justify-between mb-3">
@@ -20,7 +21,11 @@ export function RecentActivityList({ items, onViewAll }: RecentActivityListProps
       </View>
 
       <View className="bg-white rounded-2xl overflow-hidden">
-        {items.length === 0 ? (
+        {isLoading ? (
+          <View className="items-center py-6">
+            <Text className="font-khmer text-gray-400 text-sm">កំពុងផ្ទុក...</Text>
+          </View>
+        ) : items.length === 0 ? (
           <Text className="font-khmer text-gray-400 text-sm text-center py-6">មិនមានសកម្មភាពថ្មីៗទេ</Text>
         ) : (
           items.map((item, index) => (

@@ -10,7 +10,7 @@ export function OrderSummary({ subtotal, deliveryFee, total }: OrderSummaryProps
   return (
     <View className="mt-2">
       <View className="flex-row items-center justify-between py-1">
-        <Text className="font-khmer text-gray-500 text-xl">សរុបរង</Text>
+        <Text className="font-khmer text-gray-500 text-xl">សរុប</Text>
         <Text className="font-khmer text-gray-800 text-xl">${subtotal.toFixed(2)}</Text>
       </View>
       <View className="flex-row items-center justify-between py-1">

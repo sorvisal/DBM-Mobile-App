@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Linking } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Linking, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { OrderStatus } from "../types/types";
 import { useOrderDetail } from "../hooks/useOrderDetail";
@@ -16,27 +16,45 @@ type OrderDetailScreenProps = {
 };
 
 export function OrderDetailScreen({ orderId, onBack }: OrderDetailScreenProps) {
-  const { order } = useOrderDetail(orderId);
+  const { order, isLoading } = useOrderDetail(orderId);
   const { updateOrderStatus } = useUpdateOrderStatus();
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
 
-  if (!order) {
+  // Loading state — full-screen overlay, shown while the request is in flight
+  if (isLoading) {
     return (
-      <View className="flex-1 bg-gray-50 items-center justify-center" style={{ minHeight: 0 }}>
-        <Text className="font-khmer text-gray-400 text-xl">រកមិនឃើញការបញ្ជាទិញ</Text>
+      <View className="flex-1 bg-gray-50" style={{ minHeight: 0 }}>
+        <View className="bg-white px-5 pt-3 pb-3 flex-row items-center justify-between relative border-b border-gray-100">
+          <TouchableOpacity onPress={onBack}>
+            <Ionicons name="arrow-back" size={26} color="#1F2937" />
+          </TouchableOpacity>
+          <View className="absolute left-0 right-0 items-center justify-center pointer-events-none">
+            <Text className="font-khmerBold text-gray-900 text-2xl">​</Text>
+          </View>
+          <View style={{ width: 26 }} />
+        </View>
+
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#2563EB" />
+          <Text className="font-khmer text-gray-400 text-sm mt-3">កំពុងផ្ទុក...</Text>
+        </View>
       </View>
     );
   }
 
-const handleConfirmOrder = () => {
-  updateOrderStatus(order.id, OrderStatus.Shipping, {
-    confirmedAt: new Date().toLocaleString(),
-    driverName: "គង់ សុគន្ធ",
-    driverPhone: "093 456 789",
-    vehiclePlate: "1B-2345",
-  });
-  setConfirmModalVisible(false);
-};
+  if (!order) {
+    return null;
+  }
+
+  const handleConfirmOrder = () => {
+    updateOrderStatus(order.id, OrderStatus.Shipping, {
+      confirmedAt: new Date().toLocaleString(),
+      driverName: "គង់ សុគន្ធ",
+      driverPhone: "093 456 789",
+      vehiclePlate: "1B-2345",
+    });
+    setConfirmModalVisible(false);
+  };
 
   const handleCancelOrder = () => {
     updateOrderStatus(order.id, OrderStatus.Cancelled);
@@ -56,18 +74,18 @@ const handleConfirmOrder = () => {
 
   return (
     <View className="flex-1 bg-gray-50" style={{ minHeight: 0 }}>
-    {/* Header */}
-    <View className="bg-white px-5 pt-3 pb-3 flex-row items-center justify-between relative border-b border-gray-100">
-      <TouchableOpacity onPress={onBack}>
-        <Ionicons name="arrow-back" size={26} color="#1F2937" />
-      </TouchableOpacity>
+      {/* Header */}
+      <View className="bg-white px-5 pt-3 pb-3 flex-row items-center justify-between relative border-b border-gray-100">
+        <TouchableOpacity onPress={onBack}>
+          <Ionicons name="arrow-back" size={26} color="#1F2937" />
+        </TouchableOpacity>
 
-      <View className="absolute left-0 right-0 items-center justify-center pointer-events-none">
-        <Text className="font-khmerBold text-gray-900 text-2xl">{order.code}</Text>
+        <View className="absolute left-0 right-0 items-center justify-center pointer-events-none">
+          <Text className="font-khmerBold text-gray-900 text-2xl">{order.code}</Text>
+        </View>
+
+        <View style={{ width: 26 }} />
       </View>
-
-      <View style={{ width: 26 }} />
-    </View>
 
       <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
         {/* Order card: code, status, customer, phone, date */}
@@ -178,8 +196,8 @@ const handleConfirmOrder = () => {
           <Text className="font-khmerBold text-gray-900 text-2xl mb-1">
             ទំនិញ ({order.items.length} មុខ)
           </Text>
-          {order.items.map((item) => (
-            <OrderItemRow key={item.id} item={item} />
+          {order.items.map((item, index) => (
+            <OrderItemRow key={`${item.id}-${index}`} item={item} />
           ))}
           <OrderSummary subtotal={order.subtotal} deliveryFee={order.deliveryFee} total={order.total} />
         </View>
@@ -187,69 +205,69 @@ const handleConfirmOrder = () => {
         <View className="h-6" />
       </ScrollView>
 
-{/* Action buttons */}
-{(order.status === OrderStatus.New || order.status === OrderStatus.Pending) && (
-  <View className="px-5 py-3 bg-white border-t border-gray-100 flex-row gap-3">
-    <TouchableOpacity
-      onPress={handleCancelOrder}
-      className="flex-1 border border-red-500 rounded-xl h-12 items-center justify-center"
-    >
-      <Text className="font-khmerBold text-red-500 text-xl">ដោះបង់</Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      onPress={() => setConfirmModalVisible(true)}
-      className="flex-1 bg-blue-600 rounded-xl h-12 items-center justify-center"
-    >
-      <Text className="font-khmerBold text-white text-xl">បញ្ជាក់ការទិញ</Text>
-    </TouchableOpacity>
-  </View>
-)}
+      {/* Action buttons */}
+      {(order.status === OrderStatus.New || order.status === OrderStatus.Pending) && (
+        <View className="px-5 py-3 bg-white border-t border-gray-100 flex-row gap-3">
+          <TouchableOpacity
+            onPress={handleCancelOrder}
+            className="flex-1 border border-red-500 rounded-xl h-12 items-center justify-center"
+          >
+            <Text className="font-khmerBold text-red-500 text-xl">បោះបង់</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setConfirmModalVisible(true)}
+            className="flex-1 bg-blue-600 rounded-xl h-12 items-center justify-center"
+          >
+            <Text className="font-khmerBold text-white text-xl">បញ្ជាក់ការទិញ</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
-{order.status === OrderStatus.Confirmed && (
-  <View className="px-5 py-3 bg-white border-t border-gray-100 flex-row gap-3">
-    <TouchableOpacity
-      onPress={() =>
-        updateOrderStatus(order.id, OrderStatus.Shipping, {
-          confirmedAt: new Date().toLocaleString(),
-        })
-      }
-      className="flex-1 bg-blue-600 rounded-xl h-12 items-center justify-center"
-    >
-      <Text className="font-khmerBold text-white text-xl">ដឹកជញ្ជូន</Text>
-    </TouchableOpacity>
-  </View>
-)}
+      {order.status === OrderStatus.Confirmed && (
+        <View className="px-5 py-3 bg-white border-t border-gray-100 flex-row gap-3">
+          <TouchableOpacity
+            onPress={() =>
+              updateOrderStatus(order.id, OrderStatus.Shipping, {
+                confirmedAt: new Date().toLocaleString(),
+              })
+            }
+            className="flex-1 bg-blue-600 rounded-xl h-12 items-center justify-center"
+          >
+            <Text className="font-khmerBold text-white text-xl">ដឹកជញ្ជូន</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
-{order.status === OrderStatus.Shipping && (
-  <View className="px-5 py-3 bg-white border-t border-gray-100 flex-row gap-3">
-    <TouchableOpacity
-      onPress={callDriver}
-      className="flex-1 border border-blue-600 rounded-xl h-12 items-center justify-center flex-row gap-1.5"
-    >
-      <Ionicons name="call-outline" size={16} color="#2563EB" />
-      <Text className="font-khmerBold text-blue-600 text-xl">ទាក់ទងអ្នកដឹក</Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      onPress={handleReceived}
-      className="flex-1 bg-blue-600 rounded-xl h-12 items-center justify-center"
-    >
-      <Text className="font-khmerBold text-white text-xl">បានទទួល</Text>
-    </TouchableOpacity>
-  </View>
-)}
+      {order.status === OrderStatus.Shipping && (
+        <View className="px-5 py-3 bg-white border-t border-gray-100 flex-row gap-3">
+          <TouchableOpacity
+            onPress={callDriver}
+            className="flex-1 border border-blue-600 rounded-xl h-12 items-center justify-center flex-row gap-1.5"
+          >
+            <Ionicons name="call-outline" size={16} color="#2563EB" />
+            <Text className="font-khmerBold text-blue-600 text-xl">ទាក់ទងអ្នកដឹក</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleReceived}
+            className="flex-1 bg-blue-600 rounded-xl h-12 items-center justify-center"
+          >
+            <Text className="font-khmerBold text-white text-xl">បានទទួល</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
-{order.status === OrderStatus.Completed && (
-  <View className="px-5 py-3 bg-white border-t border-gray-100">
-    <TouchableOpacity
-      onPress={() => {
-        // TODO: navigate to invoice screen or open invoice modal
-      }}
-      className="border border-blue-600 rounded-xl h-12 items-center justify-center"
-    >
-      <Text className="font-khmerBold text-blue-600 text-xl">មើលវិក័យប័ត្រ</Text>
-    </TouchableOpacity>
-  </View>
-)}
+      {order.status === OrderStatus.Completed && (
+        <View className="px-5 py-3 bg-white border-t border-gray-100">
+          <TouchableOpacity
+            onPress={() => {
+              // TODO: navigate to invoice screen or open invoice modal
+            }}
+            className="border border-blue-600 rounded-xl h-12 items-center justify-center"
+          >
+            <Text className="font-khmerBold text-blue-600 text-xl">មើលវិក័យប័ត្រ</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <OrderConfirmModal
         visible={confirmModalVisible}

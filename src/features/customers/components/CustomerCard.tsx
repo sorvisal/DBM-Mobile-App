@@ -17,7 +17,7 @@ export function CustomerCard({ customer, onPress }: CustomerCardProps) {
       className="flex-row items-center bg-white rounded-2xl p-3 mb-3"
       style={{ shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 }}
     >
-      <CustomerAvatar initials={customer.initials} color={customer.avatarColor} />
+      <CustomerAvatar initials={customer.initials} color={customer.avatarColor} source={customer.imageUrl} />
 
       <View className="flex-1 ml-3">
         <View className="flex-row items-center justify-between">

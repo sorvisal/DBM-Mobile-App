@@ -3,11 +3,14 @@ import { View, Text, TextInput, TouchableOpacity, Modal, ScrollView } from "reac
 import { Ionicons } from "@expo/vector-icons";
 import { Dropdown } from "../../stock/components/Dropdown";
 import { Customer, CustomerStatus } from "../types/customer.types";
+import { AddressAutocomplete, type AddressResult } from "@/components/AddressAutocomplete";
 
 export type EditCustomerValues = {
   name: string;
   phone: string;
   address: string;
+  latitude: string;
+  longitude: string;
   category: string;
   description: string;
   status: CustomerStatus;
@@ -47,6 +50,8 @@ export function EditCustomerModal({ visible, customer, onClose, onSubmit }: Edit
     name: "",
     phone: "",
     address: "",
+    latitude: "",
+    longitude: "",
     category: "",
     description: "",
     status: CustomerStatus.Active,
@@ -59,6 +64,8 @@ export function EditCustomerModal({ visible, customer, onClose, onSubmit }: Edit
         name: customer.name,
         phone: customer.phone,
         address: customer.location,
+        latitude: "",
+        longitude: "",
         category: customer.customerType,
         description: customer.note === "-" ? "" : customer.note,
         status: customer.status,
@@ -99,8 +106,8 @@ export function EditCustomerModal({ visible, customer, onClose, onSubmit }: Edit
                 onChangeText={(v) => update("name", v)}
                 placeholder="បញ្ចូលឈ្មោះអតិថិជន"
                 placeholderTextColor="#D1D5DB"
-                className="font-khmer border border-gray-200 rounded-xl px-3 h-11 text-xl text-gray-800"
-                style={{ outlineWidth: 0 }}
+                className="font-khmer border border-gray-200 rounded-xl px-3 h-11 text-lg text-gray-800"
+                style={{ outlineWidth: 0, paddingVertical: 0, includeFontPadding: false, textAlignVertical: "center" }}
               />
             </FormField>
 
@@ -111,19 +118,24 @@ export function EditCustomerModal({ visible, customer, onClose, onSubmit }: Edit
                 keyboardType="phone-pad"
                 placeholder="012 345 678"
                 placeholderTextColor="#D1D5DB"
-                className="font-khmer border border-gray-200 rounded-xl px-3 h-11 text-xl text-gray-800"
-                style={{ outlineWidth: 0 }}
+                className="font-khmer border border-gray-200 rounded-xl px-3 h-11 text-lg text-gray-800"
+                style={{ outlineWidth: 0, paddingVertical: 0, includeFontPadding: false, textAlignVertical: "center" }}
               />
             </FormField>
 
             <FormField label="អាសយដ្ឋាន">
-              <TextInput
+              <AddressAutocomplete
                 value={values.address}
-                onChangeText={(v) => update("address", v)}
+                onChange={(v) => update("address", v)}
+                onSelect={(place: AddressResult) => {
+                  setValues((prev) => ({
+                    ...prev,
+                    address: place.displayName,
+                    latitude: place.latitude,
+                    longitude: place.longitude,
+                  }));
+                }}
                 placeholder="ភ្នំពេញ, ខណ្ឌចំការមន"
-                placeholderTextColor="#D1D5DB"
-                className="font-khmer border border-gray-200 rounded-xl px-3 h-11 text-xl text-gray-800"
-                style={{ outlineWidth: 0 }}
               />
             </FormField>
 
@@ -152,8 +164,8 @@ export function EditCustomerModal({ visible, customer, onClose, onSubmit }: Edit
                 placeholder="កំណត់ចំណាំបន្ថែម"
                 placeholderTextColor="#D1D5DB"
                 multiline
-                className="font-khmer border border-gray-200 rounded-xl px-3 py-2.5 text-xl text-gray-800 h-20"
-                style={{ textAlignVertical: "top", outlineWidth: 0 }}
+                className="font-khmer border border-gray-200 rounded-xl px-3 py-2.5 text-lg text-gray-800 h-20"
+                style={{ paddingVertical: 0, includeFontPadding: false, textAlignVertical: "top", outlineWidth: 0 }}
               />
             </FormField>
 

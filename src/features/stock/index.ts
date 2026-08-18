@@ -1,15 +1,1 @@
-export * from "./screens/AddStockScreen";
-export * from "./screens/StockHistoryScreen";
-export * from "./screens/StockListScreen";
-export * from "./screens/LowStockScreen";
-export * from "./components/StockForm";
-export * from "./components/StockTabBar";
-export * from "./components/StockHistoryItem";
-export * from "./components/ProductCard";
-export * from "./components/ExpiryBadge";
-export * from "./hooks/useStockList";
-export * from "./hooks/useStockHistory";
-export * from "./hooks/useLowStock";
-export * from "./hooks/useAddStock";
-export * from "./types/stock.types";
-export * from "./constants/stock.constants";
+export { StockFilterTabs } from "./components/StockFilterTabs";

@@ -1,31 +1,50 @@
-import { IncomeOverview } from "../types/income.types";
-import { getDebtors } from "./useDebtors";
+import { useEffect, useState } from "react";
+import { api } from "@/services";
+import type { IncomeOverview } from "../types/income.types";
+import { useDebtors } from "./useDebtors";
 
-export function useIncomeSummary(): { overview: IncomeOverview; isLoading: false } {
-  const debtors = getDebtors();
+export function useIncomeSummary(): { overview: IncomeOverview; isLoading: boolean } {
+  const { allDebtors, totalDebt, debtorCount } = useDebtors();
+  const [overview, setOverview] = useState<IncomeOverview | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const overview: IncomeOverview = {
-    todayIncome: 250.0,
-    todayDate: "25/05/2025",
-    monthIncome: 4500.0,
-    monthLabel: "ខែ 5/2025",
-    monthGrowthPercent: 12.5,
-    yearIncome: 52000.0,
-    yearLabel: "ឆ្នាំ 2025",
-    yearGrowthPercent: 18.3,
-    totalDebt: debtors.reduce((sum, d) => sum + d.amount, 0),
-    debtorCount: debtors.length,
-    weeklyChart: [
-      { label: "19/05", amount: 120 },
-      { label: "20/05", amount: 180 },
-      { label: "21/05", amount: 160 },
-      { label: "22/05", amount: 210 },
-      { label: "23/05", amount: 240 },
-      { label: "24/05", amount: 230 },
-      { label: "25/05", amount: 250 },
-    ],
-    topDebtors: debtors.slice(0, 3),
-  };
+  useEffect(() => {
+    api.reports
+      .revenue("thisMonth")
+      .then((res) => {
+        setOverview({
+          todayIncome: 0,
+          todayDate: new Date().toLocaleDateString(),
+          monthIncome: res.totalRevenue,
+          monthLabel: `ខែ ${new Date().getMonth() + 1}/${new Date().getFullYear()}`,
+          monthGrowthPercent: 0,
+          yearIncome: res.totalRevenue,
+          yearLabel: `ឆ្នាំ ${new Date().getFullYear()}`,
+          yearGrowthPercent: 0,
+          totalDebt,
+          debtorCount,
+          weeklyChart: [],
+          topDebtors: allDebtors.slice(0, 3),
+        });
+      })
+      .catch(() => {
+        setOverview({
+          todayIncome: 0,
+          todayDate: new Date().toLocaleDateString(),
+          monthIncome: 0,
+          monthLabel: "",
+          monthGrowthPercent: 0,
+          yearIncome: 0,
+          yearLabel: "",
+          yearGrowthPercent: 0,
+          totalDebt: 0,
+          debtorCount: 0,
+          weeklyChart: [],
+          topDebtors: [],
+        });
+      })
+      .finally(() => setIsLoading(false));
+  }, [allDebtors, totalDebt, debtorCount]);
 
-  return { overview, isLoading: false };
+  return { overview: overview ?? { todayIncome: 0, todayDate: "", monthIncome: 0, monthLabel: "", monthGrowthPercent: 0, yearIncome: 0, yearLabel: "", yearGrowthPercent: 0, totalDebt: 0, debtorCount: 0, weeklyChart: [], topDebtors: [] }, isLoading };
 }

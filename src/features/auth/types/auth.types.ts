@@ -8,6 +8,7 @@ export type RegisterFormValues = {
   email: string;
   mobile: string;
   password: string;
+  confirmPassword: string;
 };
 
 export type FormErrors<T> = Partial<Record<keyof T, string>>;

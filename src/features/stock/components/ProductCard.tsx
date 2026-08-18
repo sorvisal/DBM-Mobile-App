@@ -9,6 +9,7 @@ type ProductCardProps = {
   quantity: number;
   expiryDate?: string;
   daysLeft?: number;
+  isLowStock?: boolean;
   onPress?: () => void;
 };
 
@@ -20,6 +21,7 @@ export function ProductCard({
   quantity,
   expiryDate,
   daysLeft,
+  isLowStock,
   onPress,
 }: ProductCardProps) {
   return (
@@ -43,7 +45,7 @@ export function ProductCard({
 
       <View className="items-end">
         <Text className="font-khmerBold text-gray-900 text-2xl">{price}</Text>
-        <Text className="font-khmer text-gray-400 text-[14px] mt-1">{quantity} កេស</Text>
+        <Text className={`font-khmer text-[14px] mt-1 ${isLowStock ? "text-red-600 font-khmerBold" : "text-gray-400"}`}>{quantity} កេស</Text>
       </View>
     </TouchableOpacity>
   );

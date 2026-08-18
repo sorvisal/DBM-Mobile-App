@@ -11,7 +11,7 @@ export function DebtorListItem({ debtor, onPress }: DebtorListItemProps) {
   return (
     <TouchableOpacity
       onPress={onPress}
-      disabled={!onPress}
+      disabled={!onPress} 
       className="flex-row items-center bg-white rounded-2xl p-3 mb-2"
       style={{ shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 }}
     >

@@ -26,4 +26,7 @@ export const endpoints = {
     monthly: "/income/monthly",
     debtors: "/income/debtors",
   },
+  geocoding: {
+    search: "/geocoding/search",
+  },
 };

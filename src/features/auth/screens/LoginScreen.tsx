@@ -1,16 +1,10 @@
 import { useState, useRef } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  TextInput,
-} from "react-native";
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { api, setAccessToken, setTokens } from "@/services";
+import { AuthButton } from "../components/AuthButton";
 import { AuthHeader } from "../components/AuthHeader";
 import { AuthInput } from "../components/AuthInput";
-import { AuthButton } from "../components/AuthButton";
 import { validateLogin } from "../hooks/useAuthValidation";
 import { LoginFormValues, FormErrors } from "../types";
 
@@ -18,13 +12,15 @@ type LoginScreenProps = {
   onLoginSuccess: () => void;
   onGoRegister: () => void;
   onForgotPassword: () => void;
+  onGoogleLogin?: (idToken: string) => void;
 };
 
 const initialValues: LoginFormValues = { username: "", password: "" };
 
-export function LoginScreen({ onLoginSuccess, onGoRegister, onForgotPassword }: LoginScreenProps) {
+export function LoginScreen({ onLoginSuccess, onGoRegister, onForgotPassword, onGoogleLogin }: LoginScreenProps) {
   const [values, setValues] = useState<LoginFormValues>(initialValues);
   const [errors, setErrors] = useState<FormErrors<LoginFormValues>>({});
+  const [isLoading, setIsLoading] = useState(false);
   const passwordRef = useRef<TextInput>(null);
 
   const update = (key: keyof LoginFormValues, value: string) => {
@@ -32,16 +28,29 @@ export function LoginScreen({ onLoginSuccess, onGoRegister, onForgotPassword }: 
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: undefined }));
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     const validationErrors = validateLogin(values);
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length === 0) {
-      onLoginSuccess();
+      setIsLoading(true);
+      try {
+        const res = await api.auth.login({ usernameOrEmail: values.username, password: values.password });
+        setAccessToken(res.tokens.accessToken);
+        await setTokens(res.tokens);
+        onLoginSuccess();
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "ចូលប្រើប្រាស់បានបរាជ័យ";
+        Alert.alert("ចូលប្រើប្រាស់", message);
+        setErrors({ username: message });
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
   return (
     <KeyboardAvoidingView className="flex-1 bg-blue-600" behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <StatusBar style="light" />
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ flexGrow: 1 }}
@@ -81,7 +90,7 @@ export function LoginScreen({ onLoginSuccess, onGoRegister, onForgotPassword }: 
             <Text className="font-khmer text-blue-600 text-xl">ភ្លេចពាក្យសម្ងាត់?</Text>
           </TouchableOpacity>
 
-          <AuthButton label="ចូលប្រើប្រាស់" onPress={handleLogin} />
+          <AuthButton label={isLoading ? "កំពុងចូល..." : "ចូលប្រើប្រាស់"} onPress={handleLogin} />
 
           <View className="flex-row items-center justify-center mt-6 mb-8">
             <Text className="font-khmer text-gray-500 text-xl">មិនទាន់មានគណនី? </Text>

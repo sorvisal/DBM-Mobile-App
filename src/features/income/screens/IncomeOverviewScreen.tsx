@@ -18,14 +18,7 @@ export function IncomeOverviewScreen({ onGoDaily, onGoMonthly, onGoYearly, onGoD
 
   return (
     <View className="flex-1 bg-gray-50" style={{ minHeight: 0 }}>
-      {/* Top navbar */}
-      <View className="bg-white px-5 pt-3 pb-3 flex-row items-center justify-between">
-        <Ionicons name="menu-outline" size={35} color="black" />
-        <Text className="font-khmerBold text-black text-3xl">ចំណូល</Text>
-        <TouchableOpacity className="w-9 h-9 rounded-full bg-gray-100 items-center justify-center">
-          <Ionicons name="notifications-outline" size={18} color="black" />
-        </TouchableOpacity>
-      </View>
+
       <IncomeTimeTabs
         active="overview"
         onChange={(key) => {

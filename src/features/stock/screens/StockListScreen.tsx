@@ -1,42 +1,67 @@
-import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ScrollView } from "react-native";
+import { useState, useCallback } from "react";
+import { View, Text, TouchableOpacity, FlatList, ListRenderItemInfo, NativeSyntheticEvent, NativeScrollEvent, TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { StockTabBar } from "../components/StockTabBar";
 import { TotalProductCard } from "../components/totalProdcutCard";
+import { ProductCardSkeleton } from "../../customers/components/CustomerCardSkeleton";
 import type { StockTabKey } from "./StockScreen";
-
-const PRODUCTS = [
-  { id: "1", imageUrl: "https://png.pngtree.com/png-clipart/20231116/original/pngtree-cocacola-can-resting-on-a-blank-photo-png-image_13582802.png", name: "Coca-Cola 330ml", unit: "កេស", buyPrice: "3.00$", sellPrice: "5.00$", quantity: 205 },
-  { id: "2", imageUrl: "https://png.pngtree.com/png-clipart/20231024/original/pngtree-pepsi-produced-in-tyumen-russia-by-pepsico-many-photo-png-image_13418754.png", name: "Pepsi 330ml", unit: "កេស", buyPrice: "4.00$", sellPrice: "6.00$", quantity: 600 },
-  { id: "3", imageUrl: "https://png.pngtree.com/png-vector/20250429/ourmid/pngtree-iconic-orange-fanta-can-with-condensation-png-image_16058435.png", name: "Fanta Orange 330ml", unit: "កេស", buyPrice: "5.00$", sellPrice: "8.00$", quantity: 800 },
-  { id: "4", imageUrl: "https://www.vital.com.kh/2018/image/cache/catalog/Vital-Bottle-1500ml-Eng-800x800.png", name: "ទឹកសុទ្ធ 1.5L", unit: "កេស", buyPrice: "2.00$", sellPrice: "4.00$", quantity: 432 },
-  { id: "5", imageUrl: "https://static.vecteezy.com/system/resources/previews/071/508/482/non_2x/sprite-drink-in-a-can-on-a-transparent-background-free-png.png", name: "Sprite 330ml", unit: "កេស", buyPrice: "3.50$", sellPrice: "7.00$", quantity: 700 },
-  { id: "6", imageUrl: "https://www.monde-selection.com/wp-content/uploads/2024/05/1041890-768x768.png", name: "Express 330ml", unit: "កេស", buyPrice: "2.50$", sellPrice: "5.00$", quantity: 500 },
-  { id: "7", imageUrl: "https://www.monde-selection.com/wp-content/uploads/2026/05/1046265.png", name: "IDOL 330ml", unit: "កេស", buyPrice: "6.00$", sellPrice: "8.00$", quantity: 200 },
-  { id: "8", imageUrl: "https://www.monde-selection.com/wp-content/uploads/2026/05/1045923.png", name: "Crud 330ml", unit: "កេស", buyPrice: "1.50$", sellPrice: "4.00$", quantity: 200 },
-] as const;
+import { useStockList } from "../hooks/useStockList";
+import { useDebounce } from "@/hooks/useDebounce";
 
 type StockListScreenProps = {
   onNavigate: (tab: StockTabKey) => void;
 };
 
+const ITEM_HEIGHT = 76;
+
 export function StockListScreen({ onNavigate }: StockListScreenProps) {
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
+  const { data, isLoading, isFetchingMore, hasMore, loadMore, error, stale } = useStockList(debouncedSearch);
+
+  const handleEndReached = useCallback(() => {
+    if (hasMore && !isFetchingMore) loadMore();
+  }, [hasMore, isFetchingMore, loadMore]);
+
+  const handleScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
+    if (contentOffset.y + layoutMeasurement.height >= contentSize.height - 200) {
+      handleEndReached();
+    }
+  }, [handleEndReached]);
+
+  const getItemLayout = useCallback((_data: any, index: number) => ({
+    length: ITEM_HEIGHT,
+    offset: ITEM_HEIGHT * index,
+    index,
+  }), []);
+
+  const renderRow = useCallback(({ item }: ListRenderItemInfo<typeof data[0]>) => (
+    <TotalProductCard
+      key={item.id}
+      imageUrl={item.imageUrl ?? ""}
+      name={item.name}
+      unit={item.category}
+      buyPrice={`${item.buyPrice}$`}
+      sellPrice={`${item.sellPrice}$`}
+      quantity={item.quantity}
+      isLowStock={item.status !== "in_stock"}
+      onPress={() => {}}
+    />
+  ), []);
+
+  const renderFooter = useCallback(() => {
+    if (!isFetchingMore) return null;
+    return (
+      <View className="items-center py-4">
+        <Ionicons name="hourglass-outline" size={20} color="#9CA3AF" className="animate-spin" />
+        <Text className="font-khmer text-gray-400 text-sm mt-1">កំពុងផ្ទុកបន្ថែម...</Text>
+      </View>
+    );
+  }, [isFetchingMore]);
 
   return (
     <View className="flex-1 bg-gray-50" style={{ minHeight: 0 }}>
-      {/* Top navbar */}
-      <View className="bg-white  px-5 pt-3 pb-3 flex-row items-center justify-between border-b border-gray-100">
-        <TouchableOpacity onPress={() => onNavigate("products")}>
-          <Ionicons name="menu-outline" size={36} color="#1F2937" />
-        </TouchableOpacity>
-        <Text className="font-khmerBold text-gray-900 text-3xl">ស្តុក</Text>
-        <TouchableOpacity>
-          <Ionicons name="search-outline" size={22} color="white" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Sub navbar */}
       <StockTabBar active="products" onChange={onNavigate} />
 
       <View className="px-5 pt-3 pb-2 bg-gray-50">
@@ -47,27 +72,51 @@ export function StockListScreen({ onNavigate }: StockListScreenProps) {
             onChangeText={setSearch}
             placeholder="ស្វែងរកទំនិញ..."
             placeholderTextColor="#9CA3AF"
-            className="font-khmer flex-1 ml-2 text-2xl text-gray-800"
+            className="font-khmer flex-1 ml-2 text-lg text-gray-800"
+            style={{ outlineWidth: 0, borderWidth: 0, backgroundColor: "transparent", paddingVertical: 0, includeFontPadding: false, textAlignVertical: "center" }}
           />
-          <Ionicons name="options-outline" size={24} color="#9CA3AF" />
+          {stale && (
+            <TouchableOpacity>
+              <Ionicons name="refresh-outline" size={20} color="#6B7280" />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
-      <ScrollView className="flex-1 px-5 pt-1" showsVerticalScrollIndicator={false}>
-        {PRODUCTS.filter((p) => p.name.toLowerCase().includes(search.toLowerCase())).map((product) => (
-          <TotalProductCard
-            key={product.id}
-            imageUrl={product.imageUrl}
-            name={product.name}
-            unit={product.unit}
-            buyPrice={product.buyPrice}
-            sellPrice={product.sellPrice}
-            quantity={product.quantity}
-            onPress={() => {}}
-          />
-        ))}
-        <View className="h-6" />
-      </ScrollView>
+      <FlatList
+        data={data}
+        keyExtractor={(item) => item.id}
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        initialNumToRender={10}
+        maxToRenderPerBatch={5}
+        windowSize={5}
+        removeClippedSubviews={true}
+        getItemLayout={getItemLayout}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.15}
+        renderItem={renderRow}
+        ListFooterComponent={renderFooter}
+        ListEmptyComponent={
+          isLoading ? (
+            <View className="flex-1 px-5 pt-2">
+              {Array.from({ length: 8 }).map((_, i) => <ProductCardSkeleton key={`sl-${i}`} />)}
+            </View>
+          ) : error ? (
+            <View className="items-center py-16">
+              <Ionicons name="alert-circle-outline" size={36} color="#EF4444" />
+              <Text className="font-khmer text-red-400 text-xl mt-2">{error}</Text>
+            </View>
+          ) : (
+            <View className="items-center py-16">
+              <Ionicons name="cube-outline" size={36} color="#D1D5DB" />
+              <Text className="font-khmer text-gray-400 text-xl mt-2">មិនមានផលិតផល</Text>
+            </View>
+          )
+        }
+      />
     </View>
   );
 }

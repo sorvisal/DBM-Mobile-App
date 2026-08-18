@@ -35,7 +35,7 @@ export function OrderStepper({ status }: OrderStepperProps) {
             <View className="flex-row items-center w-full">
               <View
                 className={`flex-1 h-0.5 ${
-                  index === 0 ? "opacity-0" : isDone || (isActive && !isCompleted) ? "bg-green-500" : "bg-gray-200"
+                  index === 0 ? "opacity-0" : isDone || showAsDone ? "bg-green-500" : "bg-gray-200"
                 }`}
               />
               <View

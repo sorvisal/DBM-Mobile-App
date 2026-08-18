@@ -13,7 +13,7 @@ export function CustomerInfoCard({ customer }: CustomerInfoCardProps) {
   return (
     <View className="bg-white rounded-2xl p-4 mb-3">
       <View className="flex-row items-start">
-        <CustomerAvatar initials={customer.initials} color={customer.avatarColor} size={56} />
+        <CustomerAvatar initials={customer.initials} color={customer.avatarColor} size={56} source={customer.imageUrl} />
 
         <View className="ml-3 flex-1">
           <View className="flex-row items-center">

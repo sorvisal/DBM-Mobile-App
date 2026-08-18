@@ -1,7 +1,9 @@
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useCustomerDetail } from "../hooks/useCustomerDetail";
 import { CustomerOrderHistoryList } from "../components/CustomerOrderHistoryList";
+import { CustomerAvatar } from "../components/CustomerAvatar";
+import { LoadingState, EmptyState, ErrorState } from "@/components/states";
 
 type CustomerOrderHistoryScreenProps = {
   customerId: string;
@@ -9,15 +11,7 @@ type CustomerOrderHistoryScreenProps = {
 };
 
 export function CustomerOrderHistoryScreen({ customerId, onBack }: CustomerOrderHistoryScreenProps) {
-  const { customer } = useCustomerDetail(customerId);
-
-  if (!customer) {
-    return (
-      <View className="flex-1 bg-gray-50 items-center justify-center" style={{ minHeight: 0 }}>
-        <Text className="font-khmer text-gray-400 text-sm">រកមិនឃើញអតិថិជន</Text>
-      </View>
-    );
-  }
+  const { customer, isLoading, isRefreshing, error, refresh } = useCustomerDetail(customerId);
 
   return (
     <View className="flex-1 bg-gray-50" style={{ minHeight: 0 }}>
@@ -34,23 +28,33 @@ export function CustomerOrderHistoryScreen({ customerId, onBack }: CustomerOrder
         <Ionicons name="filter-outline" size={24} color="#1F2937" />
       </View>
 
-      <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
-        <View className="bg-white rounded-2xl p-3 mb-3 flex-row items-center">
-          <View
-            style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: customer.avatarColor }}
-            className="items-center justify-center"
-          >
-            <Text className="font-khmerBold text-white text-xl">{customer.initials}</Text>
-          </View>
-          <View className="ml-3">
-            <Text className="font-khmer text-gray-400 text-[18px]">{customer.code}</Text>
-            <Text className="font-khmerMedium text-gray-900 text-xl">{customer.name}</Text>
-          </View>
+      {isLoading && !customer ? (
+        <LoadingState text="កំពុងផ្ទុកប្រវត្តិការបញ្ជាទិញ..." />
+      ) : error && !customer ? (
+        <ErrorState onRetry={refresh} />
+      ) : !customer ? (
+        <View className="flex-1 items-center justify-center" style={{ minHeight: 0 }}>
+          <EmptyState icon="person-outline" text="រកមិនឃើញអតិថិជន" />
         </View>
-
-        <CustomerOrderHistoryList orders={customer.orders} />
-        <View className="h-6" />
-      </ScrollView>
+      ) : (
+        <CustomerOrderHistoryList
+          orders={customer.orders}
+          isLoading={isLoading}
+          isRefreshing={isRefreshing}
+          error={error}
+          onRefresh={refresh}
+          onRetry={refresh}
+          ListHeaderComponent={
+            <View className="bg-white rounded-2xl p-3 mb-3 flex-row items-center">
+              <CustomerAvatar initials={customer.initials} color={customer.avatarColor} size={40} source={customer.imageUrl} />
+              <View className="ml-3">
+                <Text className="font-khmer text-gray-400 text-[18px]">{customer.code}</Text>
+                <Text className="font-khmerMedium text-gray-900 text-xl">{customer.name}</Text>
+              </View>
+            </View>
+          }
+        />
+      )}
     </View>
   );
 }

@@ -6,6 +6,10 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "statusBar": {
+      "style": "dark",
+      "backgroundColor": "blue"
+    },
     "ios": {
       "supportsTablet": true
     },
@@ -24,7 +28,8 @@
     },
     "plugins": [
       "expo-font",
-      "expo-splash-screen"
+      "expo-splash-screen",
+      "@react-native-community/datetimepicker"
     ]
   }
 }

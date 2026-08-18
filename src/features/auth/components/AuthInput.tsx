@@ -14,9 +14,9 @@ export const AuthInput = forwardRef<TextInput, AuthInputProps>(
 
     return (
       <View className="mb-4">
-        <Text className="font-khmerMedium text-blue-600 text-xl mb-1.5">{label}</Text>
+        <Text className="font-khmerMedium text-blue-600 text-2xl mb-1.5">{label}</Text>
         <View
-          className={`flex-row items-center border rounded-xl px-3 h-12 ${
+          className={`flex-row items-center border rounded-xl p-1 h-12 ${
             error ? "border-red-400" : "border-gray-200"
           }`}
         >
@@ -26,7 +26,7 @@ export const AuthInput = forwardRef<TextInput, AuthInputProps>(
             secureTextEntry={isPassword && !showPassword}
             placeholderTextColor="#D1D5DB"
             className="font-khmer flex-1 text-xl text-gray-800"
-            style={{ outlineWidth: 0, borderWidth: 0, backgroundColor: "transparent" }}
+            style={{ outlineWidth: 0, borderWidth: 0, backgroundColor: "transparent", paddingVertical: 0, includeFontPadding: false, textAlignVertical: "center" }}
           />
           {isPassword && (
             <TouchableOpacity onPress={() => setShowPassword((prev) => !prev)}>

@@ -25,7 +25,7 @@ export function Dropdown({ placeholder, options, value, onChange }: DropdownProp
         onPress={() => setOpen(true)}
         className="flex-row items-center justify-between border border-gray-200 rounded-xl px-3 h-11"
       >
-        <Text className={`font-khmer text-xl ${selectedLabel ? "text-gray-800" : "text-gray-400"}`}>
+        <Text className={`font-khmer text-lg ${selectedLabel ? "text-gray-800" : "text-gray-400"}`}>
           {selectedLabel ?? placeholder}
         </Text>
         <Ionicons name="chevron-down" size={16} color="#9CA3AF" />

@@ -1,3 +1,3 @@
 export { Header } from "./Header";
 export { Footer } from "./Footer";
-export { SideMenu } from "./SideMenu";
+export { Profile } from "./Profile";

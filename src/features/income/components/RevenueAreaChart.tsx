@@ -13,6 +13,14 @@ export function RevenueAreaChart({ data, height = 140 }: RevenueAreaChartProps) 
   const paddingBottom = 24;
   const chartHeight = height - paddingTop - paddingBottom;
 
+  if (!data || data.length === 0) {
+    return (
+      <View className="items-center justify-center py-8">
+        <Text className="font-khmer text-gray-400 text-xl">មិនមានទិន្នន័យ</Text>
+      </View>
+    );
+  }
+
   const maxAmount = Math.max(...data.map((d) => d.amount), 1);
   const minAmount = Math.min(...data.map((d) => d.amount), 0);
   const range = maxAmount - minAmount || 1;

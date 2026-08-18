@@ -1,37 +1,82 @@
-import { MonthlyIncomeSummary } from "../types/income.types";
-import { getDebtors } from "./useDebtors";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { api, suppressGlobalLoading, unsuppressGlobalLoading } from "@/services";
+import type { MonthlyIncomeSummary } from "../types/income.types";
+import { useDebtors } from "./useDebtors";
 
-const MONTHLY_DATA: Record<string, Omit<MonthlyIncomeSummary, "debtors" | "totalDebt">> = {
-  "5/2025": {
-    month: "ខែ 5/2025",
-    totalIncome: 4500.0,
-    orderCount: 58,
-    dailyChart: [
-      { label: "01-05", amount: 200 },
-      { label: "05-05", amount: 320 },
-      { label: "10-05", amount: 450 },
-      { label: "15-05", amount: 600 },
-      { label: "20-05", amount: 520 },
-      { label: "25-05", amount: 680 },
-      { label: "31-05", amount: 550 },
-    ],
-  },
-};
+const ERROR_MESSAGE = "មិនអាចទាញយកទិន្នន័យបាន";
 
 export function useMonthlyIncome(month: string) {
-  const debtors = getDebtors();
-  const base = MONTHLY_DATA[month] ?? {
+  const { allDebtors, totalDebt, isLoading: debtorsLoading } = useDebtors();
+  const [summary, setSummary] = useState<MonthlyIncomeSummary>({
     month,
     totalIncome: 0,
     orderCount: 0,
     dailyChart: [],
-  };
+    debtors: allDebtors,
+    totalDebt,
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const summary: MonthlyIncomeSummary = {
-    ...base,
-    debtors,
-    totalDebt: debtors.reduce((sum, d) => sum + d.amount, 0),
-  };
+  const debtorsRef = useRef({ allDebtors, totalDebt });
+  debtorsRef.current = { allDebtors, totalDebt };
 
-  return { summary, isLoading: false };
+  const load = useCallback(
+    (isRefresh: boolean) => {
+      let cancelled = false;
+      setError(null);
+      if (isRefresh) setIsRefreshing(true);
+      else setIsLoading(true);
+
+      // Suppress global overlay for refresh (pull-to-refresh uses its own UI)
+      if (isRefresh) suppressGlobalLoading();
+
+      api.reports
+        .revenueChart("30d")
+        .then((points) => {
+          if (cancelled) return;
+          const chart = points.map((p) => ({ label: p.date, amount: p.revenue }));
+          const totalIncome = chart.reduce((s, p) => s + p.amount, 0);
+          setSummary({
+            month,
+            totalIncome,
+            orderCount: chart.length,
+            dailyChart: chart,
+            debtors: debtorsRef.current.allDebtors,
+            totalDebt: debtorsRef.current.totalDebt,
+          });
+          setError(null);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setSummary({ month, totalIncome: 0, orderCount: 0, dailyChart: [], debtors: debtorsRef.current.allDebtors, totalDebt: debtorsRef.current.totalDebt });
+          setError(ERROR_MESSAGE);
+        })
+        .finally(() => {
+          if (cancelled) return;
+          if (isRefresh) {
+            unsuppressGlobalLoading();
+            setIsRefreshing(false);
+          } else {
+            setIsLoading(false);
+          }
+        });
+
+      return () => { cancelled = true; };
+    },
+    [month]
+  );
+
+  useEffect(() => load(false), [load]);
+
+  useEffect(() => {
+    setSummary((prev) => ({ ...prev, debtors: allDebtors, totalDebt }));
+  }, [allDebtors, totalDebt]);
+
+  const refresh = useCallback(() => {
+    load(true);
+  }, [load]);
+
+  return { summary, isLoading: isLoading || debtorsLoading, isRefreshing, error, refresh };
 }

@@ -8,6 +8,9 @@ import { ReducedMotionConfig, ReduceMotion } from "react-native-reanimated";
 import { RootLayout } from "./src/layouts/RootLayout";
 import { AuthLayout } from "./src/layouts/AuthLayout";
 import { SplashScreen } from "./src/screens/SplashScreen";
+import { ApiLoadingOverlay } from "./src/components/ui/ApiLoadingOverlay";
+import { onUnauthorized, restoreAccessToken, initCache, clearTokens, cacheClearAll } from "./src/services";
+import { api } from "./src/services/api";
 
 SplashScreenNative.preventAutoHideAsync();
 
@@ -32,6 +35,27 @@ export default function App() {
     onLayoutRootView();
   }, [onLayoutRootView]);
 
+  useEffect(() => {
+    return onUnauthorized(() => setStage("auth"));
+  }, []);
+
+  const handleSplashFinish = async () => {
+    await cacheClearAll(); // clear stale cached data first — before any hooks read from it
+    await initCache();
+    const restored = await restoreAccessToken();
+    if (!restored) {
+      setStage("auth");
+      return;
+    }
+    try {
+      await api.auth.me();
+      setStage("main");
+    } catch {
+      await clearTokens();
+      setStage("auth");
+    }
+  };
+
   if (!fontsLoaded && !fontError) {
     return null;
   }
@@ -40,9 +64,10 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ReducedMotionConfig mode={ReduceMotion.Never} />
       <SafeAreaProvider>
-        {stage === "splash" && <SplashScreen onFinish={() => setStage("auth")} />}
+        {stage === "splash" && <SplashScreen onFinish={handleSplashFinish} />}
         {stage === "auth" && <AuthLayout onAuthenticated={() => setStage("main")} />}
         {stage === "main" && <RootLayout onLogout={() => setStage("auth")} />}
+        <ApiLoadingOverlay />
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

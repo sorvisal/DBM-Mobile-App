@@ -8,12 +8,14 @@ export interface Product {
   buyPrice: number;
   sellPrice: number;
   expiresAt: string | null;
+  imageUrl?: string;
   status: StockStatus;
 }
 
 export interface StockTransaction {
   id: string;
   productId: string;
+  productName?: string;
   type: "in" | "out";
   quantity: number;
   createdAt: string;
@@ -26,4 +28,5 @@ export interface StockFormValues {
   buyPrice: string;
   sellPrice: string;
   expiresAt: string;
+  imageUrl?: string;
 }

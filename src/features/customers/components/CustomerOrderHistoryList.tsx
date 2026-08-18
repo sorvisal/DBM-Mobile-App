@@ -1,6 +1,8 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, FlatList } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import type { ReactElement } from "react";
 import { CustomerOrderSummary } from "../types/customer.types";
+import { LoadingState, EmptyState, ErrorState } from "@/components/states";
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; icon: string; iconColor: string }> = {
   "កំពុងដឹក": { bg: "bg-purple-50", text: "text-purple-600", icon: "bag-handle-outline", iconColor: "#9333EA" },
@@ -11,27 +13,49 @@ const STATUS_COLORS: Record<string, { bg: string; text: string; icon: string; ic
 
 type CustomerOrderHistoryListProps = {
   orders: CustomerOrderSummary[];
+  isLoading?: boolean;
+  isRefreshing?: boolean;
+  error?: string | null;
+  onRefresh?: () => void;
+  onRetry?: () => void;
   onPressOrder?: (orderId: string) => void;
+  ListHeaderComponent?: ReactElement | null;
 };
 
-export function CustomerOrderHistoryList({ orders, onPressOrder }: CustomerOrderHistoryListProps) {
-  if (orders.length === 0) {
-    return (
-      <View className="items-center justify-center py-16">
-        <Ionicons name="receipt-outline" size={36} color="#D1D5DB" />
-        <Text className="font-khmer text-gray-400 text-xl mt-2">មិនមានប្រវត្តិការបញ្ជាទិញទេ</Text>
-      </View>
-    );
-  }
-
+export function CustomerOrderHistoryList({
+  orders,
+  isLoading,
+  isRefreshing,
+  error,
+  onRefresh,
+  onRetry,
+  onPressOrder,
+  ListHeaderComponent,
+}: CustomerOrderHistoryListProps) {
   return (
-    <View>
-      {orders.map((order) => {
-        const tone = STATUS_COLORS[order.status] ?? STATUS_COLORS["រង់ចាំ"];
+    <FlatList
+      className="flex-1 px-5 pt-4"
+      data={orders}
+      keyExtractor={(item) => item.id}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: 24 }}
+      refreshing={isRefreshing}
+      onRefresh={onRefresh}
+      ListHeaderComponent={ListHeaderComponent}
+      ListEmptyComponent={
+        isLoading ? (
+          <LoadingState compact />
+        ) : error ? (
+          <ErrorState compact message={error} onRetry={onRetry} />
+        ) : (
+          <EmptyState compact icon="receipt-outline" text="មិនមានប្រវត្តិការបញ្ជាទិញទេ" />
+        )
+      }
+      renderItem={({ item }) => {
+        const tone = STATUS_COLORS[item.status] ?? STATUS_COLORS["រង់ចាំ"];
         return (
           <TouchableOpacity
-            key={order.id}
-            onPress={() => onPressOrder?.(order.id)}
+            onPress={() => onPressOrder?.(item.id)}
             className="flex-row items-center bg-white rounded-2xl p-3 mb-3"
             style={{ shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 }}
           >
@@ -42,21 +66,21 @@ export function CustomerOrderHistoryList({ orders, onPressOrder }: CustomerOrder
             <View className="flex-1 ml-3">
               <View className="flex-row items-center justify-between">
                 <Text className="font-khmerMedium text-gray-900 text-xl" numberOfLines={1}>
-                  {order.code}
+                  {item.code}
                 </Text>
                 <View className={`rounded-full px-2 py-0.5 ${tone.bg}`}>
-                  <Text className={`font-khmer text-[16px] ${tone.text}`}>{order.status}</Text>
+                  <Text className={`font-khmer text-[16px] ${tone.text}`}>{item.status}</Text>
                 </View>
               </View>
-              <Text className="font-khmer text-gray-400 text-[16px] mt-1">{order.date}</Text>
+              <Text className="font-khmer text-gray-400 text-[16px] mt-1">{item.date}</Text>
               <View className="flex-row items-center justify-between mt-1.5">
-                <Text className="font-khmer text-gray-400 text-[16px]">{order.itemCount} មុខទំនិញ</Text>
-                <Text className="font-khmerBold text-blue-600 text-xl">${order.total.toFixed(2)}</Text>
+                <Text className="font-khmer text-gray-400 text-[16px]">{item.itemCount} មុខទំនិញ</Text>
+                <Text className="font-khmerBold text-blue-600 text-xl">${item.total.toFixed(2)}</Text>
               </View>
             </View>
           </TouchableOpacity>
         );
-      })}
-    </View>
+      }}
+    />
   );
 }

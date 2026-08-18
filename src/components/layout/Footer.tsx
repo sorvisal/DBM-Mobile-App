@@ -1,14 +1,14 @@
 import { View, Text, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-type TabKey = "dashboard" | "stock" | "orders" | "customers" | "income";
+type TabKey = "dashboard" | "stock" | "orders" | "customers" | "income" | "more";
 
 type FooterProps = {
   activeTab: TabKey;
   onTabPress: (tab: TabKey) => void;
 };
 
-const TABS: {
+export const TABS: {
   key: TabKey;
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
@@ -16,9 +16,10 @@ const TABS: {
 }[] = [
   { key: "dashboard", label: "ទំព័រដើម", icon: "home-outline", activeIcon: "home" },
   { key: "stock", label: "ស្តុក", icon: "cube-outline", activeIcon: "cube" },
-  { key: "orders", label: "ការបញ្ជាទិញ", icon: "cart-outline", activeIcon: "cart" },
+  { key: "orders", label: "បញ្ជារទិញ", icon: "cart-outline", activeIcon: "cart" },
   { key: "customers", label: "អតិថិជន", icon: "people-outline", activeIcon: "people" },
   { key: "income", label: "ចំណូល", icon: "bar-chart-outline", activeIcon: "bar-chart" },
+  // { key: "more", label: "ផ្សេងៗ", icon: "ellipsis-horizontal-outline", activeIcon: "ellipsis-horizontal" },
 ];
 
 export function Footer({ activeTab, onTabPress }: FooterProps) {

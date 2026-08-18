@@ -2,16 +2,32 @@
   "name": "dbm_app",
   "version": "1.0.0",
   "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "concurrently \"npm run proxy\" \"expo start --web\"",
+    "proxy": "node proxy.js",
+    "dev": "concurrently \"npm run proxy\" \"expo start\""
+  },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
+    "@react-native-async-storage/async-storage": "~2.2.0",
+    "@react-native-community/datetimepicker": "^8.4.4",
     "@react-navigation/native": "^7.1.8",
+    "axios": "^1.19.0",
     "expo": "~54.0.13",
+    "expo-auth-session": "~7.0.4",
     "expo-constants": "~18.0.13",
     "expo-font": "~14.0.12",
+    "expo-image-picker": "^17.0.4",
     "expo-linking": "~8.0.12",
     "expo-router": "~6.0.24",
+    "expo-secure-store": "~15.0.8",
     "expo-splash-screen": "~31.0.13",
     "expo-status-bar": "~3.0.9",
+    "express": "^5.2.1",
+    "http-proxy-middleware": "^3.0.3",
     "nativewind": "^4.2.6",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -29,13 +45,8 @@
     "@expo/ngrok": "^4.1.3",
     "@types/react": "~19.1.10",
     "babel-preset-expo": "~54.0.10",
+    "concurrently": "^10.0.4",
     "typescript": "~5.9.2"
-  },
-  "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
   },
   "private": true
 }

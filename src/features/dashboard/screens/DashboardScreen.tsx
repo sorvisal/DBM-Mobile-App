@@ -4,6 +4,7 @@ import { SummaryStatsCard } from "../components/SummaryStatsCard";
 import { QuickActionGrid } from "../components/QuickActionGrid";
 import { RecentActivityList } from "../components/RecentActivityList";
 import { QuickAction } from "../types/dashboard.types";
+import { useAuth } from "@/hooks/useAuth";
 
 const QUICK_ACTIONS: QuickAction[] = [
   { key: "stock", icon: "cube-outline", iconBg: "bg-blue-50", iconColor: "#2563EB", title: "ស្តុក", subtitle: "គ្រប់គ្រងស្តុកទំនិញ" },
@@ -17,15 +18,16 @@ type DashboardScreenProps = {
 };
 
 export function DashboardScreen({ onNavigateTab }: DashboardScreenProps) {
-  const { stats, recentActivity } = useDashboardSummary();
+  const { stats, recentActivity, isLoading } = useDashboardSummary();
+  const { user } = useAuth();
 
   return (
     <ScrollView className="flex-1 bg-gray-50" showsVerticalScrollIndicator={false}>
       {/* Greeting */}
       <View className="px-5 pt-2 pb-4">
-        <Text className="font-khmerBold text-2xl text-gray-900">សួស្ដី, វិសាល 👋</Text>
-        <Text className="font-khmer text-2xl text-gray-400 mt-0.5">
-          សូមស្វាគមន៍មកកាន់ <Text className="font-bold text-2xl text-gray-400">DBM App</Text>
+        <Text className="font-khmerBold text-2xl text-gray-900">Hi, {user?.name ?? "User"} 👋</Text>
+        <Text className="font-khmer text-xl text-gray-400 mt-0.5">
+          សូមស្វាគមន៍មកកាន់ <Text className="font-bold text-xl text-gray-400">DBM App</Text>
         </Text>
       </View>
 
@@ -36,7 +38,7 @@ export function DashboardScreen({ onNavigateTab }: DashboardScreenProps) {
         onPressAction={(key) => onNavigateTab?.(key as "stock" | "orders" | "customers" | "income")}
       />
 
-      <RecentActivityList items={recentActivity} onViewAll={() => onNavigateTab?.("orders")} />
+      <RecentActivityList items={recentActivity} isLoading={isLoading} onViewAll={() => onNavigateTab?.("orders")} />
     </ScrollView>
   );
 }
