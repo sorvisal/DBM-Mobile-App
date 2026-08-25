@@ -17,7 +17,6 @@ import { StockScreen } from "../features/stock/screens/StockScreen";
 import { OrdersScreen } from "../features/orders/screens/OrdersScreen";
 import { CustomersScreen } from "../features/customers/screens/CustomersScreen";
 import { IncomeScreen } from "../features/income/screens/IncomeScreen";
-
 import { MoreScreen } from "../features/more/screens/MoreScreen";
 
 type TabKey = "dashboard" | "stock" | "orders" | "customers" | "income" | "more";
@@ -35,9 +34,6 @@ type TabHostProps = {
   children: React.ReactNode;
 };
 
-// Each tab stays mounted after its first visit so its state/data survive
-// tab switching. Inactive tabs are hidden with `display: none` instead of
-// being unmounted (which would re-run every mount-based API fetch).
 function TabHost({ tab, activeTab, enterFrom, children }: TabHostProps) {
   const isActive = activeTab === tab;
   const progress = useSharedValue(0);
@@ -63,6 +59,15 @@ function TabHost({ tab, activeTab, enterFrom, children }: TabHostProps) {
   );
 }
 
+const INITIAL_CHROME_HIDDEN: Record<TabKey, boolean> = {
+  dashboard: false,
+  stock: false,
+  orders: false,
+  customers: false,
+  income: false,
+  more: false,
+};
+
 export function RootLayout({ onLogout }: RootLayoutProps) {
   const [activeTab, setActiveTab] = useState<TabKey>("dashboard");
   const [prevTab, setPrevTab] = useState<TabKey>("dashboard");
@@ -75,6 +80,11 @@ export function RootLayout({ onLogout }: RootLayoutProps) {
     income: false,
     more: false,
   });
+
+  const [chromeHiddenByTab, setChromeHiddenByTab] = useState<Record<TabKey, boolean>>(
+    INITIAL_CHROME_HIDDEN
+  );
+
   const { user } = useAuth();
 
   const handleTabPress = useCallback(
@@ -88,6 +98,23 @@ export function RootLayout({ onLogout }: RootLayoutProps) {
     [activeTab]
   );
 
+  const handleCustomersChromeChange = useCallback((hidden: boolean) => {
+    setChromeHiddenByTab((prev) =>
+      prev.customers === hidden ? prev : { ...prev, customers: hidden }
+    );
+  }, []);
+
+  const handleOrdersChromeChange = useCallback((hidden: boolean) => {
+    setChromeHiddenByTab((prev) =>
+      prev.orders === hidden ? prev : { ...prev, orders: hidden }
+    );
+  }, []);
+// <-- Add this new handler here:
+  const handleIncomeChromeChange = useCallback((hidden: boolean) => {
+    setChromeHiddenByTab((prev) =>
+      prev.income === hidden ? prev : { ...prev, income: hidden }
+    );
+  }, []);
   const activeIdx = TAB_ORDER.indexOf(activeTab);
   const prevIdx = TAB_ORDER.indexOf(prevTab);
   const enterFrom = activeIdx > prevIdx ? 1 : -1;
@@ -95,7 +122,12 @@ export function RootLayout({ onLogout }: RootLayoutProps) {
   return (
     <SafeAreaView className="flex-1 bg-gray-50" style={{ height: "100%" }}>
       <StatusBar style="dark" />
-      <MainLayout activeTab={activeTab} onTabPress={handleTabPress} onMenuPress={() => setProfileVisible(true)}>
+      <MainLayout
+        activeTab={activeTab}
+        onTabPress={handleTabPress}
+        onMenuPress={() => setProfileVisible(true)}
+        hideChrome={chromeHiddenByTab[activeTab]}
+      >
         <View className="flex-1" style={{ minHeight: 0 }}>
           {mountedTabs.dashboard && (
             <TabHost tab="dashboard" activeTab={activeTab} enterFrom={enterFrom}>
@@ -109,17 +141,17 @@ export function RootLayout({ onLogout }: RootLayoutProps) {
           )}
           {mountedTabs.orders && (
             <TabHost tab="orders" activeTab={activeTab} enterFrom={enterFrom}>
-              <OrdersScreen />
+              <OrdersScreen onChromeChange={handleOrdersChromeChange} />
             </TabHost>
           )}
           {mountedTabs.customers && (
             <TabHost tab="customers" activeTab={activeTab} enterFrom={enterFrom}>
-              <CustomersScreen />
+              <CustomersScreen onChromeChange={handleCustomersChromeChange} />
             </TabHost>
           )}
           {mountedTabs.income && (
             <TabHost tab="income" activeTab={activeTab} enterFrom={enterFrom}>
-              <IncomeScreen />
+              <IncomeScreen onChromeChange={handleIncomeChromeChange} />
             </TabHost>
           )}
           {mountedTabs.more && (

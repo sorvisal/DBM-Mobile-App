@@ -15,6 +15,7 @@ export function validateRegister(values: RegisterFormValues): FormErrors<Registe
   const errors: FormErrors<RegisterFormValues> = {};
 
   if (!values.username.trim()) errors.username = "សូមបញ្ចូលឈ្មោះអ្នកប្រើប្រាស់";
+  if (!values.fullName.trim()) errors.fullName = "សូមបញ្ចូលឈ្មោះពេញ";
 
   if (!values.email.trim()) {
     errors.email = "សូមបញ្ចូលអ៊ីមែល";
@@ -23,6 +24,7 @@ export function validateRegister(values: RegisterFormValues): FormErrors<Registe
   }
 
   if (!values.mobile.trim()) errors.mobile = "សូមបញ្ចូលលេខទូរស័ព្ទ";
+  if (!values.storeName.trim()) errors.storeName = "សូមបញ្ចូលឈ្មោះហាង";
 
   if (!values.password.trim()) {
     errors.password = "សូមបញ្ចូលពាក្យសម្ងាត់";

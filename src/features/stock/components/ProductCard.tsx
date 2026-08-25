@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity, Image } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { ExpiryBadge } from "./ExpiryBadge";
 
 type ProductCardProps = {
@@ -24,15 +25,26 @@ export function ProductCard({
   isLowStock,
   onPress,
 }: ProductCardProps) {
+  if (__DEV__) console.log('[RENDER] ProductCard', name, '-> imageUrl:', imageUrl);
   return (
     <TouchableOpacity
       onPress={onPress}
       className="flex-row items-center bg-white rounded-xl p-2 mb-1"
       style={{ shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 }}
     >
-      <Image source={{ uri: imageUrl }} className="w-12 h-16 rounded-xl" />
+      {imageUrl ? (
+        <Image
+          source={{ uri: imageUrl }}
+          resizeMode="cover"
+          className="w-[60px] h-[68px] rounded-xl"
+        />
+      ) : (
+        <View className="w-[60px] h-[68px] rounded-xl bg-gray-100 items-center justify-center">
+          <Ionicons name="image-outline" size={24} color="#D1D5DB" />
+        </View>
+      )}
 
-      <View className="flex-1 ml-3">
+      <View className="flex-1 ml-6">
         <Text className="font-khmerMedium text-gray-900 text-xl" numberOfLines={1}>
           {name}
         </Text>

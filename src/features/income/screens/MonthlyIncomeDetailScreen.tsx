@@ -1,44 +1,137 @@
-import { useState } from "react";
-import { View, Text, TouchableOpacity, FlatList } from "react-native";
+import { useMemo, useState } from "react";
+import { View, Text, TouchableOpacity, FlatList, Modal, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useMonthlyIncome } from "../hooks/useMonthlyIncome";
 import { RevenueBarChart } from "../components/RevenueBarChart";
 import { DebtorListItem } from "../components/DebtorListItem";
 import { OutstandingDebtCard } from "../components/OutstandingDebtCard";
 import { LoadingState, EmptyState, ErrorState } from "@/components/states";
+import { DetailLayout } from "../../../layouts/DetailLayout"; // adjust path if needed
 
 type MonthlyIncomeDetailScreenProps = {
   onBack: () => void;
   onGoDebtors: () => void;
 };
 
+const KHMER_MONTH_NAMES = [
+  "មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា",
+  "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ",
+];
+
+const STATIC_CHART_DATA: { label: string; amount: number }[] = [
+  { label: "មករា", amount: 1200 },
+  { label: "កុម្ភៈ", amount: 1850 },
+  { label: "មីនា", amount: 900 },
+  { label: "មេសា", amount: 2400 },
+  { label: "ឧសភា", amount: 1600 },
+  { label: "មិថុនា", amount: 2100 },
+];
+
+type MonthOption = { value: string; label: string };
+
+const YEAR_RANGE = [2026, 2027, 2028, 2029, 2030];
+
+function getMonthOptions(): MonthOption[] {
+  const options: MonthOption[] = [];
+  for (const y of YEAR_RANGE) {
+    for (let m = 0; m < 12; m++) {
+      options.push({
+        value: `${m + 1}/${y}`,
+        label: `${KHMER_MONTH_NAMES[m]} ${y}`,
+      });
+    }
+  }
+  return options;
+}
+
 export function MonthlyIncomeDetailScreen({ onBack, onGoDebtors }: MonthlyIncomeDetailScreenProps) {
-  const [month] = useState("5/2025");
+  const monthOptions = useMemo(() => getMonthOptions(), []);
+
+  const defaultMonth = useMemo(() => {
+    const now = new Date();
+    const candidate = `${now.getMonth() + 1}/${now.getFullYear()}`;
+    return monthOptions.some((o) => o.value === candidate) ? candidate : monthOptions[0].value;
+  }, [monthOptions]);
+
+  const [month, setMonth] = useState(defaultMonth);
   const { summary, isLoading, isRefreshing, error, refresh } = useMonthlyIncome(month);
 
+  const [monthDropdownOpen, setMonthDropdownOpen] = useState(false);
+
+  const currentIndex = monthOptions.findIndex((o) => o.value === month);
+  const currentLabel = monthOptions[currentIndex]?.label ?? month;
+  const canGoBack = currentIndex > 0;
+  const canGoForward = currentIndex < monthOptions.length - 1;
+
+  const goBack = () => canGoBack && setMonth(monthOptions[currentIndex - 1].value);
+  const goForward = () => canGoForward && setMonth(monthOptions[currentIndex + 1].value);
+
+  const chartData = STATIC_CHART_DATA;
+
+  const calendarButton = (
+    <TouchableOpacity accessibilityRole="button" accessibilityLabel="Calendar">
+      <Ionicons name="calendar-outline" size={22} color="black" />
+    </TouchableOpacity>
+  );
+
   return (
-    <View className="flex-1 bg-gray-50" style={{ minHeight: 0 }}>
-      {/* Header */}
-      <View className="bg-white px-5 pt-3 pb-3 flex-row items-center justify-between relative border-b border-gray-100">
-        <TouchableOpacity onPress={onBack}>
-          <Ionicons name="arrow-back" size={26} color="#1F2937" />
+    <DetailLayout title="ចំណូលប្រចាំខែ" onBack={onBack} rightAction={calendarButton}>
+      {/* Month navigator */}
+      <View className="bg-white px-5 py-3 flex-row items-center justify-between mt-1 rounded-full mx-5">
+        <TouchableOpacity onPress={goBack} disabled={!canGoBack}>
+          <Ionicons name="chevron-back" size={18} color={canGoBack ? "#6B7280" : "#D1D5DB"} />
         </TouchableOpacity>
-        <View className="absolute left-0 right-0 items-center justify-center pointer-events-none">
-          <Text className="font-khmerBold text-gray-900 text-3xl">ចំណូលប្រចាំខែ</Text>
-        </View>
-        <Ionicons name="calendar-outline" size={22} color="#1F2937" />
+
+        <TouchableOpacity
+          onPress={() => setMonthDropdownOpen(true)}
+          className="flex-row items-center gap-1 px-2 py-1"
+        >
+          <Text className="font-khmer text-gray-800 text-xl">{currentLabel}</Text>
+          <Ionicons name="chevron-down" size={14} color="#6B7280" />
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={goForward} disabled={!canGoForward}>
+          <Ionicons name="chevron-forward" size={18} color={canGoForward ? "#6B7280" : "#D1D5DB"} />
+        </TouchableOpacity>
       </View>
 
-      {/* Month navigator */}
-      <View className="bg-white px-5 py-3 flex-row items-center justify-between mt-1 rounded-full">
-        <TouchableOpacity>
-          <Ionicons name="chevron-back" size={18} color="#6B7280" />
-        </TouchableOpacity>
-        <Text className="font-khmer text-gray-800 text-xl">{summary.month}</Text>
-        <TouchableOpacity>
-          <Ionicons name="chevron-forward" size={18} color="#6B7280" />
-        </TouchableOpacity>
-      </View>
+      <Modal
+        transparent
+        visible={monthDropdownOpen}
+        animationType="fade"
+        onRequestClose={() => setMonthDropdownOpen(false)}
+      >
+        <Pressable className="flex-1 bg-black/20" onPress={() => setMonthDropdownOpen(false)}>
+          <View
+            className="absolute bg-white rounded-xl py-1 shadow-lg border border-gray-100 self-center"
+            style={{ top: 110, width: 180, maxHeight: 320 }}
+          >
+            <FlatList
+              data={monthOptions}
+              keyExtractor={(item) => item.value}
+              showsVerticalScrollIndicator={false}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => {
+                    setMonth(item.value);
+                    setMonthDropdownOpen(false);
+                  }}
+                  className="flex-row items-center justify-between px-4 py-2.5"
+                >
+                  <Text
+                    className={`font-khmer text-xl ${
+                      item.value === month ? "text-blue-600" : "text-gray-700"
+                    }`}
+                  >
+                    {item.label}
+                  </Text>
+                  {item.value === month && <Ionicons name="checkmark" size={16} color="#2563EB" />}
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </Pressable>
+      </Modal>
 
       {isLoading && summary.dailyChart.length === 0 ? (
         <LoadingState text="កំពុងផ្ទុកទិន្នន័យចំណូល..." />
@@ -73,18 +166,18 @@ export function MonthlyIncomeDetailScreen({ onBack, onGoDebtors }: MonthlyIncome
               <View className="bg-white rounded-2xl p-4 mt-4">
                 <View className="flex-row items-center justify-between mb-3">
                   <Text className="font-khmerBold text-gray-900 text-xl">ក្រាហ្វប្រចាំថ្ងៃក្នុងខែនេះ</Text>
-                  <View className="flex-row items-center bg-gray-100 rounded-full px-3 py-1">
-                    <Text className="font-khmer text-gray-600 text-xl">ថ្ងៃ</Text>
-                    <Ionicons name="chevron-down" size={12} color="#6B7280" style={{ marginLeft: 4 }} />
+
+                  <View className="bg-gray-100 rounded-full px-3 py-1">
+                    <Text className="font-khmer text-gray-600 text-xl">ខែ</Text>
                   </View>
                 </View>
-                <RevenueBarChart data={summary.dailyChart} height={130} />
+                <RevenueBarChart data={chartData} height={130} />
               </View>
 
               {/* Debtors */}
               <View className="mt-4">
                 <View className="flex-row items-center justify-between mb-2">
-                  <Text className="font-khmerBold text-gray-900 text-xl">បំណុលអតិថិជន</Text>
+                  <Text className="font-khmerBold text-gray-900 text-xl">ចំណូលអតិថិជនសរុប</Text>
                   <TouchableOpacity onPress={onGoDebtors} className="flex-row items-center gap-1">
                     <Text className="font-khmer text-blue-600 text-xl">មើលទាំងអស់</Text>
                     <Ionicons name="chevron-forward" size={12} color="#2563EB" />
@@ -99,7 +192,7 @@ export function MonthlyIncomeDetailScreen({ onBack, onGoDebtors }: MonthlyIncome
             ) : error ? (
               <ErrorState compact onRetry={refresh} />
             ) : (
-              <EmptyState compact icon="people-outline" text="មិនមានបំណុលអតិថិជន" />
+              <EmptyState compact icon="people-outline" text="មិនមានចំណូលអតិថិជន" />
             )
           }
           ListFooterComponent={
@@ -111,6 +204,6 @@ export function MonthlyIncomeDetailScreen({ onBack, onGoDebtors }: MonthlyIncome
           renderItem={({ item }) => <DebtorListItem debtor={item} />}
         />
       )}
-    </View>
+    </DetailLayout>
   );
 }

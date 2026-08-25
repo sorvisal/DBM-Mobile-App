@@ -2,8 +2,8 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useCustomerDetail } from "../hooks/useCustomerDetail";
 import { CustomerOrderHistoryList } from "../components/CustomerOrderHistoryList";
-import { CustomerAvatar } from "../components/CustomerAvatar";
 import { LoadingState, EmptyState, ErrorState } from "@/components/states";
+import { CustomerInfoCard } from "../components/CustomerInfoCard";
 
 type CustomerOrderHistoryScreenProps = {
   customerId: string;
@@ -16,16 +16,16 @@ export function CustomerOrderHistoryScreen({ customerId, onBack }: CustomerOrder
   return (
     <View className="flex-1 bg-gray-50" style={{ minHeight: 0 }}>
       {/* Header */}
-      <View className="bg-white px-5 pt-3 pb-3 flex-row items-center justify-between relative border-b border-gray-100">
+      <View className="bg-white px-5 pt-5 pb-5 flex-row items-center justify-between relative border-b border-gray-100">
         <TouchableOpacity onPress={onBack}>
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
+          <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
 
         <View className="absolute left-0 right-0 items-center justify-center pointer-events-none">
-          <Text className="font-khmerBold text-gray-900 text-3xl">ប្រវត្តិការបញ្ជាទិញ</Text>
+          <Text className="font-khmerBold text-black text-2xl">ប្រវត្តិការបញ្ជាទិញ</Text>
         </View>
 
-        <Ionicons name="filter-outline" size={24} color="#1F2937" />
+        <Ionicons name="filter-outline" size={24} color="black" />
       </View>
 
       {isLoading && !customer ? (
@@ -45,12 +45,9 @@ export function CustomerOrderHistoryScreen({ customerId, onBack }: CustomerOrder
           onRefresh={refresh}
           onRetry={refresh}
           ListHeaderComponent={
-            <View className="bg-white rounded-2xl p-3 mb-3 flex-row items-center">
-              <CustomerAvatar initials={customer.initials} color={customer.avatarColor} size={40} source={customer.imageUrl} />
-              <View className="ml-3">
-                <Text className="font-khmer text-gray-400 text-[18px]">{customer.code}</Text>
-                <Text className="font-khmerMedium text-gray-900 text-xl">{customer.name}</Text>
-              </View>
+            /* Removed the extra wrapper and added a bottom margin so it separates nicely from the list */
+            <View className="mb-3">
+              <CustomerInfoCard customer={customer} />
             </View>
           }
         />

@@ -4,10 +4,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { DateField } from "../../stock/components/DateField";
 import { Dropdown } from "../../stock/components/Dropdown";
 import { useStockList } from "../../stock/hooks/useStockList"; // ← confirm this path
+import { useCustomerList } from "../../customers/hooks/useCustomerList"; // ← existing hook, wraps api.customers.list()
 import { AddressAutocomplete, type AddressResult } from "@/components/AddressAutocomplete";
 
 export type CreateOrderValues = {
   code: string;
+  customerId: string;
   customerName: string;
   date: Date | null;
   productId: string;
@@ -28,6 +30,7 @@ const generateCode = () => {
 
 const initialValues: CreateOrderValues = {
   code: "",
+  customerId: "",
   customerName: "",
   date: null,
   productId: "",
@@ -63,10 +66,16 @@ const androidInputStyle = {
 export function CreateOrderModal({ visible, onClose, onSubmit }: CreateOrderModalProps) {
   const [values, setValues] = useState<CreateOrderValues>(initialValues);
   const { data: products, isLoading: productsLoading } = useStockList();
+  const { allCustomers, isLoading: customersLoading } = useCustomerList();
 
   const productOptions = (products ?? []).map((p) => ({
     label: `${p.name} — $${p.sellPrice.toFixed(2)}`,
     value: p.id,
+  }));
+
+  const customerOptions = (allCustomers ?? []).map((c) => ({
+    label: c.name,
+    value: c.id,
   }));
 
   const update = (key: keyof CreateOrderValues, value: string) =>
@@ -77,6 +86,16 @@ export function CreateOrderModal({ visible, onClose, onSubmit }: CreateOrderModa
       setValues((prev) => ({ ...prev, code: generateCode() }));
     }
   }, [visible]);
+
+  const handleSelectCustomer = (customerId: string) => {
+    const customer = (allCustomers ?? []).find((c) => c.id === customerId);
+    if (!customer) return;
+    setValues((prev) => ({
+      ...prev,
+      customerId: customer.id,
+      customerName: customer.name,
+    }));
+  };
 
   const handleSelectProduct = (productId: string) => {
     const product = (products ?? []).find((p) => p.id === productId);
@@ -117,13 +136,11 @@ export function CreateOrderModal({ visible, onClose, onSubmit }: CreateOrderModa
             </FormField>
 
             <FormField label="ឈ្មោះអតិថិជន" required>
-              <TextInput
-                value={values.customerName}
-                onChangeText={(v) => update("customerName", v)}
-                placeholder="បញ្ចូលឈ្មោះអតិថិជន"
-                placeholderTextColor="#D1D5DB"
-                className="font-khmer border border-gray-200 rounded-xl px-3 h-11 text-lg text-gray-800"
-                style={androidInputStyle}
+              <Dropdown
+                placeholder={customersLoading ? "កំពុងផ្ទុកអតិថិជន..." : "ជ្រើសរើសអតិថិជន"}
+                options={customerOptions}
+                value={values.customerId || null}
+                onChange={handleSelectCustomer}
               />
             </FormField>
 

@@ -21,7 +21,7 @@ export function OrderStatsBar({
           <Ionicons name="receipt-outline" size={26} color="#2563EB" />
         </View>
         <Text className="font-khmerBold text-gray-900 text-2xl">{totalOrders}</Text>
-        <Text className="font-khmer text-gray-500 text-[16px] mt-0.5 text-center" numberOfLines={1}>
+        <Text className="font-khmer text-gray-500 text-[14px] mt-0.5 text-center" numberOfLines={1}>
           ការបញ្ជាទិញ
         </Text>
       </View>

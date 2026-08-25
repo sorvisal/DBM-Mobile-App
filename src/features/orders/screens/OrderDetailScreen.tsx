@@ -9,6 +9,7 @@ import { OrderStepper } from "../components/OrderStepper";
 import { OrderItemRow } from "../components/OrderItemRow";
 import { OrderSummary } from "../components/OrderSummary";
 import { OrderConfirmModal } from "../components/OrderConfirmModal";
+import { DetailLayout } from "../../../layouts/DetailLayout"; // adjust relative path as needed
 
 type OrderDetailScreenProps = {
   orderId: string;
@@ -20,30 +21,30 @@ export function OrderDetailScreen({ orderId, onBack }: OrderDetailScreenProps) {
   const { updateOrderStatus } = useUpdateOrderStatus();
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
 
-  // Loading state — full-screen overlay, shown while the request is in flight
+  // Loading state using DetailLayout header for visual consistency
   if (isLoading) {
     return (
-      <View className="flex-1 bg-gray-50" style={{ minHeight: 0 }}>
-        <View className="bg-white px-5 pt-3 pb-3 flex-row items-center justify-between relative border-b border-gray-100">
-          <TouchableOpacity onPress={onBack}>
-            <Ionicons name="arrow-back" size={26} color="#1F2937" />
-          </TouchableOpacity>
-          <View className="absolute left-0 right-0 items-center justify-center pointer-events-none">
-            <Text className="font-khmerBold text-gray-900 text-2xl">​</Text>
-          </View>
-          <View style={{ width: 26 }} />
-        </View>
-
-        <View className="flex-1 items-center justify-center">
+      <DetailLayout title="ព័ត៌មានការបញ្ជាទិញ" onBack={onBack}>
+        <View className="flex-1 items-center justify-center bg-gray-50">
           <ActivityIndicator size="large" color="#2563EB" />
           <Text className="font-khmer text-gray-400 text-sm mt-3">កំពុងផ្ទុក...</Text>
         </View>
-      </View>
+      </DetailLayout>
     );
   }
 
+  // Empty / Not found state
   if (!order) {
-    return null;
+    return (
+      <DetailLayout title="ព័ត៌មានការបញ្ជាទិញ" onBack={onBack}>
+        <View className="flex-1 items-center justify-center px-6 bg-gray-50">
+          <Ionicons name="alert-circle-outline" size={34} color="#D1D5DB" />
+          <Text className="font-khmer text-gray-400 text-sm mt-2 text-center">
+            រកមិនឃើញការបញ្ជាទិញ
+          </Text>
+        </View>
+      </DetailLayout>
+    );
   }
 
   const handleConfirmOrder = () => {
@@ -73,21 +74,8 @@ export function OrderDetailScreen({ orderId, onBack }: OrderDetailScreenProps) {
   };
 
   return (
-    <View className="flex-1 bg-gray-50" style={{ minHeight: 0 }}>
-      {/* Header */}
-      <View className="bg-white px-5 pt-3 pb-3 flex-row items-center justify-between relative border-b border-gray-100">
-        <TouchableOpacity onPress={onBack}>
-          <Ionicons name="arrow-back" size={26} color="#1F2937" />
-        </TouchableOpacity>
-
-        <View className="absolute left-0 right-0 items-center justify-center pointer-events-none">
-          <Text className="font-khmerBold text-gray-900 text-2xl">{order.code}</Text>
-        </View>
-
-        <View style={{ width: 26 }} />
-      </View>
-
-      <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
+    <DetailLayout title={order.code} onBack={onBack}>
+      <ScrollView className="flex-1 bg-gray-50 px-5 pt-2" showsVerticalScrollIndicator={false}>
         {/* Order card: code, status, customer, phone, date */}
         <View className="bg-white rounded-2xl p-4 mb-3">
           <View className="flex-row items-start justify-between">
@@ -96,10 +84,10 @@ export function OrderDetailScreen({ orderId, onBack }: OrderDetailScreenProps) {
                 <Ionicons name="bag-handle-outline" size={26} color="#EA580C" />
               </View>
               <View className="ml-3">
-                <Text className="font-khmerBold text-gray-900 text-2xl">{order.code}</Text>
-                <Text className="font-khmer text-gray-500 text-2xl mt-1">{order.customer.name}</Text>
-                <Text className="font-khmer text-gray-400 text-2xl mt-0.5">{order.customer.phone}</Text>
-                <Text className="font-khmer text-gray-400 text-2xl mt-0.5">{order.createdAt}</Text>
+                <Text className="font-khmerBold text-gray-900 text-xl">{order.code}</Text>
+                <Text className="font-khmer text-gray-500 text-lg mt-1">{order.customer.name}</Text>
+                <Text className="font-khmer text-gray-400 text-lg mt-0.5">{order.customer.phone}</Text>
+                <Text className="font-khmer text-gray-400 text-lg mt-0.5">{order.createdAt}</Text>
               </View>
             </View>
             <OrderStatusBadge status={order.status} />
@@ -274,6 +262,6 @@ export function OrderDetailScreen({ orderId, onBack }: OrderDetailScreenProps) {
         onConfirm={handleConfirmOrder}
         onCancel={() => setConfirmModalVisible(false)}
       />
-    </View>
+    </DetailLayout>
   );
 }

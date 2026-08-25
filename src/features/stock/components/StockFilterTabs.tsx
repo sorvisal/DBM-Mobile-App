@@ -57,8 +57,7 @@ export function StockFilterTabs() {
 
   const filtered = movements.filter((m) => {
     const date = new Date(m.createdAt);
-    const selected = new Date(selectedDate);
-    if (date.toDateString() !== selected.toDateString()) return false;
+    if (date.toDateString() !== selectedDate.toDateString()) return false;
     if (activePeriod === "ចូល") return m.type === "in";
     if (activePeriod === "ចេញ") return m.type === "out";
     return true;
@@ -70,6 +69,18 @@ export function StockFilterTabs() {
     acc[key].push(m);
     return acc;
   }, {});
+
+  // Sort each day's movements newest-first, and sort the date groups newest-first
+  const sortedGroupedEntries = Object.entries(grouped)
+    .map(([date, items]) => [
+      date,
+      [...items].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+    ] as [string, StockMovement[]])
+    .sort((a, b) => {
+      const [dayA, monthA, yearA] = a[0].split("/").map(Number);
+      const [dayB, monthB, yearB] = b[0].split("/").map(Number);
+      return new Date(yearB, monthB - 1, dayB).getTime() - new Date(yearA, monthA - 1, dayA).getTime();
+    });
 
   return (
     <View className="flex-1 bg-gray-50" style={{ minHeight: 0 }}>
@@ -90,17 +101,15 @@ export function StockFilterTabs() {
           );
         })}
 
-        <TouchableOpacity
-          onPress={() => {}}
-          className="flex-1 flex-row items-center justify-end gap-1.5"
-        >
-                 <DateField
-          placeholder="ជ្រើសរើសកាលបរិច្ឆេទ"
-          value={selectedDate}
-          onChange={(date) => setSelectedDate(date)}
-        />
-        </TouchableOpacity>
+        <View className="flex-1 items-end">
+          <DateField
+            placeholder="ជ្រើសរើសកាលបរិច្ឆេទ"
+            value={selectedDate}
+            onChange={(date) => setSelectedDate(date)}
+          />
+        </View>
       </View>
+
       <ScrollView className="flex-1 px-5 pt-1" showsVerticalScrollIndicator={false}>
         {isLoading ? (
           <View className="items-center py-16">
@@ -111,13 +120,13 @@ export function StockFilterTabs() {
             <Ionicons name="alert-circle-outline" size={36} color="#DC2626" />
             <Text className="font-khmer text-gray-400 text-xl mt-2">{error}</Text>
           </View>
-        ) : Object.keys(grouped).length === 0 ? (
+        ) : sortedGroupedEntries.length === 0 ? (
           <View className="items-center py-16">
             <Ionicons name="time-outline" size={36} color="#D1D5DB" />
             <Text className="font-khmer text-gray-400 text-xl mt-2">មិនមានប្រវត្តិ</Text>
           </View>
         ) : (
-          Object.entries(grouped).map(([date, items]) => (
+          sortedGroupedEntries.map(([date, items]) => (
             <View key={date}>
               <Text className="font-khmer text-gray-500 text-lg mb-2">{date}</Text>
               {items.map((m, i) => (

@@ -11,16 +11,9 @@ export type EditCustomerValues = {
   address: string;
   latitude: string;
   longitude: string;
-  category: string;
   description: string;
   status: CustomerStatus;
 };
-
-const CATEGORY_OPTIONS = [
-  { label: "អតិថិជនថ្មី", value: "អតិថិជនថ្មី" },
-  { label: "អតិថិជនប្រចាំ", value: "អតិថិជនប្រចាំ" },
-  { label: "អតិថិជនធំ", value: "អតិថិជនធំ" },
-];
 
 const STATUS_OPTIONS = [
   { label: "សកម្ម", value: CustomerStatus.Active },
@@ -52,7 +45,6 @@ export function EditCustomerModal({ visible, customer, onClose, onSubmit }: Edit
     address: "",
     latitude: "",
     longitude: "",
-    category: "",
     description: "",
     status: CustomerStatus.Active,
   });
@@ -61,19 +53,18 @@ export function EditCustomerModal({ visible, customer, onClose, onSubmit }: Edit
   useEffect(() => {
     if (customer) {
       setValues({
-        name: customer.name,
-        phone: customer.phone,
-        address: customer.location,
+        name: customer.name ?? "",
+        phone: customer.phone ?? "",
+        address: customer.location ?? "",
         latitude: "",
         longitude: "",
-        category: customer.customerType,
-        description: customer.note === "-" ? "" : customer.note,
-        status: customer.status,
+        description: customer.note === "-" ? "" : (customer.note ?? ""),
+        status: customer.status ?? CustomerStatus.Active,
       });
     }
   }, [customer]);
 
-  const update = (key: keyof EditCustomerValues, value: string) =>
+  const update = <K extends keyof EditCustomerValues>(key: K, value: EditCustomerValues[K]) =>
     setValues((prev) => ({ ...prev, [key]: value }));
 
   const handleSubmit = () => {
@@ -136,15 +127,6 @@ export function EditCustomerModal({ visible, customer, onClose, onSubmit }: Edit
                   }));
                 }}
                 placeholder="ភ្នំពេញ, ខណ្ឌចំការមន"
-              />
-            </FormField>
-
-            <FormField label="ប្រភេទអតិថិជន" required>
-              <Dropdown
-                placeholder="ជ្រើសរើសប្រភេទ"
-                options={CATEGORY_OPTIONS}
-                value={values.category || null}
-                onChange={(v) => update("category", v)}
               />
             </FormField>
 

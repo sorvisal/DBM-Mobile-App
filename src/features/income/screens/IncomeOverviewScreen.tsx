@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useIncomeSummary } from "../hooks/useIncomeSummary";
@@ -6,6 +7,9 @@ import { IncomeSummaryCard } from "../components/IncomeSummaryCard";
 import { OutstandingDebtCard } from "../components/OutstandingDebtCard";
 import { DebtorListItem } from "../components/DebtorListItem";
 import { RevenueAreaChart } from "../components/RevenueAreaChart";
+import { RangeDropdown, RevenueRange } from "../components/RangeDropdown";
+import type { ChartPoint } from "../types/income.types";
+
 type IncomeOverviewScreenProps = {
   onGoDaily: () => void;
   onGoMonthly: () => void;
@@ -13,8 +17,41 @@ type IncomeOverviewScreenProps = {
   onGoDebtors: () => void;
 };
 
+const RANGE_TITLE: Record<RevenueRange, string> = {
+  "7": "ក្រាហ្វចំណូល (7 ថ្ងៃចុងក្រោយ)",
+  "28": "ក្រាហ្វចំណូល (28 ថ្ងៃចុងក្រោយ)",
+  "90": "ក្រាហ្វចំណូល (90 ថ្ងៃចុងក្រោយ)",
+};
+
+// TODO: replace with a real API call once the backend exposes a
+// range-aware revenue endpoint (e.g. api.reports.revenueChart(range)).
+// This only exists so the range selector has something to render for now.
+function buildPlaceholderChart(days: number): ChartPoint[] {
+  const points: ChartPoint[] = [];
+  const today = new Date();
+
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const mockAmount = 100 + ((days - i) % 7) * 20;
+
+    points.push({
+      label: `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`,
+      amount: mockAmount,
+    });
+  }
+
+  return points;
+}
+
 export function IncomeOverviewScreen({ onGoDaily, onGoMonthly, onGoYearly, onGoDebtors }: IncomeOverviewScreenProps) {
+  const [chartRange, setChartRange] = useState<RevenueRange>("7");
   const { overview } = useIncomeSummary();
+
+  const chartData = useMemo(() => {
+    if (chartRange === "7") return overview.weeklyChart;
+    return buildPlaceholderChart(Number(chartRange));
+  }, [chartRange, overview.weeklyChart]);
 
   return (
     <View className="flex-1 bg-gray-50" style={{ minHeight: 0 }}>
@@ -69,21 +106,21 @@ export function IncomeOverviewScreen({ onGoDaily, onGoMonthly, onGoYearly, onGoD
           onPress={onGoDebtors}
         />
 
-      {/* Weekly chart */}
-      <View className="bg-white rounded-2xl p-4 mt-4">
-        <View className="flex-row items-center justify-between mb-3">
-          <Text className="font-khmerBold text-gray-900 text-xl">ក្រាភបំណូល (7 ថ្ងៃចុងក្រោយ)</Text>
-          <View className="flex-row items-center bg-gray-100 rounded-full px-3 py-1">
-            <Text className="font-khmer text-gray-600 text-xl">7 ថ្ងៃ</Text>
-            <Ionicons name="chevron-down" size={12} color="#6B7280" style={{ marginLeft: 4 }} />
+        {/* Revenue chart */}
+        <View className="bg-white rounded-xl p-2 mt-3">
+          <View className="flex-row items-center justify-between mb-2">
+            <Text className="font-khmerBold text-gray-900 text-lg">
+              {RANGE_TITLE[chartRange]}
+            </Text>
+            <RangeDropdown value={chartRange} onChange={setChartRange} />
           </View>
+          <RevenueAreaChart data={chartData} />
         </View>
-        <RevenueAreaChart data={overview.weeklyChart} />
-      </View>
+
         {/* Top debtors preview */}
         <View className="mt-4">
           <View className="flex-row items-center justify-between mb-2">
-            <Text className="font-khmerBold text-gray-900 text-xl">បំណុលអតិថិជន</Text>
+            <Text className="font-khmerBold text-gray-900 text-xl">ចំណូលអតិថិជនសរុប</Text>
             <TouchableOpacity onPress={onGoDebtors} className="flex-row items-center gap-1">
               <Text className="font-khmer text-blue-600 text-xl">មើលទាំងអស់</Text>
               <Ionicons name="chevron-forward" size={16} color="#2563EB" />

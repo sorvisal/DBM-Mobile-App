@@ -82,32 +82,42 @@ async function fetchDashboardData(revenuePeriod: RevenuePeriod, chartRange: Char
   const receivablesResData = receivablesRes.status === "fulfilled" ? receivablesRes.value : null;
   const chartResData = chartRes.status === "fulfilled" ? chartRes.value : [];
 
-  const newStats: DashboardStat[] = [
-    {
-      key: "totalSkus",
-      icon: "cube-outline",
-      iconBg: "bg-blue-400",
-      title: productSummary?.total != null ? String(productSummary.total) : "0",
-      value: String(productSummary?.total ?? 0),
-      unit: "SKU",
-    },
-    {
-      key: "lowStock",
-      icon: "warning-outline",
-      iconBg: "bg-orange-400",
-      title: productSummary?.lowStockCount != null ? String(productSummary.lowStockCount) : "0",
-      value: String(productSummary?.lowStockCount ?? 0),
-      unit: "មុខ",
-    },
-    {
-      key: "expiringSoon",
-      icon: "time-outline",
-      iconBg: "bg-red-400",
-      title: productSummary?.expiringCount != null ? String(productSummary.expiringCount) : "0",
-      value: String(productSummary?.expiringCount ?? 0),
-      unit: "មុខ",
-    },
-  ];
+ const todayOrdersCount = revenueResData?.ordersCount ?? 0;
+
+const newStats: DashboardStat[] = [
+  {
+    key: "totalStock",
+    icon: "cube-outline",
+    iconBg: "bg-blue-400",
+    title: "ស្តុកសរុប",
+    value: String(productSummary?.total ?? 0),
+    unit: "ឯកតា",
+  },
+  {
+    key: "totalIncome",
+    icon: "cash-outline",
+    iconBg: "bg-green-400",
+    title: "ចំណូលថ្ងៃនេះ",
+    value: `$${(revenueResData?.totalRevenue ?? 0).toLocaleString()}`,
+    unit: "ដុល្លារ",
+  },
+  {
+    key: "expiringSoon",
+    icon: "warning-outline",
+    iconBg: "bg-orange-400",
+    title: "ស្តុកជិតផុតកំណត់",
+    value: String(productSummary?.expiringCount ?? 0),
+    unit: "មុខ",
+  },
+  {
+    key: "totalOrder",
+    icon: "document-text-outline",
+    iconBg: "bg-purple-400",
+    title: "បញ្ជាទិញថ្មី",
+    value: String(todayOrdersCount),
+    unit: "កម្មង់",
+  },
+];
 
   const newTotalCustomers = customerList?.total ?? 0;
 

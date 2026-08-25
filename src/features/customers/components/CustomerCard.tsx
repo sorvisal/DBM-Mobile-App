@@ -13,7 +13,11 @@ export function CustomerCard({ customer, onPress }: CustomerCardProps) {
 
   return (
     <TouchableOpacity
-      onPress={onPress}
+      onPress={() => {
+        console.log("card tapped", customer.id);
+        onPress();
+      }}
+      activeOpacity={0.7}
       className="flex-row items-center bg-white rounded-2xl p-3 mb-3"
       style={{ shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 }}
     >

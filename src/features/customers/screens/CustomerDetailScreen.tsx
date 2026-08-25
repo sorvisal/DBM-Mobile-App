@@ -7,6 +7,8 @@ import { CustomerInfoCard } from "../components/CustomerInfoCard";
 import { CustomerSpendingCard } from "../components/CustomerSpendingCard";
 import { CustomerActionButtons } from "../components/CustomerActionButtons";
 import { EditCustomerModal, EditCustomerValues } from "../components/EditCustomerModal";
+import { CustomerStatus } from "../types/customer.types";
+import { DetailLayout } from "../../../layouts/DetailLayout"; // adjust relative path as needed
 
 type CustomerDetailScreenProps = {
   customerId: string;
@@ -15,49 +17,50 @@ type CustomerDetailScreenProps = {
 };
 
 export function CustomerDetailScreen({ customerId, onBack, onViewHistory }: CustomerDetailScreenProps) {
-  const { customer, isLoading } = useCustomerDetail(customerId);
+  const { customer, isLoading, error, refresh } = useCustomerDetail(customerId);
   const [menuVisible, setMenuVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
 
-  // Only show "not found" once loading has finished and there's really no customer
+  const menuButton = (
+    <TouchableOpacity onPress={() => setMenuVisible(true)} accessibilityRole="button" accessibilityLabel="Options">
+      <Ionicons name="ellipsis-horizontal" size={22} color="#1F2937" />
+    </TouchableOpacity>
+  );
+
   if (!isLoading && !customer) {
     return (
-      <View className="flex-1 bg-gray-50 items-center justify-center" style={{ minHeight: 0 }}>
-        <Text className="font-khmer text-gray-400 text-sm">រកមិនឃើញអតិថិជន</Text>
-      </View>
+      <DetailLayout title="ព័ត៌មានអតិថិជន" onBack={onBack}>
+        <View className="flex-1 items-center justify-center px-6 bg-gray-50">
+          <Ionicons name="alert-circle-outline" size={34} color="#D1D5DB" />
+          <Text className="font-khmer text-gray-400 text-sm mt-2 text-center">
+            {error ?? "រកមិនឃើញអតិថិជន"}
+          </Text>
+        </View>
+      </DetailLayout>
     );
   }
 
-  const handleSaveEdit = (values: EditCustomerValues) => {
+  const handleSaveEdit = async (values: EditCustomerValues) => {
     if (!customer) return;
-    updateCustomer(customer.id, {
-      name: values.name,
-      phone: values.phone,
-      address: values.address,
-      status: values.status,
-    });
-    setEditModalVisible(false);
+    try {
+      await updateCustomer(customer.id, {
+        name: values.name,
+        phone: values.phone,
+        address: values.address,
+        status: values.status === CustomerStatus.Active ? "active" : "inactive",
+        description: values.description,
+      });
+      setEditModalVisible(false);
+      refresh(); // Refresh customer details after successful update
+    } catch (err) {
+      console.error("Failed to update customer:", err);
+    }
   };
 
   return (
-    <View className="flex-1 bg-gray-50" style={{ minHeight: 0 }}>
-      {/* Header */}
-      <View className="bg-white px-5 pt-3 pb-3 flex-row items-center justify-between relative border-b border-gray-100">
-        <TouchableOpacity onPress={onBack}>
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
-        </TouchableOpacity>
-
-        <View className="absolute left-0 right-0 items-center justify-center pointer-events-none">
-          <Text className="font-khmerBold text-gray-900 text-3xl">ព័ត៌មានអតិថិជន</Text>
-        </View>
-
-        <TouchableOpacity onPress={() => setMenuVisible(true)}>
-          <Ionicons name="ellipsis-horizontal" size={22} color="#1F2937" />
-        </TouchableOpacity>
-      </View>
-
+    <DetailLayout title="ព័ត៌មានអតិថិជន" onBack={onBack} rightAction={menuButton}>
       {customer && (
-        <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
+        <ScrollView className="flex-1 bg-gray-50 px-5 pt-4" showsVerticalScrollIndicator={false}>
           <CustomerInfoCard customer={customer} />
           <CustomerSpendingCard customer={customer} />
           <CustomerActionButtons
@@ -72,19 +75,21 @@ export function CustomerDetailScreen({ customerId, onBack, onViewHistory }: Cust
         </ScrollView>
       )}
 
-      {/* Dropdown menu triggered by "..." */}
       <Modal visible={menuVisible} transparent animationType="fade" onRequestClose={() => setMenuVisible(false)}>
         <Pressable className="flex-1" onPress={() => setMenuVisible(false)}>
-          <View className="absolute top-14 right-5 bg-white rounded-2xl overflow-hidden" style={{ minWidth: 220, shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 12, elevation: 6 }}>
+          <View
+            className="absolute top-14 right-5 bg-white rounded-2xl overflow-hidden border border-gray-100"
+            style={{ minWidth: 220, shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 12, elevation: 5 }}
+          >
             <TouchableOpacity
               onPress={() => {
                 setMenuVisible(false);
-                onViewHistory(customer!.id);
+                if (customer) onViewHistory(customer.id);
               }}
               className="flex-row items-center px-4 py-3"
             >
               <Ionicons name="time-outline" size={18} color="#2563EB" />
-              <Text className="font-khmer text-gray-800 text-xl ml-2.5">ប្រវត្តិការបញ្ជាទិញ</Text>
+              <Text className="font-khmer text-gray-800 text-base ml-2.5">ប្រវត្តិការបញ្ជាទិញ</Text>
             </TouchableOpacity>
           </View>
         </Pressable>
@@ -99,16 +104,12 @@ export function CustomerDetailScreen({ customerId, onBack, onViewHistory }: Cust
         />
       )}
 
-      {/* Loading overlay — sits on top of the screen while the request is in flight */}
       {isLoading && (
-        <View
-          className="absolute inset-0 items-center justify-center bg-white"
-          style={{ zIndex: 50 }}
-        >
+        <View className="absolute inset-0 items-center justify-center bg-white" style={{ zIndex: 50 }}>
           <ActivityIndicator size="large" color="#2563EB" />
           <Text className="font-khmer text-gray-400 text-sm mt-3">កំពុងផ្ទុក...</Text>
         </View>
       )}
-    </View>
+    </DetailLayout>
   );
 }

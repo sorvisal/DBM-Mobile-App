@@ -5,8 +5,10 @@ export type LoginFormValues = {
 
 export type RegisterFormValues = {
   username: string;
+  fullName: string;
   email: string;
   mobile: string;
+  storeName: string;
   password: string;
   confirmPassword: string;
 };

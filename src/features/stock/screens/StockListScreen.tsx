@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react";
-import { View, Text, TouchableOpacity, FlatList, ListRenderItemInfo, NativeSyntheticEvent, NativeScrollEvent, TextInput } from "react-native";
+import { useState, useCallback, useEffect } from "react";
+import { View, Text, TouchableOpacity, FlatList, ListRenderItemInfo, NativeSyntheticEvent, NativeScrollEvent, TextInput, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { StockTabBar } from "../components/StockTabBar";
 import { TotalProductCard } from "../components/totalProdcutCard";
@@ -18,6 +18,12 @@ export function StockListScreen({ onNavigate }: StockListScreenProps) {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
   const { data, isLoading, isFetchingMore, hasMore, loadMore, error, stale } = useStockList(debouncedSearch);
+  const [showOverlay, setShowOverlay] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowOverlay(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleEndReached = useCallback(() => {
     if (hasMore && !isFetchingMore) loadMore();
@@ -36,7 +42,9 @@ export function StockListScreen({ onNavigate }: StockListScreenProps) {
     index,
   }), []);
 
-  const renderRow = useCallback(({ item }: ListRenderItemInfo<typeof data[0]>) => (
+const renderRow = useCallback(({ item }: ListRenderItemInfo<typeof data[0]>) => {
+  console.log("product image:", item.name, "->", item.imageUrl);
+  return (
     <TotalProductCard
       key={item.id}
       imageUrl={item.imageUrl ?? ""}
@@ -48,7 +56,8 @@ export function StockListScreen({ onNavigate }: StockListScreenProps) {
       isLowStock={item.status !== "in_stock"}
       onPress={() => {}}
     />
-  ), []);
+  );
+}, []);
 
   const renderFooter = useCallback(() => {
     if (!isFetchingMore) return null;
@@ -83,40 +92,52 @@ export function StockListScreen({ onNavigate }: StockListScreenProps) {
         </View>
       </View>
 
-      <FlatList
-        data={data}
-        keyExtractor={(item) => item.id}
-        style={{ flex: 1 }}
-        showsVerticalScrollIndicator={false}
-        initialNumToRender={10}
-        maxToRenderPerBatch={5}
-        windowSize={5}
-        removeClippedSubviews={true}
-        getItemLayout={getItemLayout}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        onEndReached={handleEndReached}
-        onEndReachedThreshold={0.15}
-        renderItem={renderRow}
-        ListFooterComponent={renderFooter}
-        ListEmptyComponent={
-          isLoading ? (
-            <View className="flex-1 px-5 pt-2">
-              {Array.from({ length: 8 }).map((_, i) => <ProductCardSkeleton key={`sl-${i}`} />)}
-            </View>
-          ) : error ? (
-            <View className="items-center py-16">
-              <Ionicons name="alert-circle-outline" size={36} color="#EF4444" />
-              <Text className="font-khmer text-red-400 text-xl mt-2">{error}</Text>
-            </View>
-          ) : (
-            <View className="items-center py-16">
-              <Ionicons name="cube-outline" size={36} color="#D1D5DB" />
-              <Text className="font-khmer text-gray-400 text-xl mt-2">មិនមានផលិតផល</Text>
-            </View>
-          )
-        }
-      />
+      <View className="flex-1" style={{ minHeight: 0 }}>
+        <FlatList
+          data={data}
+          keyExtractor={(item) => item.id}
+          style={{ flex: 1 }}
+          showsVerticalScrollIndicator={false}
+          initialNumToRender={10}
+          maxToRenderPerBatch={5}
+          windowSize={5}
+          removeClippedSubviews={true}
+          getItemLayout={getItemLayout}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.15}
+          renderItem={renderRow}
+          ListFooterComponent={renderFooter}
+          ListEmptyComponent={
+            isLoading ? (
+              <View className="flex-1 px-5 pt-2">
+                {Array.from({ length: 8 }).map((_, i) => <ProductCardSkeleton key={`sl-${i}`} />)}
+              </View>
+            ) : error ? (
+              <View className="items-center py-16">
+                <Ionicons name="alert-circle-outline" size={36} color="#EF4444" />
+                <Text className="font-khmer text-red-400 text-xl mt-2">{error}</Text>
+              </View>
+            ) : (
+              <View className="items-center py-16">
+                <Ionicons name="cube-outline" size={36} color="#D1D5DB" />
+                <Text className="font-khmer text-gray-400 text-xl mt-2">មិនមានផលិតផល</Text>
+              </View>
+            )
+          }
+        />
+
+        {showOverlay && (
+          <View
+            className="absolute top-0 left-0 right-0 bottom-0 items-center justify-center"
+            style={{ backgroundColor: "rgba(255,255,255,100)", zIndex: 50 }}
+          >
+            <ActivityIndicator size="large" color="#2563EB" />
+            <Text className="font-khmer text-gray-500 text-sm mt-3">កំពុងផ្ទុក...</Text>
+          </View>
+        )}
+      </View>
     </View>
   );
 }

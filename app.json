@@ -11,6 +11,7 @@
       "backgroundColor": "blue"
     },
     "ios": {
+      
       "supportsTablet": true
     },
     "android": {

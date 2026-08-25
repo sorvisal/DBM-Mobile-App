@@ -17,7 +17,6 @@ interface FeatureCustomer {
   totalOrders: number;
   totalSpent: number;
   memberSince: string;
-  customerType: string;
   note: string;
   orders: { id: string; code: string; date: string; status: string; total: number; itemCount: number }[];
   imageUrl?: string | null;
@@ -72,29 +71,36 @@ export function useCustomerDetail(customerId: string) {
       // Suppress global overlay for refresh (pull-to-refresh uses its own UI)
       if (isRefresh) suppressGlobalLoading();
 
-      api.customers
+    api.customers
         .get(customerId)
-        .then((c) => {
+        .then((response: any) => {
           if (cancelled) return;
+          
+          // Unrwap response safely whether it's wrapped in { data: { ... } } or returned directly
+          const c = response?.data ?? response;
+
           return api.customers.getOrders(customerId).then((orders) => {
             if (cancelled) return;
+            
             const mapped: FeatureCustomer = {
-              id: c.id,
-              code: `CUS-${c.id}`,
-              name: c.name,
-              initials: getInitials(c.name),
-              avatarColor: AVATAR_COLORS[parseInt(c.id) % AVATAR_COLORS.length] ?? "#2563EB",
+              id: String(c.id ?? customerId),
+              code: `CUS-${c.id ?? customerId}`,
+              name: c.name ?? "",
+              initials: getInitials(c.name ?? ""),
+              avatarColor: AVATAR_COLORS[parseInt(String(c.id ?? "0")) % AVATAR_COLORS.length] ?? "#2563EB",
               phone: c.phone ?? "",
               location: c.address ?? "",
               status: c.status === "inactive" ? CustomerStatus.Inactive : CustomerStatus.Active,
-              totalOrders: c.totalOrders,
-              totalSpent: c.balance,
-              memberSince: formatDate(c.createdAt),
-              customerType: "អតិថិជន",
-              note: "-",
+              totalOrders: c.totalOrders ?? 0,
+              totalSpent: c.balance ?? 0,
+              memberSince: c.createdAt ? formatDate(c.createdAt) : "-",
+              
+              // Map the server's `description` field to the UI `note` field
+              note: c.description?.trim() ? String(c.description) : "-",
+              
               imageUrl: resolveMediaUrl(c.photoPath),
               _photoPath: c.photoPath ?? null,
-              orders: orders
+              orders: (orders ?? [])
                 .filter((o, idx, arr) => arr.findIndex((x) => x.id === o.id) === idx)
                 .map((o) => ({
                   id: o.id,
@@ -105,6 +111,7 @@ export function useCustomerDetail(customerId: string) {
                   itemCount: o.items.length,
                 })),
             };
+
             cacheSet(cacheKey, mapped, STALE_TTL).catch(() => {});
             setCustomer(mapped);
             setError(null);

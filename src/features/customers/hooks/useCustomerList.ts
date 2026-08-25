@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { api, cacheGet, cacheGetStale, cacheSet, cacheClearKeySync, CacheTTL, suppressGlobalLoading, unsuppressGlobalLoading } from "@/services";
+import { api, cacheGet, cacheSet, cacheClearKeySync, CacheTTL, suppressGlobalLoading, unsuppressGlobalLoading } from "@/services";
 import { resolveMediaUrl } from "@/services/http";
 import { CustomerStatus } from "../types/customer.types";
 
@@ -15,7 +15,6 @@ interface FeatureCustomer {
   totalOrders: number;
   totalSpent: number;
   memberSince: string;
-  customerType: string;
   note: string;
   orders: { id: string; code: string; date: string; status: string; total: number; itemCount: number }[];
   imageUrl?: string | null;
@@ -39,7 +38,21 @@ function formatDate(iso: string) {
   return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
 }
 
-function mapCustomer(c: { id: string; name: string; phone?: string; address?: string; status: string; balance: number; totalOrders?: number; createdAt: string; photoPath?: string | null }, index: number): FeatureCustomer {
+function mapCustomer(
+  c: { 
+    id: string; 
+    name: string; 
+    phone?: string; 
+    address?: string; 
+    status: string; 
+    balance: number; 
+    totalOrders?: number; 
+    createdAt: string; 
+    photoPath?: string | null;
+    description?: string;
+  }, 
+  index: number
+): FeatureCustomer {
   return {
     id: c.id,
     code: `CUS-${c.id}`,
@@ -52,13 +65,15 @@ function mapCustomer(c: { id: string; name: string; phone?: string; address?: st
     totalOrders: c.totalOrders ?? 0,
     totalSpent: c.balance ?? 0,
     memberSince: formatDate(c.createdAt),
-    customerType: "អតិថិជន",
-    note: "-",
+    note: c.description?.trim() ? String(c.description) : "-",
     orders: [],
     imageUrl: resolveMediaUrl(c.photoPath),
     _photoPath: c.photoPath ?? null,
   };
 }
+
+type NewCustomerListener = (customer: FeatureCustomer) => void;
+const newCustomerListeners = new Set<NewCustomerListener>();
 
 export function useCustomerList() {
   const [allCustomers, setAllCustomers] = useState<FeatureCustomer[]>([]);
@@ -78,8 +93,7 @@ export function useCustomerList() {
       const mapped = (res.items ?? [])
         .map((c, i) => mapCustomer(c, (p - 1) * PAGE_SIZE + i))
         .filter((c: FeatureCustomer, idx: number, arr: FeatureCustomer[]) => arr.findIndex((x) => x.id === c.id) === idx);
-      // Cache each page individually for instant loadMore
-            cacheSet(cacheKeyForPage(p), mapped, STALE_TTL).catch(() => {});
+      cacheSet(cacheKeyForPage(p), mapped, STALE_TTL).catch(() => {});
       if (p === 1) {
         setAllCustomers(mapped);
         setTotal(res.total ?? mapped.length);
@@ -103,10 +117,10 @@ export function useCustomerList() {
     for (let p = fromPage + 1; p <= totalPages; p++) {
       promises.push(
         cacheGet<FeatureCustomer[]>(cacheKeyForPage(p)).then((cached) => {
-          if (cached) return; // already cached
+          if (cached) return;
           api.customers.list({ page: p, pageSize: PAGE_SIZE }).then((res) => {
             const mapped = (res.items ?? []).map((c, i) => mapCustomer(c, (p - 1) * PAGE_SIZE + i));
-      cacheSet(cacheKeyForPage(p), mapped, STALE_TTL).catch(() => {});
+            cacheSet(cacheKeyForPage(p), mapped, STALE_TTL).catch(() => {});
           }).catch(() => {});
         })
       );
@@ -116,12 +130,10 @@ export function useCustomerList() {
 
   useEffect(() => {
     let cancelled = false;
-    // Clear old cache that may lack imageUrl/_photoPath
     cacheClearKeySync(cacheKeyForPage(1));
     for (let p = 2; p <= 10; p++) cacheClearKeySync(cacheKeyForPage(p));
 
     (async () => {
-      // Restore page 1 from cache instantly
       const cached = await cacheGet<FeatureCustomer[]>(cacheKeyForPage(1));
       if (cached && !cancelled) {
         const ensured = cached.map((c) => c.imageUrl ? c : { ...c, imageUrl: resolveMediaUrl(c._photoPath) });
@@ -134,12 +146,11 @@ export function useCustomerList() {
       }
 
       if (!cancelled) {
-        // Suppress global overlay if we already have cached data visible
         if (cached) suppressGlobalLoading();
         try {
           await loadPage(1);
         } catch {
-          // error already handled in loadPage
+          // error handled in loadPage
         } finally {
           if (cached) unsuppressGlobalLoading();
         }
@@ -149,11 +160,22 @@ export function useCustomerList() {
     return () => { cancelled = true; };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    const listener: NewCustomerListener = (newCustomer) => {
+      setAllCustomers((prev) => {
+        if (prev.some((c) => c.id === newCustomer.id)) return prev;
+        return [newCustomer, ...prev];
+      });
+      setTotal((prev) => prev + 1);
+    };
+    newCustomerListeners.add(listener);
+    return () => { newCustomerListeners.delete(listener); };
+  }, []);
+
   const hasMore = allCustomers.length < total;
   const loadMore = useCallback(() => {
     if (isFetchingMore || !hasMore) return;
     const nextPage = page + 1;
-    // Check cache first for instant loading
     cacheGet<FeatureCustomer[]>(cacheKeyForPage(nextPage)).then((cached) => {
       if (cached) {
         const ensured = cached.map((c) => c.imageUrl ? c : { ...c, imageUrl: resolveMediaUrl(c._photoPath) });
@@ -161,7 +183,6 @@ export function useCustomerList() {
         setAllCustomers((prev) => [...prev, ...ensured.filter((c) => !existingIds.has(c.id))]);
         setPage(nextPage);
         setIsFetchingMore(false);
-        // Prefetch the next pages in background
         prefetchRemainingPages(total, nextPage);
         return;
       }
@@ -176,15 +197,45 @@ export function useCustomerList() {
     totalSpent: allCustomers.reduce((sum, c) => sum + c.totalSpent, 0),
   };
 
-  return { allCustomers, stats, isLoading, isFetchingMore, hasMore, loadMore, stale };
+  return {
+    allCustomers,
+    stats,
+    isLoading,
+    isFetchingMore,
+    hasMore,
+    loadMore,
+    stale,
+    refresh: () => loadPage(1),
+  };
 }
 
-export async function addCustomer(values: { name: string; phone?: string; address?: string }) {
-  await api.customers.create({ name: values.name, phone: values.phone, address: values.address });
+export async function addCustomer(values: {
+  name: string;
+  phone?: string;
+  address?: string;
+  status?: "active" | "inactive";
+  description?: string;
+}) {
+  await api.customers.create({
+    name: values.name,
+    phone: values.phone,
+    address: values.address,
+    status: values.status ?? "active",
+    description: values.description?.trim() ? values.description : undefined,
+  });
   cacheClearKeySync(cacheKeyForPage(1));
 }
 
-export async function updateCustomer(id: string, patch: { name?: string; phone?: string; address?: string; status?: "active" | "inactive" }) {
+export async function updateCustomer(
+  id: string, 
+  patch: { 
+    name?: string; 
+    phone?: string; 
+    address?: string; 
+    status?: "active" | "inactive";
+    description?: string;
+  }
+) {
   await api.customers.update(id, patch);
   cacheClearKeySync(cacheKeyForPage(1));
 }

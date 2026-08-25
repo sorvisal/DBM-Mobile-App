@@ -22,16 +22,27 @@ type RegisterScreenProps = {
   onGoLogin: () => void;
 };
 
-const initialValues: RegisterFormValues = { username: "", email: "", mobile: "", password: "", confirmPassword: "" };
+const initialValues: RegisterFormValues = {
+  username: "",
+  fullName: "",
+  email: "",
+  mobile: "",
+  storeName: "",
+  password: "",
+  confirmPassword: "",
+};
 
 export function RegisterScreen({ onRegisterSuccess, onGoLogin }: RegisterScreenProps) {
   const [values, setValues] = useState<RegisterFormValues>(initialValues);
   const [errors, setErrors] = useState<FormErrors<RegisterFormValues>>({});
   const [isLoading, setIsLoading] = useState(false);
 
+  const fullNameRef = useRef<TextInput>(null);
   const emailRef = useRef<TextInput>(null);
   const mobileRef = useRef<TextInput>(null);
+  const storeNameRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
+  const confirmPasswordRef = useRef<TextInput>(null);
 
   const update = (key: keyof RegisterFormValues, value: string) => {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -40,31 +51,33 @@ export function RegisterScreen({ onRegisterSuccess, onGoLogin }: RegisterScreenP
 
   const handleRegister = useCallback(async () => {
     const validationErrors = validateRegister(values);
+
+    if (values.password && values.confirmPassword && values.password !== values.confirmPassword) {
+      validationErrors.confirmPassword = "ពាក្យសម្ងាត់មិនត្រូវគ្នា";
+    }
+
     setErrors(validationErrors);
-    if (Object.keys(validationErrors).length === 0) {
-      if (values.password !== values.confirmPassword) {
-        setErrors({ password: "ពាក្យសម្ងាត់មិនត្រឹមត្រូវ" });
-        return;
-      }
-      setIsLoading(true);
-      try {
-        const res = await api.auth.register({
-          fullName: values.username,
-          usernameOrEmail: values.email,
-          password: values.password,
-          storeName: values.username,
-          phone: values.mobile,
-        });
-        setAccessToken(res.tokens.accessToken);
-        await setTokens(res.tokens);
-        onRegisterSuccess();
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : "ចុះឈ្មោះបរាជ័យ";
-        Alert.alert("ចុះឈ្មោះ", message);
-        setErrors({ email: message });
-      } finally {
-        setIsLoading(false);
-      }
+    if (Object.keys(validationErrors).length > 0) return;
+
+    setIsLoading(true);
+    try {
+      const res = await api.auth.register({
+        username: values.username,
+        password: values.password,
+        fullName: values.fullName,
+        email: values.email,
+        phone: values.mobile,
+        storeName: values.storeName,
+      });
+      setAccessToken(res.tokens.accessToken);
+      await setTokens(res.tokens);
+      onRegisterSuccess();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "ចុះឈ្មោះបរាជ័យ";
+      Alert.alert("ចុះឈ្មោះ", message);
+      setErrors({ username: message });
+    } finally {
+      setIsLoading(false);
     }
   }, [values]);
 
@@ -84,20 +97,31 @@ export function RegisterScreen({ onRegisterSuccess, onGoLogin }: RegisterScreenP
 
           <AuthInput
             label="ឈ្មោះអ្នកប្រើប្រាស់"
-            placeholder="ឈ្មោះអ្នកប្រើប្រាស់"
+            placeholder=""
             value={values.username}
             onChangeText={(v) => update("username", v)}
             error={errors.username}
             autoCapitalize="none"
             autoFocus
             returnKeyType="next"
+            onSubmitEditing={() => fullNameRef.current?.focus()}
+          />
+
+          <AuthInput
+            ref={fullNameRef}
+            label="ឈ្មោះពេញ"
+            placeholder=""
+            value={values.fullName}
+            onChangeText={(v) => update("fullName", v)}
+            error={errors.fullName}
+            returnKeyType="next"
             onSubmitEditing={() => emailRef.current?.focus()}
           />
 
           <AuthInput
             ref={emailRef}
-            label="បញ្ចូលអ៊ីមែល"
-            placeholder="បញ្ចូលអ៊ីមែល"
+            label="អ៊ីមែល"
+            placeholder=""
             value={values.email}
             onChangeText={(v) => update("email", v)}
             error={errors.email}
@@ -110,11 +134,22 @@ export function RegisterScreen({ onRegisterSuccess, onGoLogin }: RegisterScreenP
           <AuthInput
             ref={mobileRef}
             label="លេខទូរស័ព្ទ"
-            placeholder="លេខទូរស័ព្ទ"
+            placeholder=""
             value={values.mobile}
             onChangeText={(v) => update("mobile", v)}
             error={errors.mobile}
             keyboardType="phone-pad"
+            returnKeyType="next"
+            onSubmitEditing={() => storeNameRef.current?.focus()}
+          />
+
+          <AuthInput
+            ref={storeNameRef}
+            label="ឈ្មោះហាង"
+            placeholder=""
+            value={values.storeName}
+            onChangeText={(v) => update("storeName", v)}
+            error={errors.storeName}
             returnKeyType="next"
             onSubmitEditing={() => passwordRef.current?.focus()}
           />
@@ -122,18 +157,19 @@ export function RegisterScreen({ onRegisterSuccess, onGoLogin }: RegisterScreenP
           <AuthInput
             ref={passwordRef}
             label="ពាក្យសម្ងាត់"
-            placeholder="ពាក្យសម្ងាត់"
+            placeholder=""
             value={values.password}
             onChangeText={(v) => update("password", v)}
             error={errors.password}
             isPassword
             returnKeyType="next"
-            onSubmitEditing={() => {}}
+            onSubmitEditing={() => confirmPasswordRef.current?.focus()}
           />
 
           <AuthInput
+            ref={confirmPasswordRef}
             label="បញ្ជាក់ពាក្យសម្ងាត់"
-            placeholder="បញ្ជាក់ពាក្យសម្ងាត់"
+            placeholder=""
             value={values.confirmPassword}
             onChangeText={(v) => update("confirmPassword", v)}
             error={errors.confirmPassword}

@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useDailyIncome } from "../hooks/useDailyIncome";
 import { IncomeOrderRow } from "../components/IncomeOrderRow";
 import { LoadingState, EmptyState, ErrorState } from "@/components/states";
+import { DetailLayout } from "../../../layouts/DetailLayout"; // adjust path if needed
 
 type DailyIncomeDetailScreenProps = {
   onBack: () => void;
@@ -13,19 +14,14 @@ export function DailyIncomeDetailScreen({ onBack }: DailyIncomeDetailScreenProps
   const [date] = useState("25/05/2025");
   const { summary, isLoading, isRefreshing, error, refresh } = useDailyIncome(date);
 
-  return (
-    <View className="flex-1 bg-gray-50" style={{ minHeight: 0 }}>
-      {/* Header */}
-      <View className="bg-white px-5 pt-3 pb-3 flex-row items-center justify-between relative border-b border-gray-100">
-        <TouchableOpacity onPress={onBack}>
-          <Ionicons name="arrow-back" size={26} color="#1F2937" />
-        </TouchableOpacity>
-        <View className="absolute left-0 right-0 items-center justify-center pointer-events-none">
-          <Text className="font-khmerBold text-gray-900 text-3xl">ចំណូលប្រចាំថ្ងៃ</Text>
-        </View>
-        <Ionicons name="calendar-outline" size={22} color="#1F2937" />
-      </View>
+  const calendarButton = (
+    <TouchableOpacity accessibilityRole="button" accessibilityLabel="Calendar">
+      <Ionicons name="calendar-outline" size={22} color="black" />
+    </TouchableOpacity>
+  );
 
+  return (
+    <DetailLayout title="ចំណូលប្រចាំថ្ងៃ" onBack={onBack} rightAction={calendarButton}>
       {/* Date navigator */}
       <View className="bg-white px-5 py-3 flex-row items-center justify-between rounded-full mt-1">
         <TouchableOpacity>
@@ -107,6 +103,6 @@ export function DailyIncomeDetailScreen({ onBack }: DailyIncomeDetailScreenProps
           renderItem={({ item }) => <IncomeOrderRow order={item} />}
         />
       )}
-    </View>
+    </DetailLayout>
   );
 }

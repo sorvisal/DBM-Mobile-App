@@ -7,7 +7,8 @@ import { DateField } from "./DateField";
 import { api } from "@/services";
 import { androidInputStyle } from "@/theme/inputStyles";
 import type { Category } from "@/types/api";
-type StockFormValues = {
+
+export type StockFormValues = {
   productName: string;
   brand: string;
   category: string;
@@ -24,9 +25,11 @@ type StockFormValues = {
 type StockFormProps = {
   onSubmit: (values: StockFormValues) => void;
   isLoading?: boolean;
+  // Pass this to prefill the form for editing an existing product.
+  initialValues?: Partial<StockFormValues>;
 };
 
-const initialValues: StockFormValues = {
+const baseValues: StockFormValues = {
   productName: "",
   brand: "",
   category: "",
@@ -40,13 +43,6 @@ const initialValues: StockFormValues = {
   imageUrl: "",
 };
 
-const PRODUCT_OPTIONS = [
-  { label: "Coca-Cola 330ml", value: "coca-cola-330" },
-  { label: "Pepsi 330ml", value: "pepsi-330" },
-  { label: "Fanta Orange 330ml", value: "fanta-orange-330" },
-  { label: "Sprite 330ml", value: "sprite-330" },
-  { label: "ទឹកសុទ្ធ 1.5L", value: "water-1.5l" },
-];
 function FormField({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
     <View className="mb-4">
@@ -58,9 +54,9 @@ function FormField({ label, required, children }: { label: string; required?: bo
   );
 }
 
-export function StockForm({ onSubmit, isLoading }: StockFormProps) {
-  const [values, setValues] = useState<StockFormValues>(initialValues);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+export function StockForm({ onSubmit, isLoading, initialValues }: StockFormProps) {
+  const [values, setValues] = useState<StockFormValues>({ ...baseValues, ...initialValues });
+  const [imagePreview, setImagePreview] = useState<string | null>(initialValues?.imageUrl || null);
   const [uploading, setUploading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
@@ -105,6 +101,7 @@ export function StockForm({ onSubmit, isLoading }: StockFormProps) {
         name: fileName,
         type: asset.mimeType ?? "image/jpeg",
       });
+      if (__DEV__) console.log('[UPLOAD] StockForm received ->', res);
       if (res?.url) {
         setValues((prev) => ({ ...prev, imageUrl: res.url }));
         didUpload.current = true;
@@ -120,14 +117,16 @@ export function StockForm({ onSubmit, isLoading }: StockFormProps) {
 
   return (
     <ScrollView className="flex-1 bg-white px-5 pt-4" showsVerticalScrollIndicator={false}>
-      <FormField label="ឈ្មោះផលិតផល" required>
-        <Dropdown
-          placeholder="ជ្រើសរើសផលិតផល"
-          options={PRODUCT_OPTIONS}
-          value={values.productName || null}
-          onChange={(v) => update("productName", v)}
-        />
-      </FormField>
+    <FormField label="ឈ្មោះផលិតផល" required>
+      <TextInput
+        value={values.productName}
+        onChangeText={(v) => update("productName", v)}
+        placeholder="បញ្ចូលឈ្មោះផលិតផល"
+        placeholderTextColor="#D1D5DB"
+        className="font-khmer border border-gray-200 rounded-xl px-3 h-11 text-lg text-gray-800"
+        style={androidInputStyle}
+      />
+    </FormField>
       <FormField label="ប្រភេទ" required>
         <Dropdown
           placeholder={loadingCategories ? "ជ្រើសរើសប្រភេទ" : "ជ្រើសរើសប្រភេទ"}
@@ -215,18 +214,18 @@ export function StockForm({ onSubmit, isLoading }: StockFormProps) {
           className="flex-row items-center justify-center border-2 border-dashed border-gray-300 rounded-xl h-28"
         >
           {imagePreview ? (
-            <Image source={{ uri: imagePreview }} className="w-full h-full rounded-xl" resizeMode="cover" />
+            <Image source={{ uri: imagePreview }} className="w-24 h-24 rounded-xl" resizeMode="cover" />
           ) : (
             <>
               <Ionicons name={uploading ? "hourglass-outline" : "image-outline"} size={32} color="#9CA3AF" />
               <Text className="font-khmer text-gray-400 text-xl ml-2">
-                {uploading ? "កំពុងអបឡូ..." : "ចុចដើម្បីជ្រើសរើសរូបភាព"}
+                {uploading ? "កំពុង Upload..." : "ចុចដើម្បីជ្រើសរើសរូបភាព"}
               </Text>
             </>
           )}
         </TouchableOpacity>
-        {values.imageUrl && (
-          <Text className="font-khmer text-gray-400 text-[12px] mt-1">កំពុង Upload...</Text>
+        {values.imageUrl && !uploading && (
+          <Text className="font-khmer text-green-600 text-[12px] mt-1">✓ រូបភាពបានផ្ទុកឡើងជោគជ័យ</Text>
         )}
       </FormField>
 

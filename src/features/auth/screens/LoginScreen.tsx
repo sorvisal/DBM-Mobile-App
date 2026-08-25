@@ -86,18 +86,18 @@ export function LoginScreen({ onLoginSuccess, onGoRegister, onForgotPassword, on
             onSubmitEditing={handleLogin}
           />
 
-          <TouchableOpacity onPress={onForgotPassword} className="self-end mb-4">
+          {/* <TouchableOpacity onPress={onForgotPassword} className="self-end mb-4">
             <Text className="font-khmer text-blue-600 text-xl">ភ្លេចពាក្យសម្ងាត់?</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           <AuthButton label={isLoading ? "កំពុងចូល..." : "ចូលប្រើប្រាស់"} onPress={handleLogin} />
-
+{/* 
           <View className="flex-row items-center justify-center mt-6 mb-8">
             <Text className="font-khmer text-gray-500 text-xl">មិនទាន់មានគណនី? </Text>
             <TouchableOpacity onPress={onGoRegister}>
               <Text className="font-khmerBold text-blue-600 text-xl">ចុះឈ្មោះ</Text>
             </TouchableOpacity>
-          </View>
+          </View> */}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

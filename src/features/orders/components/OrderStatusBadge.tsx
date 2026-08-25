@@ -1,17 +1,17 @@
 import { View, Text } from "react-native";
-import { OrderStatus }  from "../types/types";
-import { STATUS_LABELS, STATUS_COLORS } from "../constants/order.constants";
+import { STATUS_LABELS, STATUS_COLORS, normalizeOrderStatus } from "../constants/order.constants";
 
 type OrderStatusBadgeProps = {
-  status: OrderStatus;
+  status: string | undefined;
 };
 
 export function OrderStatusBadge({ status }: OrderStatusBadgeProps) {
-  const tone = STATUS_COLORS[status];
+  const normalized = normalizeOrderStatus(status);
+  const tone = STATUS_COLORS[normalized] ?? STATUS_COLORS.pending;
 
   return (
     <View className={`${tone.bg} rounded-full px-2.5 py-1 self-start`}>
-      <Text className={`font-khmerBold text-[16px] ${tone.text}`}>{STATUS_LABELS[status]}</Text>
+      <Text className={`font-khmerBold text-[14px] ${tone.text}`}>{STATUS_LABELS[normalized]}</Text>
     </View>
   );
 }

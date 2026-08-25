@@ -7,7 +7,7 @@ const TABS: { key: IncomeTabKey; label: string }[] = [
   { key: "daily", label: "ប្រចាំថ្ងៃ" },
   { key: "monthly", label: "ប្រចាំខែ" },
   { key: "yearly", label: "ប្រចាំឆ្នាំ" },
-  { key: "debt", label: "បំណុល" },
+  { key: "debt", label: "ចំណូល" },
 ];
 
 type IncomeTimeTabsProps = {

@@ -1,29 +1,25 @@
 import { View } from "react-native";
 import { Header } from "../components/layout/Header";
-import { Footer } from "../components/layout/Footer";
-import { TABS } from "../components/layout/Footer";
-
-type TabKey = "dashboard" | "stock" | "orders" | "customers" | "income" | "more";
 
 type DetailLayoutProps = {
-  activeTab: TabKey;
-  onTabPress: (tab: TabKey) => void;
-  onMenuPress: () => void;
+  title: string;
+  onBack: () => void;
+  rightAction?: React.ReactNode;
   children: React.ReactNode;
 };
 
-export function DetailLayout({ activeTab, onTabPress, onMenuPress, children }: DetailLayoutProps) {
-  const tabLabel = TABS.find((t) => t.key === activeTab)?.label ?? "DBM App";
-
+export function DetailLayout({ title, onBack, rightAction, children }: DetailLayoutProps) {
   return (
-    <View className="flex-1" style={{ height: "100%" }}>
-      <Header title={tabLabel} onMenuPress={onMenuPress} />
-
-      <View className="flex-1" style={{ minHeight: 0 }}>
+    <View className="flex-1 mt-3" style={{ height: "100%" }}>
+      <Header 
+        title={title} 
+        onBackPress={onBack} 
+        rightAction={rightAction}
+        variant="white"
+      />
+      <View className="flex-1 mb-2" style={{ minHeight: 2 }}>
         {children}
       </View>
-
-      <Footer activeTab={activeTab} onTabPress={onTabPress} />
     </View>
   );
 }

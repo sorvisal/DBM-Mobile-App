@@ -11,7 +11,7 @@ export function CustomerInfoCard({ customer }: CustomerInfoCardProps) {
   const isActive = customer.status === CustomerStatus.Active;
 
   return (
-    <View className="bg-white rounded-2xl p-4 mb-3">
+    <View className="bg-white rounded-2xl p-4 mb-3 border border-gray-50 shadow-black/5 shadow-sm">
       <View className="flex-row items-start">
         <CustomerAvatar initials={customer.initials} color={customer.avatarColor} size={56} source={customer.imageUrl} />
 

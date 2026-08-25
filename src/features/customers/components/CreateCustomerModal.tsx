@@ -16,7 +16,6 @@ export type CreateCustomerValues = {
   address: string;
   latitude: string;
   longitude: string;
-  category: string;
   joinDate: Date | null;
   description: string;
   status: CustomerStatus;
@@ -29,17 +28,10 @@ const initialValues: CreateCustomerValues = {
   address: "",
   latitude: "",
   longitude: "",
-  category: "",
   joinDate: null,
   description: "",
   status: CustomerStatus.Active,
 };
-
-const CATEGORY_OPTIONS = [
-  { label: "អតិថិជនថ្មី", value: "អតិថិជនថ្មី" },
-  { label: "អតិថិជនប្រចាំ", value: "អតិថិជនប្រចាំ" },
-  { label: "អតិថិជនធំ", value: "អតិថិជនធំ" },
-];
 
 const STATUS_OPTIONS = [
   { label: "សកម្ម", value: CustomerStatus.Active },
@@ -50,7 +42,9 @@ type CreateCustomerModalProps = {
   visible: boolean;
   onClose: () => void;
   onSubmit: (values: CreateCustomerValues) => void;
+  isLoading?: boolean;
 };
+
 
 function FormField({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
@@ -63,11 +57,11 @@ function FormField({ label, required, children }: { label: string; required?: bo
   );
 }
 
-export function CreateCustomerModal({ visible, onClose, onSubmit }: CreateCustomerModalProps) {
+export function CreateCustomerModal({ visible, onClose, onSubmit, isLoading }: CreateCustomerModalProps) {
   const [values, setValues] = useState<CreateCustomerValues>(initialValues);
 
-  const update = (key: keyof CreateCustomerValues, value: string) =>
-    setValues((prev) => ({ ...prev, [key]: value }));
+const update = <K extends keyof CreateCustomerValues>(key: K, value: CreateCustomerValues[K]) =>
+  setValues((prev) => ({ ...prev, [key]: value }));
 
   useEffect(() => {
     if (visible) {
@@ -125,7 +119,7 @@ export function CreateCustomerModal({ visible, onClose, onSubmit }: CreateCustom
               />
             </FormField>
 
-            <FormField label="អាសយដ្ឋាន">
+            <FormField label="អាស័យដ្ឋាន">
               <AddressAutocomplete
                 value={values.address}
                 onChange={(v) => update("address", v)}
@@ -141,20 +135,11 @@ export function CreateCustomerModal({ visible, onClose, onSubmit }: CreateCustom
               />
             </FormField>
 
-            <FormField label="ប្រភេទអតិថិជន" required>
-              <Dropdown
-                placeholder="ជ្រើសរើសប្រភេទ"
-                options={CATEGORY_OPTIONS}
-                value={values.category || null}
-                onChange={(v) => update("category", v)}
-              />
-            </FormField>
-
             <FormField label="ថ្ងៃចុះឈ្មោះជាសមាជិក">
               <DateField
                 placeholder="ជ្រើសរើសកាលបរិច្ឆេទ"
                 value={values.joinDate}
-                onChange={(date) => setValues((prev) => ({ ...prev, joinDate: date }))}
+                onChange={(date) => update("joinDate", date)}
               />
             </FormField>
 
@@ -167,6 +152,7 @@ export function CreateCustomerModal({ visible, onClose, onSubmit }: CreateCustom
               />
             </FormField>
 
+            {/* ការពិពណ៌នា */}
             <FormField label="ការពិពណ៌នា">
               <TextInput
                 value={values.description}
@@ -181,9 +167,12 @@ export function CreateCustomerModal({ visible, onClose, onSubmit }: CreateCustom
 
             <TouchableOpacity
               onPress={handleSubmit}
-              className="bg-blue-600 rounded-xl h-12 items-center justify-center mt-2 mb-8"
+              disabled={isLoading}
+              className={`bg-blue-600 rounded-xl h-12 items-center justify-center mt-2 mb-8 ${isLoading ? "opacity-60" : ""}`}
             >
-              <Text className="font-khmerBold text-white text-xl">រក្សាទុក</Text>
+              <Text className="font-khmerBold text-white text-xl">
+                {isLoading ? "កំពុងរក្សាទុក..." : "រក្សាទុក"}
+              </Text>
             </TouchableOpacity>
           </ScrollView>
         </View>

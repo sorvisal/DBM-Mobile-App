@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { api, cacheGet, cacheGetStale, cacheSet, invalidateOrderCache, CacheTTL, suppressGlobalLoading, unsuppressGlobalLoading } from "@/services";
 import { OrderStatus } from "../types/types";
+import { normalizeOrderStatus } from "../constants/order.constants";
 import type { Order } from "../types/types";
 
 const PAGE_SIZE = 20;
@@ -27,7 +28,7 @@ function mapApiOrder(o: import("@/types/api").Order): Order {
   return {
     id: o.id,
     code: o.code,
-    status: (o.status as unknown as OrderStatus) ?? OrderStatus.Pending,
+    status: normalizeOrderStatus(o.status),
     customer: { name: o.customerName, phone: o.driverPhone ?? "" },
     createdAt: o.createdAt,
     items,

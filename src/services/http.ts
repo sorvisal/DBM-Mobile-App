@@ -35,11 +35,43 @@ const rawBase = (process.env.EXPO_PUBLIC_API_URL ?? "https://dbmapi.palsatya.sit
 export const API_BASE_URL = rawBase.endsWith('/api/v1') ? rawBase : `${rawBase}/api/v1`;
 export const API_ORIGIN = rawBase;
 
+/**
+ * Converts a relative media path returned by the backend into a full,
+ * loadable URL.
+ *
+ * The backend (ProductsController) stores uploaded files under uploads/products/
+ * on disk, but the API response only returns the path relative to "uploads/"
+ * (e.g. "products/product-xxxxx.jpg"). The files are actually served publicly
+ * from https://<host>/uploads/products/product-xxxxx.jpg — so this always
+ * prefixes "uploads/" unless the path already has it, to avoid a double
+ * "uploads/uploads/" segment.
+ *
+ * resolveMediaUrl("products/product-xxxxx.jpg")
+ *   -> "https://dbmapi.palsatya.site/uploads/products/product-xxxxx.jpg"
+ * resolveMediaUrl("uploads/products/product-xxxxx.jpg")
+ *   -> "https://dbmapi.palsatya.site/uploads/products/product-xxxxx.jpg" (no double prefix)
+ * resolveMediaUrl("https://dbmapi.palsatya.site/uploads/products/product-xxxxx.jpg")
+ *   -> unchanged (already absolute)
+ * resolveMediaUrl(null | undefined) -> undefined
+ */
 export function resolveMediaUrl(path?: string | null): string | undefined {
-  if (!path) return undefined;
-  if (/^(blob|data):/i.test(path)) return undefined;
-  if (/^https?:\/\//.test(path)) return path;
-  return `${rawBase}/uploads/${path}`;
+  if (!path) {
+    if (__DEV__) console.log('[MEDIA] resolveMediaUrl: no path ->', path);
+    return undefined;
+  }
+  if (/^(blob|data):/i.test(path)) {
+    if (__DEV__) console.log('[MEDIA] resolveMediaUrl: blob/data URI, ignoring ->', path);
+    return undefined;
+  }
+  if (/^https?:\/\//.test(path)) {
+    if (__DEV__) console.log('[MEDIA] resolveMediaUrl: already absolute ->', path);
+    return path;
+  }
+  const clean = path.replace(/^\/+/, '');
+  const withUploads = /^uploads\//i.test(clean) ? clean : `uploads/${clean}`;
+  const url = `${rawBase}/${withUploads}`;
+  if (__DEV__) console.log('[MEDIA] resolveMediaUrl:', path, '->', url);
+  return url;
 }
 
 type BackendApiResponse<T> = {

@@ -1,5 +1,6 @@
 import { View, Text, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type TabKey = "dashboard" | "stock" | "orders" | "customers" | "income" | "more";
 
@@ -16,25 +17,18 @@ export const TABS: {
 }[] = [
   { key: "dashboard", label: "ទំព័រដើម", icon: "home-outline", activeIcon: "home" },
   { key: "stock", label: "ស្តុក", icon: "cube-outline", activeIcon: "cube" },
-  { key: "orders", label: "បញ្ជារទិញ", icon: "cart-outline", activeIcon: "cart" },
+  { key: "orders", label: "បញ្ជាទិញ", icon: "cart-outline", activeIcon: "cart" },
   { key: "customers", label: "អតិថិជន", icon: "people-outline", activeIcon: "people" },
   { key: "income", label: "ចំណូល", icon: "bar-chart-outline", activeIcon: "bar-chart" },
-  // { key: "more", label: "ផ្សេងៗ", icon: "ellipsis-horizontal-outline", activeIcon: "ellipsis-horizontal" },
 ];
 
 export function Footer({ activeTab, onTabPress }: FooterProps) {
+  const insets = useSafeAreaInsets();
+
   return (
     <View
-      className="
-        h-20
-        bg-white
-        border-t
-        border-gray-200
-        flex-row
-        items-center
-        justify-around
-        pb-2
-      "
+      className="bg-white border-t border-gray-200 flex-row items-center justify-around pt-2"
+      style={{ paddingBottom: Math.max(insets.bottom, 10) }}
     >
       {TABS.map((tab) => {
         const isActive = activeTab === tab.key;
@@ -43,20 +37,20 @@ export function Footer({ activeTab, onTabPress }: FooterProps) {
           <Pressable
             key={tab.key}
             onPress={() => onTabPress(tab.key)}
-            className="items-center justify-center flex-1"
+            className="items-center justify-center flex-1 py-1"
             accessibilityRole="button"
             accessibilityLabel={tab.label}
           >
             <Ionicons
               name={isActive ? tab.activeIcon : tab.icon}
-              size={30}
+              size={26}
               color={isActive ? "#2563EB" : "#9CA3AF"}
             />
             <Text
               className={
                 isActive
-                  ? "font-khmer text-[15px] text-blue-600 mt-1"
-                  : "font-khmer text-[15px] text-gray-400 mt-1"
+                  ? "font-khmer text-[13px] text-blue-600 mt-1"
+                  : "font-khmer text-[13px] text-gray-400 mt-1"
               }
             >
               {tab.label}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CustomerListScreen } from "./CustomerListScreen";
 import { CustomerDetailScreen } from "./CustomerDetailScreen";
 import { CustomerOrderHistoryScreen } from "./CustomerOrderHistoryScreen";
@@ -8,8 +8,16 @@ type ViewState =
   | { view: "detail"; customerId: string }
   | { view: "history"; customerId: string };
 
-export function CustomersScreen() {
+type CustomersScreenProps = {
+  onChromeChange?: (hidden: boolean) => void;
+};
+
+export function CustomersScreen({ onChromeChange }: CustomersScreenProps) {
   const [state, setState] = useState<ViewState>({ view: "list" });
+
+  useEffect(() => {
+    onChromeChange?.(state.view !== "list");
+  }, [state.view, onChromeChange]);
 
   if (state.view === "detail") {
     return (

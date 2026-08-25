@@ -5,8 +5,9 @@ import { useYearlyIncome } from "../hooks/useYearlyIncome";
 import { RevenueAreaChart } from "../components/RevenueAreaChart";
 import { DebtorListItem } from "../components/DebtorListItem";
 import { OutstandingDebtCard } from "../components/OutstandingDebtCard";
-import { RevenueBarChart } from "../components/RevenueBarChart";
 import { LoadingState, EmptyState, ErrorState } from "@/components/states";
+import { YearDropdown } from "../components/YearDropdown";
+import { DetailLayout } from "../../../layouts/DetailLayout"; // adjust path if needed
 
 type YearlyIncomeDetailScreenProps = {
   onBack: () => void;
@@ -16,22 +17,18 @@ type YearlyIncomeDetailScreenProps = {
 export function YearlyIncomeDetailScreen({ onBack, onGoDebtors }: YearlyIncomeDetailScreenProps) {
   const [year] = useState("2025");
   const { summary, isLoading, isRefreshing, error, refresh } = useYearlyIncome(year);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
+  const calendarButton = (
+    <TouchableOpacity accessibilityRole="button" accessibilityLabel="Calendar">
+      <Ionicons name="calendar-outline" size={22} color="black" />
+    </TouchableOpacity>
+  );
 
   return (
-    <View className="flex-1 bg-gray-50" style={{ minHeight: 0 }}>
-      {/* Header */}
-      <View className="bg-white px-5 pt-3 pb-3 flex-row items-center justify-between relative border-b border-gray-100">
-        <TouchableOpacity onPress={onBack}>
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
-        </TouchableOpacity>
-        <View className="absolute left-0 right-0 items-center justify-center pointer-events-none">
-          <Text className="font-khmerBold text-gray-900 text-3xl">ចំណូលប្រចាំឆ្នាំ</Text>
-        </View>
-        <Ionicons name="calendar-outline" size={20} color="#1F2937" />
-      </View>
-
+    <DetailLayout title="ចំណូលប្រចាំឆ្នាំ" onBack={onBack} rightAction={calendarButton}>
       {/* Year navigator */}
-      <View className="bg-white px-5 py-3 flex-row items-center justify-between mt-1">
+      <View className="bg-white px-5 py-3 flex-row items-center justify-between mt-1 mx-5 rounded-full">
         <TouchableOpacity>
           <Ionicons name="chevron-back" size={18} color="#6B7280" />
         </TouchableOpacity>
@@ -78,21 +75,20 @@ export function YearlyIncomeDetailScreen({ onBack, onGoDebtors }: YearlyIncomeDe
               </View>
 
               {/* Chart */}
-              <View className="bg-white rounded-2xl p-4 mt-4">
-                <View className="flex-row items-center justify-between mb-3">
-                  <Text className="font-khmerBold text-gray-900 text-xl">ក្រាហ្វបំណូលប្រចាំខែក្នុងឆ្នាំនេះ</Text>
-                  <View className="flex-row items-center bg-gray-100 rounded-full px-3 py-1">
-                    <Text className="font-khmer text-gray-600 text-xl">ខែ</Text>
-                    <Ionicons name="chevron-down" size={12} color="#6B7280" style={{ marginLeft: 4 }} />
-                  </View>
+              <View className="bg-white rounded-xl p-2 mt-3">
+                <View className="flex-row items-center justify-between mb-2">
+                  <Text className="font-khmerBold text-gray-900 text-xl">
+                    ចំណូលប្រចាំឆ្នាំ {selectedYear}
+                  </Text>
+                  <YearDropdown value={selectedYear} onChange={setSelectedYear} />
                 </View>
-                <RevenueAreaChart data={summary.monthlyChart} height={150} />
+                <RevenueAreaChart data={summary.monthlyChart} height={160} />
               </View>
 
               {/* Debtors */}
               <View className="mt-4">
                 <View className="flex-row items-center justify-between mb-2">
-                  <Text className="font-khmerBold text-gray-900 text-xl">បំណុលអតិថិជន</Text>
+                  <Text className="font-khmerBold text-gray-900 text-xl">ចំណូលអតិថិជនសរុប</Text>
                   <TouchableOpacity onPress={onGoDebtors} className="flex-row items-center gap-1">
                     <Text className="font-khmer text-blue-600 text-xl">មើលទាំងអស់</Text>
                     <Ionicons name="chevron-forward" size={16} color="#2563EB" />
@@ -107,7 +103,7 @@ export function YearlyIncomeDetailScreen({ onBack, onGoDebtors }: YearlyIncomeDe
             ) : error ? (
               <ErrorState compact onRetry={refresh} />
             ) : (
-              <EmptyState compact icon="people-outline" text="មិនមានបំណុលអតិថិជន" />
+              <EmptyState compact icon="people-outline" text="មិនមានចំណូលអតិថិជន" />
             )
           }
           ListFooterComponent={
@@ -119,6 +115,6 @@ export function YearlyIncomeDetailScreen({ onBack, onGoDebtors }: YearlyIncomeDe
           renderItem={({ item }) => <DebtorListItem debtor={item} />}
         />
       )}
-    </View>
+    </DetailLayout>
   );
 }

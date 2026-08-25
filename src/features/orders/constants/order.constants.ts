@@ -18,6 +18,21 @@ export const STATUS_COLORS: Record<OrderStatus, { bg: string; text: string }> = 
   [OrderStatus.Cancelled]: { bg: "bg-red-50", text: "text-red-600" },
 };
 
+// The API may return statuses outside our enum (e.g. "delivering" instead of "shipping")
+// or unknown values; map them to a valid OrderStatus so UI lookups never get undefined.
+export function normalizeOrderStatus(raw: string | undefined | null): OrderStatus {
+  switch ((raw ?? "").toLowerCase()) {
+    case OrderStatus.New: return OrderStatus.New;
+    case OrderStatus.Confirmed: return OrderStatus.Confirmed;
+    case OrderStatus.Shipping:
+    case "delivering": return OrderStatus.Shipping;
+    case OrderStatus.Completed: return OrderStatus.Completed;
+    case OrderStatus.Cancelled: return OrderStatus.Cancelled;
+    case OrderStatus.Pending:
+    default: return OrderStatus.Pending;
+  }
+}
+
 // Only these 4 statuses appear as filter tabs; counts are computed live, not hardcoded here.
 export const ORDER_FILTERS: { key: OrderStatus | "all"; label: string }[] = [
   { key: "all", label: "ថ្មីៗ" },

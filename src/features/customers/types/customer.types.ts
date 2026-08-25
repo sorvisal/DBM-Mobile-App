@@ -24,8 +24,6 @@ export type Customer = {
   totalOrders: number;
   totalSpent: number;
   memberSince: string;
-  customerType: string;
-  note: string;
-  orders: CustomerOrderSummary[];
+  note?: string;
   imageUrl?: string | null;
 };

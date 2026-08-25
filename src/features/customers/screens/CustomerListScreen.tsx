@@ -1,12 +1,12 @@
-import { useState, useCallback, useRef, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, FlatList, ListRenderItemInfo, NativeSyntheticEvent, NativeScrollEvent, ActivityIndicator } from "react-native";
+import { useState, useCallback, useEffect } from "react";
+import { View, Text, TextInput, TouchableOpacity, FlatList, ListRenderItemInfo, NativeSyntheticEvent, NativeScrollEvent, ActivityIndicator, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useCustomerList, addCustomer } from "../hooks/useCustomerList";
 import { CustomerCard } from "../components/CustomerCard";
 import { CustomerCardSkeleton } from "../components/CustomerCardSkeleton";
 import { CustomerStatsRow } from "../components/CustomerStatsRow";
 import { CreateCustomerModal, CreateCustomerValues } from "../components/CreateCustomerModal";
-import { Customer, CustomerStatus } from "../types/customer.types";
+import { CustomerStatus } from "../types/customer.types";
 import { useDebounce } from "@/hooks/useDebounce";
 
 type CustomerListScreenProps = {
@@ -15,29 +15,13 @@ type CustomerListScreenProps = {
 
 const ITEM_HEIGHT = 84;
 
-function formatDate(date: Date | null) {
-  if (!date) return new Date().toLocaleDateString();
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  return `${day}/${month}/${year}`;
-}
-
-function getInitials(name: string) {
-  const parts = name.trim().split(" ");
-  return parts.map((p) => p[0]).join("").slice(0, 2).toUpperCase();
-}
-
-const AVATAR_COLORS = ["#2563EB", "#EA580C", "#16A34A", "#9333EA", "#CA8A04", "#DC2626"];
-
 export function CustomerListScreen({ onSelectCustomer }: CustomerListScreenProps) {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
   const [createModalVisible, setCreateModalVisible] = useState(false);
-  const { allCustomers, stats, isLoading, isFetchingMore, hasMore, loadMore, stale } = useCustomerList();
+  const [isCreating, setIsCreating] = useState(false);
+  const { allCustomers, stats, isLoading, isFetchingMore, hasMore, loadMore, stale, refresh } = useCustomerList();
 
-  // Blocking overlay shown for 3s whenever this screen mounts (e.g. returning from detail),
-  // giving the list time to fetch/refresh data before it's revealed.
   const [showOverlay, setShowOverlay] = useState(true);
 
   useEffect(() => {
@@ -45,7 +29,6 @@ export function CustomerListScreen({ onSelectCustomer }: CustomerListScreenProps
     return () => clearTimeout(timer);
   }, []);
 
-  // Filter cached data client-side — instant, no API call
   const filteredCustomers = debouncedSearch
     ? allCustomers.filter(
         (c: typeof allCustomers[0]) =>
@@ -55,25 +38,24 @@ export function CustomerListScreen({ onSelectCustomer }: CustomerListScreenProps
       )
     : allCustomers;
 
-  const handleCreateCustomer = (values: CreateCustomerValues) => {
-    const newCustomer: Customer = {
-      id: String(Date.now()),
-      code: values.code || `CUS-${Date.now()}`,
-      name: values.name,
-      initials: getInitials(values.name || "??"),
-      avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
-      phone: values.phone,
-      location: values.address,
-      status: values.status,
-      totalOrders: 0,
-      totalSpent: 0,
-      memberSince: formatDate(values.joinDate),
-      customerType: values.category,
-      note: values.description || "-",
-      orders: [],
-    };
-    addCustomer(newCustomer);
-    setCreateModalVisible(false);
+  const handleCreateCustomer = async (values: CreateCustomerValues) => {
+    setIsCreating(true);
+    try {
+      await addCustomer({
+        name: values.name,
+        phone: values.phone || undefined,
+        address: values.address || undefined,
+        status: values.status === CustomerStatus.Active ? "active" : "inactive",
+        description: values.description || undefined,
+      });
+      setCreateModalVisible(false);
+      refresh();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "បរាជ័យក្នុងការបង្កើតអតិថិជន";
+      Alert.alert("បញ្ហា", message);
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const handleEndReached = useCallback(() => {
@@ -116,7 +98,7 @@ export function CustomerListScreen({ onSelectCustomer }: CustomerListScreenProps
         totalSpent={stats.totalSpent}
       />
 
-      <View className="px-5 pt-3 pb-2 bg-gray-50">
+      <View className="px-5 pt-6 pb-6 bg-gray-50">
         <View className="flex-row items-center bg-white border border-gray-200 rounded-xl px-3 h-11">
           <Ionicons name="search-outline" size={22} color="#9CA3AF" />
           <TextInput
@@ -128,7 +110,7 @@ export function CustomerListScreen({ onSelectCustomer }: CustomerListScreenProps
             style={{ outlineWidth: 0, borderWidth: 0, backgroundColor: "transparent", paddingVertical: 0, includeFontPadding: false, textAlignVertical: "center" }}
           />
           {stale && (
-            <TouchableOpacity onPress={() => {}} className="ml-1">
+            <TouchableOpacity onPress={refresh} className="ml-1">
               <Ionicons name="refresh-outline" size={20} color="#6B7280" />
             </TouchableOpacity>
           )}
@@ -179,13 +161,14 @@ export function CustomerListScreen({ onSelectCustomer }: CustomerListScreenProps
         visible={createModalVisible}
         onClose={() => setCreateModalVisible(false)}
         onSubmit={handleCreateCustomer}
+        isLoading={isCreating}
       />
 
-      {/* Blocking overlay for the first 3s after this screen mounts */}
       {showOverlay && (
         <View
           className="absolute inset-0 items-center justify-center bg-gray-50"
           style={{ zIndex: 50 }}
+          pointerEvents="none"
         >
           <ActivityIndicator size="large" color="#2563EB" />
           <Text className="font-khmer text-gray-400 text-sm mt-3">កំពុងផ្ទុក...</Text>

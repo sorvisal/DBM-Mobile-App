@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity, Image } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 type TotalProductCardProps = {
   imageUrl: string;
@@ -21,6 +22,7 @@ export function TotalProductCard({
   isLowStock,
   onPress,
 }: TotalProductCardProps) {
+  if (__DEV__) console.log('[RENDER] TotalProductCard', name, '-> imageUrl:', imageUrl);
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -28,9 +30,11 @@ export function TotalProductCard({
       style={{ shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 }}
     >
       {imageUrl && !/^(blob|data):/i.test(imageUrl) ? (
-        <Image source={{ uri: imageUrl }} className="w-12 h-16 rounded-xl" />
+        <Image source={{ uri: imageUrl }} resizeMode="cover" className="w-12 h-16 rounded-xl" />
       ) : (
-        <View className="w-12 h-16 rounded-xl bg-gray-100" />
+        <View className="w-12 h-16 rounded-xl bg-gray-100 items-center justify-center">
+          <Ionicons name="image-outline" size={20} color="#D1D5DB" />
+        </View>
       )}
 
       <View className="flex-1 ml-3">
@@ -45,7 +49,7 @@ export function TotalProductCard({
 
       <View className="items-end">
         <Text className={`font-khmerBold text-2xl ${isLowStock ? "text-red-600" : "text-blue-600"}`}>{quantity}</Text>
-        <Text className="font-khmer text-gray-400 text-[17px] mt-0.5">កេស</Text>
+        <Text className="font-khmer text-gray-400 text-[17px] mt-0.5">ស្តុក</Text>
       </View>
     </TouchableOpacity>
   );

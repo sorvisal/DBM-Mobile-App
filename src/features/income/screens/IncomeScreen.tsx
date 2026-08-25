@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { IncomeOverviewScreen } from "./IncomeOverviewScreen";
 import { DailyIncomeDetailScreen } from "./DailyIncomeDetailScreen";
 import { MonthlyIncomeDetailScreen } from "./MonthlyIncomeDetailScreen";
@@ -7,8 +7,17 @@ import { DebtorsScreen } from "./DebtorsScreen";
 
 type ViewState = "overview" | "daily" | "monthly" | "yearly" | "debtors";
 
-export function IncomeScreen() {
+type IncomeScreenProps = {
+  onChromeChange?: (hidden: boolean) => void;
+};
+
+export function IncomeScreen({ onChromeChange }: IncomeScreenProps) {
   const [view, setView] = useState<ViewState>("overview");
+
+  // Hide MainLayout header & footer whenever we are inside any detail/sub-screen
+  useEffect(() => {
+    onChromeChange?.(view !== "overview");
+  }, [view, onChromeChange]);
 
   if (view === "daily") {
     return <DailyIncomeDetailScreen onBack={() => setView("overview")} />;
@@ -33,9 +42,7 @@ export function IncomeScreen() {
   }
 
   if (view === "debtors") {
-    return <DebtorsScreen 
-    onBack={() => setView("overview")} 
-    />;
+    return <DebtorsScreen onBack={() => setView("overview")} />;
   }
 
   return (

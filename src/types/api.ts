@@ -142,6 +142,7 @@ export type Customer = {
   createdAt: string;
   photoPath?: string | null;
   imageUrl?: string | null;
+  description?: string;
 };
 
 export type ProductSummary = {
@@ -201,11 +202,12 @@ export type LoginRequest = {
 };
 
 export type RegisterRequest = {
-  fullName: string;
-  usernameOrEmail: string;
+  username: string;
   password: string;
-  storeName?: string;
-  phone?: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  storeName: string;
 };
 
 export type GoogleSignInRequest = {
@@ -278,6 +280,7 @@ export type CreateCustomerRequest = {
   phone?: string;
   address?: string;
   status?: 'active' | 'inactive';
+  description?: string;
   photo?: { uri: string; name: string; type: string };
 };
 
