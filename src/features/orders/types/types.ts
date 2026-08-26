@@ -12,7 +12,7 @@ export type OrderItem = {
   name: string;
   imageUrl: string;
   price: number;
-  quantity: number;
+  qty: number;
 };
 
 export type OrderCustomer = {
@@ -34,7 +34,7 @@ export type Order = {
   status: OrderStatus;
   customer: OrderCustomer;
   createdAt: string;
-  items: OrderItem[];
+  lines: OrderItem[];
   subtotal: number;
   deliveryFee: number;
   total: number;

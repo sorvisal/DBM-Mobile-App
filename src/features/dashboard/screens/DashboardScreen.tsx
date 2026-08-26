@@ -1,4 +1,5 @@
-import { View, Text, ScrollView } from "react-native";
+import { useState } from "react";
+import { View, Text, ScrollView, RefreshControl } from "react-native";
 import { useDashboardSummary } from "../hooks/useDashboardSummary";
 import { SummaryStatsCard } from "../components/SummaryStatsCard";
 import { QuickActionGrid } from "../components/QuickActionGrid";
@@ -18,11 +19,32 @@ type DashboardScreenProps = {
 };
 
 export function DashboardScreen({ onNavigateTab }: DashboardScreenProps) {
-  const { stats, recentActivity, isLoading } = useDashboardSummary();
+  // If your hook returns a refresh/refetch function, destructure it here (e.g., refresh)
+  const { stats, recentActivity, isLoading, refresh } = useDashboardSummary();
   const { user } = useAuth();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    if (refresh) {
+      setIsRefreshing(true);
+      await refresh();
+      setIsRefreshing(false);
+    }
+  };
 
   return (
-    <ScrollView className="flex-1 bg-gray-50" showsVerticalScrollIndicator={false}>
+    <ScrollView
+      className="flex-1 bg-gray-50"
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing || isLoading}
+          onRefresh={handleRefresh}
+          colors={["#2563EB"]} // Android loading spinner color
+          tintColor="#2563EB"   // iOS loading spinner color
+        />
+      }
+    >
       {/* Greeting */}
       <View className="px-5 pt-2 pb-4">
         <Text className="font-khmerBold text-2xl text-gray-900">Hi, {user?.name ?? "User"} 👋</Text>

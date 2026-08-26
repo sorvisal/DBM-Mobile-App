@@ -10,7 +10,7 @@ type DetailLayoutProps = {
 
 export function DetailLayout({ title, onBack, rightAction, children }: DetailLayoutProps) {
   return (
-    <View className="flex-1 mt-3" style={{ height: "100%" }}>
+    <View className="flex-1 mt-3  bg-gray-50"  style={{ height: "100%" }}>
       <Header 
         title={title} 
         onBackPress={onBack} 

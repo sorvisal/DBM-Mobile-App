@@ -159,6 +159,7 @@ type BackendOrderDto = {
   totalAmount: number;
   paidAmount: number;
   paymentMethod: string | null;
+  note: string | null;
   createdAt: string;
   confirmedAt: string | null;
   completedAt: string | null;
@@ -313,12 +314,13 @@ function mapOrder(dto: BackendOrderDto): Order {
     customerName: dto.customerName,
     status: dto.status as OrderStatus,
     paymentStatus: dto.paymentStatus as PaymentStatus,
-    items: dto.lines.map((i) => ({
+    lines: dto.lines.map((i) => ({
       productId: String(i.productId),
       productName: i.productName,
-      quantity: i.qty,
+      qty: i.qty,
       unitPrice: i.unitPrice,
-      total: i.lineTotal,
+      lineTotal: i.lineTotal,
+      imageUrl: resolveMediaUrl(undefined),
     })),
     totalAmount: dto.totalAmount,
     paidAmount: dto.paidAmount,
@@ -326,7 +328,7 @@ function mapOrder(dto: BackendOrderDto): Order {
     deliveryAddress: dto.deliveryAddress ?? undefined,
     driverName: dto.driverName ?? undefined,
     driverPhone: dto.driverPhone ?? undefined,
-    note: dto.deliveryAddress ?? undefined,
+    note: dto.note ?? undefined,
     createdAt: dto.createdAt,
     confirmedAt: dto.confirmedAt ?? undefined,
     completedAt: dto.completedAt ?? undefined,
@@ -468,9 +470,14 @@ export interface Api {
     list: (params: { page?: number; pageSize?: number; status?: string; search?: string }) => Promise<Paginated<Order>>;
     get: (id: string) => Promise<Order>;
     create: (req: CreateOrderRequest) => Promise<Order>;
+    update: (id: string, req: Partial<CreateOrderRequest>) => Promise<Order>;
+    remove: (id: string) => Promise<void>;
     confirm: (id: string) => Promise<Order>;
+    approve: (id: string) => Promise<Order>;
     assignDriver: (id: string, driverName: string, driverPhone?: string) => Promise<Order>;
     pay: (id: string, amount: number, method: string) => Promise<Order>;
+    complete: (id: string) => Promise<Order>;
+    uncomplete: (id: string) => Promise<Order>;
     setStatus: (id: string, status: OrderStatus) => Promise<Order>;
   };
   customers: {
@@ -768,20 +775,49 @@ export const realApi: Api = {
     },
     create: async (req) => {
       const data = await httpPost<BackendOrderDto>('/orders', {
-        customerId: toId(req.customerId) ?? 0,
-        lines: req.items.map((i) => ({ productId: toId(i.productId) ?? 0, qty: i.quantity })),
-        deliveryAddress: req.deliveryAddress ?? req.note,
+        customerId: req.customerId,
+        lines: req.lines.map((i) => ({
+          productId: i.productId,
+          qty: i.qty,
+        })),
+        deliveryAddress: req.deliveryAddress,
+        description: req.description,
       });
       return mapOrder(data);
     },
+    update: async (id, req) => {
+      const body: Record<string, unknown> = {};
+      if (req.customerId !== undefined) body.customerId = req.customerId;
+      if (req.lines !== undefined) {
+        body.lines = req.lines.map((i) => ({
+          productId: i.productId,
+          qty: i.qty,
+        }));
+      }
+      if (req.deliveryAddress !== undefined) body.deliveryAddress = req.deliveryAddress;
+      if (req.description !== undefined) body.description = req.description;
+      return mapOrder(await httpPut<BackendOrderDto>(`/orders/${id}`, body));
+    },
+    remove: async (id) => {
+      await httpDelete<void>(`/orders/${id}`);
+    },
     confirm: async (id) => {
       return mapOrder(await httpPost<BackendOrderDto>(`/orders/${id}/confirm`, {}));
+    },
+    approve: async (id) => {
+      return mapOrder(await httpPost<BackendOrderDto>(`/orders/${id}/approve`, {}));
     },
     assignDriver: async (id, driverName, driverPhone) => {
       return mapOrder(await httpPost<BackendOrderDto>(`/orders/${id}/assign-driver`, { driverName, driverPhone }));
     },
     pay: async (id, amount, method) => {
       return mapOrder(await httpPost<BackendOrderDto>(`/orders/${id}/payment`, { amount, method }));
+    },
+    complete: async (id) => {
+      return mapOrder(await httpPost<BackendOrderDto>(`/orders/${id}/complete`, {}));
+    },
+    uncomplete: async (id) => {
+      return mapOrder(await httpPost<BackendOrderDto>(`/orders/${id}/uncomplete`, {}));
     },
     setStatus: async (id, status) => {
       return mapOrder(await httpPost<BackendOrderDto>(`/orders/${id}/status`, { status }));

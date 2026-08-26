@@ -1,6 +1,5 @@
 import { useCallback, useLayoutEffect, useState } from "react";
-import { SafeAreaView, View } from "react-native";
-import { StatusBar } from "expo-status-bar";
+import { View } from "react-native";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -19,9 +18,22 @@ import { CustomersScreen } from "../features/customers/screens/CustomersScreen";
 import { IncomeScreen } from "../features/income/screens/IncomeScreen";
 import { MoreScreen } from "../features/more/screens/MoreScreen";
 
-type TabKey = "dashboard" | "stock" | "orders" | "customers" | "income" | "more";
+type TabKey =
+  | "dashboard"
+  | "stock"
+  | "orders"
+  | "customers"
+  | "income"
+  | "more";
 
-const TAB_ORDER: TabKey[] = ["dashboard", "stock", "orders", "customers", "income", "more"];
+const TAB_ORDER: TabKey[] = [
+  "dashboard",
+  "stock",
+  "orders",
+  "customers",
+  "income",
+  "more",
+];
 
 type RootLayoutProps = {
   onLogout: () => void;
@@ -34,7 +46,12 @@ type TabHostProps = {
   children: React.ReactNode;
 };
 
-function TabHost({ tab, activeTab, enterFrom, children }: TabHostProps) {
+function TabHost({
+  tab,
+  activeTab,
+  enterFrom,
+  children,
+}: TabHostProps) {
   const isActive = activeTab === tab;
   const progress = useSharedValue(0);
   const direction = useSharedValue(1);
@@ -43,23 +60,48 @@ function TabHost({ tab, activeTab, enterFrom, children }: TabHostProps) {
     if (isActive) {
       direction.value = enterFrom;
       progress.value = 0;
-      progress.value = withTiming(1, { duration: 260, easing: Easing.out(Easing.cubic) });
+
+      progress.value = withTiming(1, {
+        duration: 260,
+        easing: Easing.out(Easing.cubic),
+      });
     }
   }, [isActive, enterFrom, direction, progress]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: progress.value,
-    transform: [{ translateX: (1 - progress.value) * 40 * direction.value }],
+    transform: [
+      {
+        translateX:
+          (1 - progress.value) * 40 * direction.value,
+      },
+    ],
   }));
 
   return (
-    <View style={isActive ? { flex: 1 } : { display: "none" }}>
-      <Animated.View style={[animatedStyle, { flex: 1 }]}>{children}</Animated.View>
+    <View
+      style={
+        isActive
+          ? { flex: 1 }
+          : { display: "none" }
+      }
+    >
+      <Animated.View
+        style={[
+          animatedStyle,
+          { flex: 1 },
+        ]}
+      >
+        {children}
+      </Animated.View>
     </View>
   );
 }
 
-const INITIAL_CHROME_HIDDEN: Record<TabKey, boolean> = {
+const INITIAL_CHROME_HIDDEN: Record<
+  TabKey,
+  boolean
+> = {
   dashboard: false,
   stock: false,
   orders: false,
@@ -68,22 +110,32 @@ const INITIAL_CHROME_HIDDEN: Record<TabKey, boolean> = {
   more: false,
 };
 
-export function RootLayout({ onLogout }: RootLayoutProps) {
-  const [activeTab, setActiveTab] = useState<TabKey>("dashboard");
-  const [prevTab, setPrevTab] = useState<TabKey>("dashboard");
-  const [profileVisible, setProfileVisible] = useState(false);
-  const [mountedTabs, setMountedTabs] = useState<Record<TabKey, boolean>>({
-    dashboard: true,
-    stock: false,
-    orders: false,
-    customers: false,
-    income: false,
-    more: false,
-  });
+export function RootLayout({
+  onLogout,
+}: RootLayoutProps) {
+  const [activeTab, setActiveTab] =
+    useState<TabKey>("dashboard");
 
-  const [chromeHiddenByTab, setChromeHiddenByTab] = useState<Record<TabKey, boolean>>(
-    INITIAL_CHROME_HIDDEN
-  );
+  const [prevTab, setPrevTab] =
+    useState<TabKey>("dashboard");
+
+  const [profileVisible, setProfileVisible] =
+    useState(false);
+
+  const [mountedTabs, setMountedTabs] =
+    useState<Record<TabKey, boolean>>({
+      dashboard: true,
+      stock: false,
+      orders: false,
+      customers: false,
+      income: false,
+      more: false,
+    });
+
+  const [chromeHiddenByTab, setChromeHiddenByTab] =
+    useState<Record<TabKey, boolean>>(
+      INITIAL_CHROME_HIDDEN
+    );
 
   const { user } = useAuth();
 
@@ -92,70 +144,151 @@ export function RootLayout({ onLogout }: RootLayoutProps) {
       if (tab !== activeTab) {
         setPrevTab(activeTab);
         setActiveTab(tab);
-        setMountedTabs((prev) => (prev[tab] ? prev : { ...prev, [tab]: true }));
+
+        setMountedTabs((prev) =>
+          prev[tab]
+            ? prev
+            : {
+                ...prev,
+                [tab]: true,
+              }
+        );
       }
     },
     [activeTab]
   );
 
-  const handleCustomersChromeChange = useCallback((hidden: boolean) => {
-    setChromeHiddenByTab((prev) =>
-      prev.customers === hidden ? prev : { ...prev, customers: hidden }
-    );
-  }, []);
+  const handleCustomersChromeChange =
+    useCallback((hidden: boolean) => {
+      setChromeHiddenByTab((prev) =>
+        prev.customers === hidden
+          ? prev
+          : {
+              ...prev,
+              customers: hidden,
+            }
+      );
+    }, []);
 
-  const handleOrdersChromeChange = useCallback((hidden: boolean) => {
-    setChromeHiddenByTab((prev) =>
-      prev.orders === hidden ? prev : { ...prev, orders: hidden }
-    );
-  }, []);
-// <-- Add this new handler here:
-  const handleIncomeChromeChange = useCallback((hidden: boolean) => {
-    setChromeHiddenByTab((prev) =>
-      prev.income === hidden ? prev : { ...prev, income: hidden }
-    );
-  }, []);
-  const activeIdx = TAB_ORDER.indexOf(activeTab);
-  const prevIdx = TAB_ORDER.indexOf(prevTab);
-  const enterFrom = activeIdx > prevIdx ? 1 : -1;
+  const handleOrdersChromeChange =
+    useCallback((hidden: boolean) => {
+      setChromeHiddenByTab((prev) =>
+        prev.orders === hidden
+          ? prev
+          : {
+              ...prev,
+              orders: hidden,
+            }
+      );
+    }, []);
+
+  const handleIncomeChromeChange =
+    useCallback((hidden: boolean) => {
+      setChromeHiddenByTab((prev) =>
+        prev.income === hidden
+          ? prev
+          : {
+              ...prev,
+              income: hidden,
+            }
+      );
+    }, []);
+
+  const activeIdx =
+    TAB_ORDER.indexOf(activeTab);
+
+  const prevIdx =
+    TAB_ORDER.indexOf(prevTab);
+
+  const enterFrom =
+    activeIdx > prevIdx ? 1 : -1;
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" style={{ height: "100%" }}>
-      <StatusBar style="dark" />
+    <View className="flex-1 bg-gray-50">
       <MainLayout
         activeTab={activeTab}
         onTabPress={handleTabPress}
-        onMenuPress={() => setProfileVisible(true)}
-        hideChrome={chromeHiddenByTab[activeTab]}
+        onMenuPress={() =>
+          setProfileVisible(true)
+        }
+        hideChrome={
+          chromeHiddenByTab[activeTab]
+        }
       >
-        <View className="flex-1" style={{ minHeight: 0 }}>
+        <View
+          className="flex-1"
+          style={{ minHeight: 0 }}
+        >
           {mountedTabs.dashboard && (
-            <TabHost tab="dashboard" activeTab={activeTab} enterFrom={enterFrom}>
-              <DashboardScreen onNavigateTab={handleTabPress} />
+            <TabHost
+              tab="dashboard"
+              activeTab={activeTab}
+              enterFrom={enterFrom}
+            >
+              <DashboardScreen
+                onNavigateTab={handleTabPress}
+              />
             </TabHost>
           )}
+
           {mountedTabs.stock && (
-            <TabHost tab="stock" activeTab={activeTab} enterFrom={enterFrom}>
+            <TabHost
+              tab="stock"
+              activeTab={activeTab}
+              enterFrom={enterFrom}
+            >
               <StockScreen />
             </TabHost>
           )}
+
           {mountedTabs.orders && (
-            <TabHost tab="orders" activeTab={activeTab} enterFrom={enterFrom}>
-              <OrdersScreen onChromeChange={handleOrdersChromeChange} />
+            <TabHost
+              tab="orders"
+              activeTab={activeTab}
+              enterFrom={enterFrom}
+            >
+              <OrdersScreen
+                onChromeChange={
+                  handleOrdersChromeChange
+                }
+              />
             </TabHost>
           )}
+
           {mountedTabs.customers && (
-            <TabHost tab="customers" activeTab={activeTab} enterFrom={enterFrom}>
-              <CustomersScreen onChromeChange={handleCustomersChromeChange} />
+            <TabHost
+              tab="customers"
+              activeTab={activeTab}
+              enterFrom={enterFrom}
+            >
+              <CustomersScreen
+                onChromeChange={
+                  handleCustomersChromeChange
+                }
+              />
             </TabHost>
           )}
+
           {mountedTabs.income && (
-            <TabHost tab="income" activeTab={activeTab} enterFrom={enterFrom}>
-              <IncomeScreen onChromeChange={handleIncomeChromeChange} />
+            <TabHost
+              tab="income"
+              activeTab={activeTab}
+              enterFrom={enterFrom}
+            >
+              <IncomeScreen
+                onChromeChange={
+                  handleIncomeChromeChange
+                }
+              />
             </TabHost>
           )}
+
           {mountedTabs.more && (
-            <TabHost tab="more" activeTab={activeTab} enterFrom={enterFrom}>
+            <TabHost
+              tab="more"
+              activeTab={activeTab}
+              enterFrom={enterFrom}
+            >
               <MoreScreen />
             </TabHost>
           )}
@@ -165,9 +298,11 @@ export function RootLayout({ onLogout }: RootLayoutProps) {
       <Profile
         visible={profileVisible}
         user={user}
-        onClose={() => setProfileVisible(false)}
+        onClose={() =>
+          setProfileVisible(false)
+        }
         onLogout={onLogout}
       />
-    </SafeAreaView>
+    </View>
   );
 }

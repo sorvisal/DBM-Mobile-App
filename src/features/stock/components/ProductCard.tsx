@@ -25,11 +25,10 @@ export function ProductCard({
   isLowStock,
   onPress,
 }: ProductCardProps) {
-  if (__DEV__) console.log('[RENDER] ProductCard', name, '-> imageUrl:', imageUrl);
   return (
     <TouchableOpacity
       onPress={onPress}
-      className="flex-row items-center bg-white rounded-xl p-2 mb-1"
+      className="flex-row bg-white rounded-xl p-2.5 mb-2"
       style={{ shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 }}
     >
       {imageUrl ? (
@@ -44,20 +43,28 @@ export function ProductCard({
         </View>
       )}
 
-      <View className="flex-1 ml-6">
-        <Text className="font-khmerMedium text-gray-900 text-xl" numberOfLines={1}>
-          {name}
-        </Text>
-        <Text className="font-khmer text-gray-400 text-[14px] mt-0.5">
-          {unit}
-          {expiryDate ? `  •  ${expiryDate}` : ""}
-        </Text>
-        {daysLeft !== undefined && <View className="mt-1.5"><ExpiryBadge daysLeft={daysLeft} /></View>}
-      </View>
+      <View className="flex-1 ml-3">
+        <View className="flex-row items-start justify-between">
+          <Text className="font-khmerMedium text-gray-900 text-xl flex-1 pr-2" numberOfLines={1}>
+            {name}
+          </Text>
+          {daysLeft !== undefined && <ExpiryBadge daysLeft={daysLeft} />}
+        </View>
 
-      <View className="items-end">
-        <Text className="font-khmerBold text-gray-900 text-2xl">{price}</Text>
-        <Text className={`font-khmer text-[14px] mt-1 ${isLowStock ? "text-red-600 font-khmerBold" : "text-gray-400"}`}>{quantity} កេស</Text>
+        <Text className="font-khmer text-gray-400 text-[15px] mt-0.5">{unit}</Text>
+
+        {expiryDate && (
+          <Text className="font-khmer text-gray-500 text-[15px] mt-1.5">
+            ថ្ងៃផុតកំណត់: <Text className="font-khmerMedium text-gray-700">{expiryDate}</Text>
+          </Text>
+        )}
+
+        <Text className="font-khmer text-gray-500 text-[15px] mt-0.5">
+          សល់:{" "}
+          <Text className={isLowStock ? "font-khmerBold text-red-600" : "font-khmerMedium text-gray-700"}>
+            {quantity} កេស
+          </Text>
+        </Text>
       </View>
     </TouchableOpacity>
   );

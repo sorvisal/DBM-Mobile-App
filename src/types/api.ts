@@ -105,9 +105,9 @@ export type PurchaseOrder = {
 export type OrderItem = {
   productId: string;
   productName: string;
-  quantity: number;
+  qty: number;
   unitPrice: number;
-  total: number;
+  lineTotal: number;
   imageUrl?: string;
 };
 export type Order = {
@@ -117,7 +117,7 @@ export type Order = {
   customerName: string;
   status: OrderStatus;
   paymentStatus: PaymentStatus;
-  items: OrderItem[];
+  lines: OrderItem[];
   totalAmount: number;
   paidAmount: number;
   paymentMethod?: string;
@@ -267,12 +267,16 @@ export type CreatePurchaseOrderRequest = {
   note?: string;
 };
 
+export type CreateOrderLine = {
+  productId: number;
+  qty: number;
+};
+
 export type CreateOrderRequest = {
-  customerId: string;
-  customerName?: string;
-  items: OrderItem[];
-  deliveryAddress?: string;
-  note?: string;
+  customerId: number;
+  lines: CreateOrderLine[];
+  deliveryAddress: string;
+  description: string;
 };
 
 export type CreateCustomerRequest = {

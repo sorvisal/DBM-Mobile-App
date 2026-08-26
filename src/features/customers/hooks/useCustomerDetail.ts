@@ -108,7 +108,7 @@ export function useCustomerDetail(customerId: string) {
                   date: new Date(o.createdAt).toLocaleString(),
                   status: o.status,
                   total: o.totalAmount,
-                  itemCount: o.items.length,
+                  itemCount: o.lines.length,
                 })),
             };
 

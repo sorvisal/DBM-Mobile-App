@@ -14,12 +14,12 @@ export function OrderItemRow({ item }: OrderItemRowProps) {
           <Text className="font-khmerMedium text-gray-900 text-xl flex-1" numberOfLines={1}>
             {item.name}
           </Text>
-          <Text className="font-khmer text-gray-400 text-xl mr-2">x{item.quantity}</Text>
+          <Text className="font-khmer text-gray-400 text-xl mr-2">x{item.qty}</Text>
         </View>
         <Text className="font-khmer text-gray-400 text-xl mt-0.5">${item.price.toFixed(2)}</Text>
       </View>
       <Text className="font-khmerBold text-gray-900 text-xl">
-        ${(item.price * item.quantity).toFixed(2)}
+        ${(item.price * item.qty).toFixed(2)}
       </Text>
     </View>
   );

@@ -20,6 +20,8 @@ export function CustomerListScreen({ onSelectCustomer }: CustomerListScreenProps
   const debouncedSearch = useDebounce(search, 300);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  
   const { allCustomers, stats, isLoading, isFetchingMore, hasMore, loadMore, stale, refresh } = useCustomerList();
 
   const [showOverlay, setShowOverlay] = useState(true);
@@ -28,6 +30,18 @@ export function CustomerListScreen({ onSelectCustomer }: CustomerListScreenProps
     const timer = setTimeout(() => setShowOverlay(false), 3000);
     return () => clearTimeout(timer);
   }, []);
+
+  // Pull-to-refresh handler that triggers the API refresh
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refresh(); // Fetches fresh data from the API
+    } catch (err) {
+      console.error("Failed to refresh customers:", err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const filteredCustomers = debouncedSearch
     ? allCustomers.filter(
@@ -110,7 +124,7 @@ export function CustomerListScreen({ onSelectCustomer }: CustomerListScreenProps
             style={{ outlineWidth: 0, borderWidth: 0, backgroundColor: "transparent", paddingVertical: 0, includeFontPadding: false, textAlignVertical: "center" }}
           />
           {stale && (
-            <TouchableOpacity onPress={refresh} className="ml-1">
+            <TouchableOpacity onPress={handleRefresh} className="ml-1">
               <Ionicons name="refresh-outline" size={20} color="#6B7280" />
             </TouchableOpacity>
           )}
@@ -132,6 +146,8 @@ export function CustomerListScreen({ onSelectCustomer }: CustomerListScreenProps
           scrollEventThrottle={16}
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.15}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
           renderItem={renderRow}
           ListFooterComponent={renderFooter}
           ListEmptyComponent={

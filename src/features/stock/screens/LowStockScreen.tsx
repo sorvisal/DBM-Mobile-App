@@ -1,38 +1,34 @@
-import { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { StockTabBar } from "../components/StockTabBar";
 import { ProductCard } from "../components/ProductCard";
 import type { StockTabKey } from "./StockScreen";
-import { useLowStock } from "../hooks/useLowStock";
-
-const EXPIRY_SUMMARY = [
-  { label: "ដល់ថ្ងៃ 7 ថ្ងៃ", count: 8, unit: "មុខទំនិញ", bg: "bg-red-50", text: "text-red-600" },
-  { label: "ដល់ថ្ងៃ 15 ថ្ងៃ", count: 5, unit: "មុខទំនិញ", bg: "bg-orange-50", text: "text-orange-600" },
-  { label: "លើសពី 15 ថ្ងៃ", count: 2, unit: "មុខទំនិញ", bg: "bg-green-50", text: "text-green-600" },
-] as const;
+import { useExpiringStock, type ExpiringProduct } from "../hooks/useExpiringStock";
+import { formatDate } from "@/utils/formatDate";
 
 type LowStockScreenProps = {
   onNavigate: (tab: StockTabKey) => void;
 };
 
 export function LowStockScreen({ onNavigate }: LowStockScreenProps) {
-  const { data, isLoading } = useLowStock();
-  const [showOverlay, setShowOverlay] = useState(true);
+  const { data, isLoading } = useExpiringStock();
 
-  useEffect(() => {
-    const timer = setTimeout(() => setShowOverlay(false), 1000);
-    return () => clearTimeout(timer);
-  }, []);
+  const critical = data.filter((p) => p.expiryBucket === "critical");
+  const warning = data.filter((p) => p.expiryBucket === "warning");
+  const safe = data.filter((p) => p.expiryBucket === "safe");
+
+  const summary = [
+    { label: "ដល់ថ្ងៃ 7 ថ្ងៃ", count: critical.length, unit: "មុខទំនិញ", bg: "bg-red-50", text: "text-red-600" },
+    { label: "ដល់ថ្ងៃ 15 ថ្ងៃ", count: warning.length, unit: "មុខទំនិញ", bg: "bg-orange-50", text: "text-orange-600" },
+    { label: "លើសពី 15 ថ្ងៃ", count: safe.length, unit: "មុខទំនិញ", bg: "bg-green-50", text: "text-green-600" },
+  ] as const;
 
   return (
     <View className="flex-1 bg-gray-50" style={{ minHeight: 0 }}>
-
-      {/* Sub navbar */}
       <StockTabBar active="expiry" onChange={onNavigate} />
 
       <View className="flex-row gap-2 px-5 pt-3 pb-2">
-        {EXPIRY_SUMMARY.map((item) => (
+        {summary.map((item) => (
           <View key={item.label} className={`${item.bg} flex-1 rounded-xl p-2.5 items-center`}>
             <Text className={`font-khmerBold text-2xl ${item.text}`}>{item.label}</Text>
             <Text className={`font-khmerBold text-xl mt-1 ${item.text}`}>
@@ -45,7 +41,8 @@ export function LowStockScreen({ onNavigate }: LowStockScreenProps) {
       <ScrollView className="flex-1 px-5 pt-2" showsVerticalScrollIndicator={false}>
         {isLoading ? (
           <View className="items-center py-16">
-            <Text className="font-khmer text-gray-400 text-xl">កំពុងដាក់បញ្ជី...</Text>
+            <ActivityIndicator size="large" color="#2563EB" />
+            <Text className="font-khmer text-gray-400 text-xl mt-3">កំពុងផ្ទុក...</Text>
           </View>
         ) : data.length === 0 ? (
           <View className="items-center py-16">
@@ -53,7 +50,7 @@ export function LowStockScreen({ onNavigate }: LowStockScreenProps) {
             <Text className="font-khmer text-gray-400 text-xl mt-2">មិនមានផលិតផលផុតកំណត់</Text>
           </View>
         ) : (
-          data.map((product) => (
+          data.map((product: ExpiringProduct) => (
             <ProductCard
               key={product.id}
               imageUrl={product.imageUrl ?? ""}
@@ -61,23 +58,15 @@ export function LowStockScreen({ onNavigate }: LowStockScreenProps) {
               unit={product.category ?? ""}
               price={`${product.sellPrice}`}
               quantity={product.quantity}
-              isLowStock={true}
+              expiryDate={product.expiresAt ? formatDate(product.expiresAt) : undefined}
+              daysLeft={product.daysUntilExpiry}
+              isLowStock={false}
               onPress={() => {}}
             />
           ))
         )}
         <View className="h-6" />
       </ScrollView>
-
-      {showOverlay && (
-        <View
-          className="absolute top-0 left-0 right-0 bottom-0 items-center justify-center"
-          style={{ backgroundColor: "rgba(255,255,255,100)", zIndex: 50 }}
-        >
-          <ActivityIndicator size="large" color="#2563EB" />
-          <Text className="font-khmer text-gray-500 text-sm mt-3">កំពុងផ្ទុក...</Text>
-        </View>
-      )}
     </View>
   );
 }

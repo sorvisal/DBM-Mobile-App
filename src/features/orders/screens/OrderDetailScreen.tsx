@@ -18,7 +18,7 @@ type OrderDetailScreenProps = {
 
 export function OrderDetailScreen({ orderId, onBack }: OrderDetailScreenProps) {
   const { order, isLoading } = useOrderDetail(orderId);
-  const { updateOrderStatus } = useUpdateOrderStatus();
+  const { updateOrderStatus, completeOrder, uncompleteOrder } = useUpdateOrderStatus();
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
 
   // Loading state using DetailLayout header for visual consistency
@@ -179,12 +179,12 @@ export function OrderDetailScreen({ orderId, onBack }: OrderDetailScreenProps) {
           </View>
         </View>
 
-        {/* Items */}
+        {/* Lines */}
         <View className="bg-white rounded-2xl p-4 mb-3">
           <Text className="font-khmerBold text-gray-900 text-2xl mb-1">
-            ទំនិញ ({order.items.length} មុខ)
+            ទំនិញ ({order.lines.length} មុខ)
           </Text>
-          {order.items.map((item, index) => (
+          {order.lines.map((item, index) => (
             <OrderItemRow key={`${item.id}-${index}`} item={item} />
           ))}
           <OrderSummary subtotal={order.subtotal} deliveryFee={order.deliveryFee} total={order.total} />
@@ -212,14 +212,14 @@ export function OrderDetailScreen({ orderId, onBack }: OrderDetailScreenProps) {
       )}
 
       {order.status === OrderStatus.Confirmed && (
-        <View className="px-5 py-3 bg-white border-t border-gray-100 flex-row gap-3">
+        <View className="px-5 py-3 bg-white border-t border-gray-100 flex-row gap-3 ">
           <TouchableOpacity
             onPress={() =>
               updateOrderStatus(order.id, OrderStatus.Shipping, {
                 confirmedAt: new Date().toLocaleString(),
               })
             }
-            className="flex-1 bg-blue-600 rounded-xl h-12 items-center justify-center"
+            className="flex-1 bg-blue-600 rounded-xl h-12 items-center justify-center mb-8"
           >
             <Text className="font-khmerBold text-white text-xl">ដឹកជញ្ជូន</Text>
           </TouchableOpacity>
@@ -245,12 +245,18 @@ export function OrderDetailScreen({ orderId, onBack }: OrderDetailScreenProps) {
       )}
 
       {order.status === OrderStatus.Completed && (
-        <View className="px-5 py-3 bg-white border-t border-gray-100">
+        <View className="px-5 py-3 bg-white border-t border-gray-100 flex-row gap-3">
+          <TouchableOpacity
+            onPress={() => uncompleteOrder(order.id)}
+            className="flex-1 border border-orange-500 rounded-xl h-12 items-center justify-center"
+          >
+            <Text className="font-khmerBold text-orange-500 text-xl">មិនបញ្ចប់</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             onPress={() => {
               // TODO: navigate to invoice screen or open invoice modal
             }}
-            className="border border-blue-600 rounded-xl h-12 items-center justify-center"
+            className="flex-1 border border-blue-600 rounded-xl h-12 items-center justify-center"
           >
             <Text className="font-khmerBold text-blue-600 text-xl">មើលវិក័យប័ត្រ</Text>
           </TouchableOpacity>

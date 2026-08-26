@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, FlatList, ListRenderItemInfo, ActivityIndicator } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, FlatList, ListRenderItemInfo, ActivityIndicator, RefreshControl } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { OrderStatus, Order } from "../types/types";
+import { OrderStatus } from "../types/types";
+import type { Order } from "../types/types";
 import { useOrderList, addOrder } from "../hooks/useOrderList";
 import { OrderCard } from "../components/OrderCard";
 import { OrderFilterTabs } from "../components/OrderFilterTabs";
@@ -16,26 +17,26 @@ type OrderListScreenProps = {
 
 const ITEM_HEIGHT = 72;
 
-function formatDate(date: Date | null) {
-  if (!date) return new Date().toLocaleString();
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  return `${day}/${month}/${year}`;
-}
-
 export function OrderListScreen({ onSelectOrder }: OrderListScreenProps) {
   const [activeFilter, setActiveFilter] = useState<OrderStatus | "all">("all");
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [showOverlay, setShowOverlay] = useState(true);
-  const { orders, counts, isLoading, isFetchingMore, hasMore, loadMore, stale } = useOrderList(activeFilter);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const { orders, counts, isLoading, isFetchingMore, hasMore, loadMore, refresh, stale } = useOrderList(activeFilter);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowOverlay(false), 900);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refresh();
+    setRefreshing(false);
+  };
 
   const filteredOrders = debouncedSearch
     ? orders.filter(
@@ -46,31 +47,7 @@ export function OrderListScreen({ onSelectOrder }: OrderListScreenProps) {
     : orders;
 
   const handleCreateOrder = (values: CreateOrderValues) => {
-    const price = Number(values.price) || 0;
-    const quantity = Number(values.quantity) || 1;
-    const subtotal = price * quantity;
-
-    const newOrder: Order = {
-      id: String(Date.now()),
-      code: values.code || `ORD-${Date.now()}`,
-      status: OrderStatus.Pending,
-      customer: { name: values.customerName, phone: "" },
-      createdAt: formatDate(values.date),
-      items: [
-        {
-          id: String(Date.now()),
-          name: values.item,
-          imageUrl: "https://picsum.photos/seed/neworder/100",
-          price,
-          quantity,
-        },
-      ],
-      subtotal,
-      deliveryFee: 0.5,
-      total: subtotal + 0.5,
-    };
-
-    addOrder(newOrder);
+    addOrder(values);
     setCreateModalVisible(false);
   };
 
@@ -119,7 +96,7 @@ export function OrderListScreen({ onSelectOrder }: OrderListScreenProps) {
             style={{ outlineWidth: 0, borderWidth: 0, backgroundColor: "transparent", paddingVertical: 0, includeFontPadding: false, textAlignVertical: "center" }}
           />
           {stale && (
-            <TouchableOpacity>
+            <TouchableOpacity onPress={handleRefresh}>
               <Ionicons name="refresh-outline" size={20} color="#6B7280" />
             </TouchableOpacity>
           )}
@@ -142,6 +119,14 @@ export function OrderListScreen({ onSelectOrder }: OrderListScreenProps) {
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.15}
           renderItem={renderRow}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={["#2563EB"]}
+              tintColor="#2563EB"
+            />
+          }
           ListFooterComponent={renderFooter}
           ListEmptyComponent={
             isLoading ? (

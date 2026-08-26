@@ -17,16 +17,23 @@ type IncomeTimeTabsProps = {
 
 export function IncomeTimeTabs({ active, onChange }: IncomeTimeTabsProps) {
   return (
-    <View className="flex-row px-5 pb-3 mt-3">
+    <View className="flex-row px-3 pb-3 mt-3 justify-between">
       {TABS.map((tab) => {
         const isActive = tab.key === active;
         return (
           <TouchableOpacity
             key={tab.key}
             onPress={() => onChange(tab.key)}
-            className={`flex-1 items-center py-2 mx-1 rounded-full ${isActive ? "bg-blue-600" : "bg-gray-100"}`}
+            className={`flex-1 items-center justify-center py-2.5 px-2 mx-0.5 rounded-full ${
+              isActive ? "bg-blue-600" : "bg-gray-100"
+            }`}
+            style={{ minHeight: 40 }}
           >
-            <Text className={`font-khmerMedium text-xl ${isActive ? "text-white" : "text-gray-600"}`}>
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              className={`font-khmerMedium text-sm ${isActive ? "text-white" : "text-gray-600"}`}
+            >
               {tab.label}
             </Text>
           </TouchableOpacity>

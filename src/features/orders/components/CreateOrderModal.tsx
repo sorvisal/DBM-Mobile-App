@@ -17,6 +17,7 @@ export type CreateOrderValues = {
   price: string;
   quantity: string;
   address: string;
+  imageUrl: string;
 };
 
 const generateCode = () => {
@@ -38,6 +39,7 @@ const initialValues: CreateOrderValues = {
   price: "",
   quantity: "",
   address: "",
+  imageUrl: "",
 };
 
 type CreateOrderModalProps = {
@@ -105,6 +107,7 @@ export function CreateOrderModal({ visible, onClose, onSubmit }: CreateOrderModa
       productId: product.id,
       item: product.name,
       price: String(product.sellPrice),
+      imageUrl: product.imageUrl ?? "",
     }));
   };
 

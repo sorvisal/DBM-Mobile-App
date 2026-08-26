@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, RefreshControl } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useIncomeSummary } from "../hooks/useIncomeSummary";
 import { IncomeTimeTabs } from "../components/IncomeTimeTabs";
@@ -23,9 +23,6 @@ const RANGE_TITLE: Record<RevenueRange, string> = {
   "90": "ក្រាហ្វចំណូល (90 ថ្ងៃចុងក្រោយ)",
 };
 
-// TODO: replace with a real API call once the backend exposes a
-// range-aware revenue endpoint (e.g. api.reports.revenueChart(range)).
-// This only exists so the range selector has something to render for now.
 function buildPlaceholderChart(days: number): ChartPoint[] {
   const points: ChartPoint[] = [];
   const today = new Date();
@@ -46,7 +43,17 @@ function buildPlaceholderChart(days: number): ChartPoint[] {
 
 export function IncomeOverviewScreen({ onGoDaily, onGoMonthly, onGoYearly, onGoDebtors }: IncomeOverviewScreenProps) {
   const [chartRange, setChartRange] = useState<RevenueRange>("7");
+  const [refreshing, setRefreshing] = useState(false);
+  
   const { overview } = useIncomeSummary();
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    // Simulate a brief refresh delay or re-fetch trigger if needed
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 600);
+  };
 
   const chartData = useMemo(() => {
     if (chartRange === "7") return overview.weeklyChart;
@@ -55,7 +62,6 @@ export function IncomeOverviewScreen({ onGoDaily, onGoMonthly, onGoYearly, onGoD
 
   return (
     <View className="flex-1 bg-gray-50" style={{ minHeight: 0 }}>
-
       <IncomeTimeTabs
         active="overview"
         onChange={(key) => {
@@ -66,7 +72,18 @@ export function IncomeOverviewScreen({ onGoDaily, onGoMonthly, onGoYearly, onGoD
         }}
       />
 
-      <ScrollView className="flex-1 px-5 pt-3 mt-2" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1 px-5 pt-3 mt-2"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={["#2563EB"]}
+            tintColor="#2563EB"
+          />
+        }
+      >
         {/* 3 summary cards */}
         <View className="flex-row gap-2">
           <IncomeSummaryCard

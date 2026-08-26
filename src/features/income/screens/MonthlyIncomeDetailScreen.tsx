@@ -188,7 +188,7 @@ export function MonthlyIncomeDetailScreen({ onBack, onGoDebtors }: MonthlyIncome
           }
           ListEmptyComponent={
             isLoading ? (
-              <LoadingState compact text="កំពុងផ្ទុកបំណុលអតិថិជន..." />
+              <LoadingState compact text="កំពុងផ្ទុកចំណូលអតិថិជន..." />
             ) : error ? (
               <ErrorState compact onRetry={refresh} />
             ) : (

@@ -14,10 +14,35 @@ type YearlyIncomeDetailScreenProps = {
   onGoDebtors: () => void;
 };
 
+// Define available years or let it compute dynamically
+const AVAILABLE_YEARS = [2024, 2025, 2026, 2027, 2028];
+
 export function YearlyIncomeDetailScreen({ onBack, onGoDebtors }: YearlyIncomeDetailScreenProps) {
-  const [year] = useState("2025");
-  const { summary, isLoading, isRefreshing, error, refresh } = useYearlyIncome(year);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  
+  // Pass selectedYear as a string to your hook
+  const { summary, isLoading, isRefreshing, error, refresh } = useYearlyIncome(selectedYear.toString());
+
+  const currentIndex = AVAILABLE_YEARS.indexOf(selectedYear);
+  const canGoBack = currentIndex > 0;
+  const canGoForward = currentIndex < AVAILABLE_YEARS.length - 1 && currentIndex !== -1;
+
+  const goBack = () => {
+    if (canGoBack) {
+      setSelectedYear(AVAILABLE_YEARS[currentIndex - 1]);
+    } else {
+      // Fallback if year isn't explicitly in array
+      setSelectedYear((prev) => prev - 1);
+    }
+  };
+
+  const goForward = () => {
+    if (canGoForward) {
+      setSelectedYear(AVAILABLE_YEARS[currentIndex + 1]);
+    } else {
+      setSelectedYear((prev) => prev + 1);
+    }
+  };
 
   const calendarButton = (
     <TouchableOpacity accessibilityRole="button" accessibilityLabel="Calendar">
@@ -28,12 +53,14 @@ export function YearlyIncomeDetailScreen({ onBack, onGoDebtors }: YearlyIncomeDe
   return (
     <DetailLayout title="ចំណូលប្រចាំឆ្នាំ" onBack={onBack} rightAction={calendarButton}>
       {/* Year navigator */}
-      <View className="bg-white px-5 py-3 flex-row items-center justify-between mt-1 mx-5 rounded-full">
-        <TouchableOpacity>
+      <View className="bg-white px-5 py-3 flex-row items-center justify-between mt-1 mx-0 rounded-2xl">
+        <TouchableOpacity onPress={goBack}>
           <Ionicons name="chevron-back" size={18} color="#6B7280" />
         </TouchableOpacity>
-        <Text className="font-khmer text-gray-800 text-xl">{summary.year}</Text>
-        <TouchableOpacity>
+        
+        <Text className="font-khmer text-gray-800 text-xl">{summary.year || selectedYear}</Text>
+        
+        <TouchableOpacity onPress={goForward}>
           <Ionicons name="chevron-forward" size={18} color="#6B7280" />
         </TouchableOpacity>
       </View>
@@ -75,7 +102,7 @@ export function YearlyIncomeDetailScreen({ onBack, onGoDebtors }: YearlyIncomeDe
               </View>
 
               {/* Chart */}
-              <View className="bg-white rounded-xl p-2 mt-3">
+              <View className="bg-white rounded-xl px-3 py-3  mt-3 mx-0">
                 <View className="flex-row items-center justify-between mb-2">
                   <Text className="font-khmerBold text-gray-900 text-xl">
                     ចំណូលប្រចាំឆ្នាំ {selectedYear}
@@ -88,9 +115,9 @@ export function YearlyIncomeDetailScreen({ onBack, onGoDebtors }: YearlyIncomeDe
               {/* Debtors */}
               <View className="mt-4">
                 <View className="flex-row items-center justify-between mb-2">
-                  <Text className="font-khmerBold text-gray-900 text-xl">ចំណូលអតិថិជនសរុប</Text>
+                  <Text className="font-khmerBold text-gray-900 text-lg">ចំណូលអតិថិជនសរុប</Text>
                   <TouchableOpacity onPress={onGoDebtors} className="flex-row items-center gap-1">
-                    <Text className="font-khmer text-blue-600 text-xl">មើលទាំងអស់</Text>
+                    <Text className="font-khmer text-blue-600 text-lg">មើលទាំងអស់</Text>
                     <Ionicons name="chevron-forward" size={16} color="#2563EB" />
                   </TouchableOpacity>
                 </View>

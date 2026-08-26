@@ -17,13 +17,23 @@ const ITEM_HEIGHT = 76;
 export function StockListScreen({ onNavigate }: StockListScreenProps) {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
-  const { data, isLoading, isFetchingMore, hasMore, loadMore, error, stale } = useStockList(debouncedSearch);
+  const { data, isLoading, isFetchingMore, hasMore, loadMore, error, stale, refresh } = useStockList(debouncedSearch);
   const [showOverlay, setShowOverlay] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowOverlay(false), 2000);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refresh();
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const handleEndReached = useCallback(() => {
     if (hasMore && !isFetchingMore) loadMore();
@@ -42,28 +52,27 @@ export function StockListScreen({ onNavigate }: StockListScreenProps) {
     index,
   }), []);
 
-const renderRow = useCallback(({ item }: ListRenderItemInfo<typeof data[0]>) => {
-  console.log("product image:", item.name, "->", item.imageUrl);
-  return (
-    <TotalProductCard
-      key={item.id}
-      imageUrl={item.imageUrl ?? ""}
-      name={item.name}
-      unit={item.category}
-      buyPrice={`${item.buyPrice}$`}
-      sellPrice={`${item.sellPrice}$`}
-      quantity={item.quantity}
-      isLowStock={item.status !== "in_stock"}
-      onPress={() => {}}
-    />
-  );
-}, []);
+  const renderRow = useCallback(({ item }: ListRenderItemInfo<typeof data[0]>) => {
+    return (
+      <TotalProductCard
+        key={item.id}
+        imageUrl={item.imageUrl ?? ""}
+        name={item.name}
+        unit={item.category}
+        buyPrice={`${item.buyPrice}$`}
+        sellPrice={`${item.sellPrice}$`}
+        quantity={item.quantity}
+        isLowStock={item.status !== "in_stock"}
+        onPress={() => {}}
+      />
+    );
+  }, []);
 
   const renderFooter = useCallback(() => {
     if (!isFetchingMore) return null;
     return (
       <View className="items-center py-4">
-        <Ionicons name="hourglass-outline" size={20} color="#9CA3AF" className="animate-spin" />
+        <Ionicons name="hourglass-outline" size={20} color="#9CA3AF" />
         <Text className="font-khmer text-gray-400 text-sm mt-1">កំពុងផ្ទុកបន្ថែម...</Text>
       </View>
     );
@@ -73,6 +82,7 @@ const renderRow = useCallback(({ item }: ListRenderItemInfo<typeof data[0]>) => 
     <View className="flex-1 bg-gray-50" style={{ minHeight: 0 }}>
       <StockTabBar active="products" onChange={onNavigate} />
 
+      {/* Search Input fixed for Android & iOS */}
       <View className="px-5 pt-3 pb-2 bg-gray-50">
         <View className="flex-row items-center bg-white border border-gray-200 rounded-xl px-3 h-11">
           <Ionicons name="search-outline" size={24} color="#9CA3AF" />
@@ -82,10 +92,17 @@ const renderRow = useCallback(({ item }: ListRenderItemInfo<typeof data[0]>) => 
             placeholder="ស្វែងរកទំនិញ..."
             placeholderTextColor="#9CA3AF"
             className="font-khmer flex-1 ml-2 text-lg text-gray-800"
-            style={{ outlineWidth: 0, borderWidth: 0, backgroundColor: "transparent", paddingVertical: 0, includeFontPadding: false, textAlignVertical: "center" }}
+            style={{ 
+              outlineWidth: 0, 
+              borderWidth: 0, 
+              backgroundColor: "transparent", 
+              paddingVertical: 0, 
+              includeFontPadding: false, 
+              textAlignVertical: "center" 
+            }}
           />
           {stale && (
-            <TouchableOpacity>
+            <TouchableOpacity onPress={handleRefresh} className="ml-2">
               <Ionicons name="refresh-outline" size={20} color="#6B7280" />
             </TouchableOpacity>
           )}
@@ -107,6 +124,8 @@ const renderRow = useCallback(({ item }: ListRenderItemInfo<typeof data[0]>) => 
           scrollEventThrottle={16}
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.15}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
           renderItem={renderRow}
           ListFooterComponent={renderFooter}
           ListEmptyComponent={
@@ -130,8 +149,8 @@ const renderRow = useCallback(({ item }: ListRenderItemInfo<typeof data[0]>) => 
 
         {showOverlay && (
           <View
-            className="absolute top-0 left-0 right-0 bottom-0 items-center justify-center"
-            style={{ backgroundColor: "rgba(255,255,255,100)", zIndex: 50 }}
+            className="absolute top-0 left-0 right-0 bottom-0 items-center justify-center bg-white"
+            style={{ zIndex: 50 }}
           >
             <ActivityIndicator size="large" color="#2563EB" />
             <Text className="font-khmer text-gray-500 text-sm mt-3">កំពុងផ្ទុក...</Text>

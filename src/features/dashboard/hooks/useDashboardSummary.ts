@@ -14,15 +14,15 @@ import type {
 const CACHE_KEY = "dashboard:summary";
 
 function mapApiOrder(o: Order) {
-  const apiItems = o.items ?? [];
-  const items = apiItems.map((i) => ({
+  const apiLines = o.lines ?? [];
+  const lines = apiLines.map((i) => ({
     id: i.productId,
     name: i.productName,
-    imageUrl: `https://picsum.photos/seed/${i.productId}/100`,
+    imageUrl: i.imageUrl ?? "",
     price: i.unitPrice,
-    quantity: i.quantity,
+    qty: i.qty,
   }));
-  const subtotal = items.reduce((s: number, i: { price: number; quantity: number }) => s + i.price * i.quantity, 0);
+  const subtotal = lines.reduce((s: number, i: { price: number; qty: number }) => s + i.price * i.qty, 0);
   const statusMap: Record<string, string> = {
     pending: "pending",
     confirmed: "confirmed",
@@ -36,7 +36,7 @@ function mapApiOrder(o: Order) {
     status: (statusMap[o.status] ?? "pending"),
     customer: { name: o.customerName, phone: o.driverPhone ?? "" },
     createdAt: o.createdAt,
-    items,
+    lines,
     subtotal,
     deliveryFee: 0.5,
     total: o.totalAmount,

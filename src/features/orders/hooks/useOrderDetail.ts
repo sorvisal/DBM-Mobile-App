@@ -6,24 +6,24 @@ import type { Order } from "../types/types";
 const STALE_TTL = CacheTTL.MEDIUM;
 
 function mapApiOrder(o: import("@/types/api").Order): Order {
-  const apiItems = o.items ?? [];
-  const items = apiItems
+  const apiLines = o.lines ?? [];
+  const lines = apiLines
     .map((i) => ({
       id: i.productId,
       name: i.productName,
-      imageUrl: i.imageUrl ?? `https://picsum.photos/seed/${i.productId}/100`,
+      imageUrl: i.imageUrl ?? "",
       price: i.unitPrice,
-      quantity: i.quantity,
+      qty: i.qty,
     }))
     .filter((item, idx, arr) => arr.findIndex((x) => x.id === item.id) === idx);
-  const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
+  const subtotal = lines.reduce((s, l) => s + l.price * l.qty, 0);
   return {
     id: o.id,
     code: o.code,
     status: normalizeOrderStatus(o.status),
     customer: { name: o.customerName, phone: o.driverPhone ?? "" },
     createdAt: o.createdAt,
-    items,
+    lines,
     subtotal,
     deliveryFee: 0.5,
     total: o.totalAmount,
