@@ -137,7 +137,7 @@ export function IncomeOverviewScreen({ onGoDaily, onGoMonthly, onGoYearly, onGoD
         {/* Top debtors preview */}
         <View className="mt-4">
           <View className="flex-row items-center justify-between mb-2">
-            <Text className="font-khmerBold text-gray-900 text-xl">ចំណូលអតិថិជនសរុប</Text>
+            <Text className="font-khmerBold text-gray-900 text-xl">អតិថិជនជំពាក់សរុប</Text>
             <TouchableOpacity onPress={onGoDebtors} className="flex-row items-center gap-1">
               <Text className="font-khmer text-blue-600 text-xl">មើលទាំងអស់</Text>
               <Ionicons name="chevron-forward" size={16} color="#2563EB" />

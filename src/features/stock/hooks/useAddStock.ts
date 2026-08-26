@@ -1,61 +1,121 @@
+//useAddStock.ts
 import { useState } from "react";
-import { api, invalidateStockCache, invalidateStockHistoryCache } from "@/services";
-import type { CreateProductRequest } from "@/types/api";
-import { mapApiProduct, notifyNewProduct, mergeNewProductIntoCache } from "./useStockList";
+import {
+  api,
+  invalidateStockCache,
+  invalidateStockHistoryCache,
+} from "@/services";
+
+import {
+  mapApiProduct,
+  notifyNewProduct,
+  mergeNewProductIntoCache,
+} from "./useStockList";
 
 export function useAddStock() {
   const [isLoading, setIsLoading] = useState(false);
 
   const mutate = async (values: {
-    name: string;
-    category: string;
+    productId: string;
     quantity: string;
-    buyPrice: string;
-    sellPrice: string;
-    expiresAt: string;
-    imageUrl: string;
     note?: string;
   }) => {
     setIsLoading(true);
+
     try {
-      const req: CreateProductRequest = {
-        name: values.name,
-        sku: `SKU-${Date.now()}`,
-        categoryId: values.category,
-        costPrice: Number(values.buyPrice) || 0,
-        salePrice: Number(values.sellPrice) || 0,
-        lowStockThreshold: 10,
-        stock: Number(values.quantity) || 0,
-        expiryDate: values.expiresAt || undefined,
-        imageUrl: values.imageUrl || undefined,
-      };
-      const product = await api.products.create(req);
-      if (__DEV__) {
-        console.log('[ADD STOCK] sent imageUrl ->', req.imageUrl, '| created product.imageUrl ->', product.imageUrl);
+      const quantity = Number(values.quantity) || 0;
+
+      // Validate Product
+      if (!values.productId) {
+        throw new Error("សូមជ្រើសរើសផលិតផល");
       }
-      await api.stock.createMovement({
-        productId: product.id,
+
+      // Validate quantity
+      if (quantity <= 0) {
+        throw new Error("ចំនួនស្តុកត្រូវតែធំជាង 0");
+      }
+
+      if (__DEV__) {
+        console.log("[ADD STOCK]");
+        console.log("Product ID:", values.productId);
+        console.log("Quantity:", quantity);
+        console.log("Note:", values.note);
+      }
+
+      /**
+       * IMPORTANT
+       * -----------------------------
+       * We DO NOT call api.products.create()
+       *
+       * Product is already created from Admin Web.
+       *
+       * Mobile App only adds stock using
+       * Stock Movement.
+       */
+      const movement = await api.stock.createMovement({
+        productId: values.productId,
         type: "in",
-        quantity: Number(values.quantity) || 0,
+        quantity,
         note: values.note,
       });
 
-      // Clear stale cache entries first (existing behavior — covers dashboard,
-      // stock movements, and any other search/page variants of the product list).
+      if (__DEV__) {
+        console.log("[ADD STOCK] movement created:", movement);
+      }
+
+      /**
+       * Clear old cache
+       */
       invalidateStockCache();
       invalidateStockHistoryCache();
 
-      // Then push the new product into every currently-mounted useStockList()
-      // instance instantly, and merge it into the default list cache too — this
-      // must happen AFTER invalidateStockCache(), since that clears the
-      // "products:" prefix and would otherwise wipe this merge right away.
-      const mapped = mapApiProduct(product, 0);
-      notifyNewProduct(mapped);
-      await mergeNewProductIntoCache(mapped);
+      /**
+       * Refresh the selected product so the new stock
+       * quantity is reflected correctly.
+       */
+      try {
+        const product = await api.products.get(values.productId);
+
+        if (__DEV__) {
+          console.log(
+            "[ADD STOCK] updated product:",
+            product
+          );
+        }
+
+        /**
+         * Update mounted product lists immediately.
+         */
+        const mapped = mapApiProduct(product, 0);
+
+        notifyNewProduct(mapped);
+
+        /**
+         * Update product cache.
+         */
+        await mergeNewProductIntoCache(mapped);
+      } catch (refreshError) {
+        /**
+         * Stock movement already succeeded.
+         * If refreshing the product fails, don't fail
+         * the whole operation.
+         */
+        if (__DEV__) {
+          console.warn(
+            "[ADD STOCK] Product refresh failed:",
+            refreshError
+          );
+        }
+      }
+
+      return movement;
     } finally {
       setIsLoading(false);
     }
   };
 
-  return { mutate, isLoading };
+  return {
+    mutate,
+    isLoading,
+  };
 }

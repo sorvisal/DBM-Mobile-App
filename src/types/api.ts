@@ -251,7 +251,9 @@ export type CreateProductRequest = {
   expiryDate?: string;
 };
 
-export type UpdateProductRequest = Partial<CreateProductRequest>;
+export type UpdateProductRequest = Partial<CreateProductRequest> & {
+  isActive?: boolean;
+};
 
 export type ProductListParams = {
   search?: string;

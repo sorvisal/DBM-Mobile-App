@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { api, onUnauthorized, cacheGet, cacheSet, cacheClearKeySync, CacheTTL } from "@/services";
+import { api, onUnauthorized, restoreAccessToken, cacheGet, cacheSet, cacheClearKeySync, CacheTTL } from "@/services";
 import type { User } from "@/types/api";
 
 const USER_CACHE_KEY = "auth:user";
@@ -14,34 +14,39 @@ export function useAuth() {
       if (!cancelled) setUser(null);
     });
 
-    // Try cache first for instant UI, then validate with API
-    cacheGet<User>(USER_CACHE_KEY).then((cached) => {
-      if (cached && !cancelled) {
-        setUser(cached);
-        setIsLoading(false);
-      }
-    });
+    async function loadUser() {
+      try {
+        // Ensure the in-memory access token is populated before any API call.
+        // This prevents a race where /auth/me fires before restoreAccessToken()
+        // has finished on app reload.
+        await restoreAccessToken();
 
-    api.auth
-      .me()
-      .then((u) => {
+        if (cancelled) return;
+
+        // Try cache first for instant UI
+        const cached = await cacheGet<User>(USER_CACHE_KEY);
+        if (cached && !cancelled) {
+          setUser(cached);
+          setIsLoading(false);
+        }
+
+        // Validate with API
+        if (__DEV__) console.log('[AUTH] GET /auth/me');
+        const u = await api.auth.me();
         if (!cancelled) {
           setUser(u);
           cacheSet(USER_CACHE_KEY, u, CacheTTL.LONG).catch(() => {});
         }
-      })
-      .catch(() => {
+      } catch {
         if (!cancelled) {
           setUser(null);
-          cacheGet<User>(USER_CACHE_KEY).then((cached) => {
-            // If API fails but we had cached user, keep showing them
-            // (they may have gone briefly offline)
-          });
         }
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setIsLoading(false);
-      });
+      }
+    }
+
+    loadUser();
 
     return () => {
       cancelled = true;

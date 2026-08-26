@@ -1,8 +1,13 @@
-import { useEffect, useCallback } from "react";
-import { initCache } from "@/services";
+import { useEffect } from "react";
+import { initCache, restoreAccessToken } from "@/services";
 
 export function useAppInit() {
   useEffect(() => {
-    initCache().catch(() => {});
+    async function initialize() {
+      await restoreAccessToken();
+      await initCache();
+    }
+
+    initialize().catch(console.error);
   }, []);
 }

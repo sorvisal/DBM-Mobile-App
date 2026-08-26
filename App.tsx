@@ -42,15 +42,22 @@ export default function App() {
   const handleSplashFinish = async () => {
     await cacheClearAll(); // clear stale cached data first — before any hooks read from it
     await initCache();
+
+    if (__DEV__) console.log('[APP] Restoring access token...');
     const restored = await restoreAccessToken();
     if (!restored) {
+      if (__DEV__) console.log('[APP] No saved token → auth');
       setStage("auth");
       return;
     }
+
+    if (__DEV__) console.log('[APP] Token restored, verifying with /auth/me...');
     try {
       await api.auth.me();
+      if (__DEV__) console.log('[APP] /auth/me OK → main');
       setStage("main");
-    } catch {
+    } catch (err) {
+      if (__DEV__) console.log('[APP] /auth/me FAILED → auth', err);
       await clearTokens();
       setStage("auth");
     }

@@ -62,7 +62,10 @@ export function CustomerDetailScreen({ customerId, onBack, onViewHistory }: Cust
       {customer && (
         <ScrollView className="flex-1 bg-gray-50 px-5 pt-4" showsVerticalScrollIndicator={false}>
           <CustomerInfoCard customer={customer} />
-          <CustomerSpendingCard customer={customer} />
+          <CustomerSpendingCard
+            customer={customer}
+            onViewHistory={onViewHistory}
+          />
           <CustomerActionButtons
             customer={customer}
             onEdit={() => setEditModalVisible(true)}
@@ -89,7 +92,7 @@ export function CustomerDetailScreen({ customerId, onBack, onViewHistory }: Cust
               className="flex-row items-center px-4 py-3"
             >
               <Ionicons name="time-outline" size={18} color="#2563EB" />
-              <Text className="font-khmer text-gray-800 text-base ml-2.5">ប្រវត្តិការបញ្ជាទិញ</Text>
+              <Text className="font-khmer text-gray-800 text-xl ml-2.5">ប្រវត្តិការបញ្ជាទិញ</Text>
             </TouchableOpacity>
           </View>
         </Pressable>

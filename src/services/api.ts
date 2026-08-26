@@ -623,6 +623,7 @@ export const realApi: Api = {
         lowStockThreshold: req.lowStockThreshold,
         expiryDate: req.expiryDate ?? null,
         photoPath: req.imageUrl ?? null,
+        isActive: req.isActive ?? true,
       });
       return mapProduct(raw);
     },
@@ -712,14 +713,18 @@ export const realApi: Api = {
       return toPaginated(items.map(mapStockMovement), meta);
     },
     createMovement: async (req) => {
-      const data = await httpPost<BackendStockMovementDto>('/stock/movements', {
-        productId: toId(req.productId) ?? 0,
-        type: req.type === 'adjustment' ? 'in' : req.type,
-        quantity: req.quantity,
-        note: req.note,
-      });
-      return mapStockMovement(data);
-    },
+      const data = await httpPost<BackendStockMovementDto>(
+        "/stock/movements",
+        {
+          productId: toId(req.productId) ?? 0,
+          type: req.type === "adjustment" ? "in" : req.type,
+          quantity: req.quantity,
+          note: req.note,
+        }
+  );
+
+  return mapStockMovement(data);
+},
   },
 
   purchaseOrders: {

@@ -50,8 +50,15 @@ export async function mergeNewProductIntoCache(product: StockProduct): Promise<v
   const key = cacheKey("", 1);
   try {
     const cached = await cacheGet<StockProduct[]>(key);
-    if (cached && !cached.some((p) => p.id === product.id)) {
-      await cacheSet(key, [product, ...cached], CacheTTL.LONG);
+    if (cached) {
+      const idx = cached.findIndex((p) => p.id === product.id);
+      if (idx >= 0) {
+        const updated = [...cached];
+        updated[idx] = product;
+        await cacheSet(key, updated, CacheTTL.LONG);
+      } else {
+        await cacheSet(key, [product, ...cached], CacheTTL.LONG);
+      }
     }
   } catch {
     // No cache yet for this key — nothing to merge; next normal load will fetch fresh.
@@ -69,6 +76,7 @@ export function useStockList(search?: string) {
   const [stale, setStale] = useState(false);
   const searchRef = useRef(search);
   searchRef.current = search;
+  const pendingNewRef = useRef(false);
 
   const loadPage = useCallback(async (p: number, append = false) => {
     const searchVal = searchRef.current || "";
@@ -154,18 +162,25 @@ export function useStockList(search?: string) {
   }, [search]); // Re-fetch when search changes
 
   // Subscribe this instance to instant "new product" broadcasts so any screen
-  // using this hook updates immediately when a product is created anywhere in
-  // the app (e.g. from AddStockScreen), without a refetch/navigation/reload.
+  // using this hook updates immediately when a product is created or updated
+  // anywhere in the app, without a refetch/navigation/reload.
   useEffect(() => {
     const listener: NewProductListener = (product) => {
       const term = (searchRef.current || "").trim().toLowerCase();
       const matches = !term || product.name.toLowerCase().includes(term) || product.category.toLowerCase().includes(term);
-      if (!matches) return; // doesn't match this instance's active search/filter
+      if (!matches) return;
+      pendingNewRef.current = false;
       setData((prev) => {
-        if (prev.some((p) => p.id === product.id)) return prev; // prevent duplicates
+        const idx = prev.findIndex((p) => p.id === product.id);
+        if (idx >= 0) {
+          const next = [...prev];
+          next[idx] = product;
+          return next;
+        }
+        pendingNewRef.current = true;
         return [product, ...prev];
       });
-      setTotal((prev) => prev + 1);
+      setTotal((prev) => (pendingNewRef.current ? prev + 1 : prev));
     };
     newProductListeners.add(listener);
     return () => { newProductListeners.delete(listener); };

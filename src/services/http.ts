@@ -93,6 +93,20 @@ const client = createAxiosClient({
    headers: { 'X-Client-App': 'mobile' },
  });
 
+/**
+ * Separate Axios client for token refresh only.
+ * Does NOT have request/response interceptors, so:
+ * - No expired Authorization header is attached
+ * - No 401 retry loop can occur
+ * - No global loading tracking interference
+ */
+const refreshClient = createAxiosClient({
+  baseURL: API_BASE_URL,
+  timeout: 20000,
+  withCredentials: true,
+  headers: { 'X-Client-App': 'mobile' },
+});
+
 let accessToken: string | null = null;
 
 const isWeb = Platform.OS === 'web';
@@ -181,18 +195,39 @@ function doRefresh(): Promise<string> {
 
   refreshPromise = (async () => {
     try {
-      if (__DEV__) console.log('[API] TOKEN REFRESH');
-      const stored = await getTokens();
-      if (!stored?.refreshToken) throw new Error('No refresh token');
+      // Guard: if logout already fired, do not attempt refresh
+      if (logoutFired) {
+        throw new Error('Logout already triggered');
+      }
 
-      const resp = await client.post<{ accessToken: string; refreshToken: string }>(
+      if (__DEV__) console.log('[API] 401 → TOKEN REFRESH');
+      const stored = await getTokens();
+      if (!stored?.refreshToken) {
+        if (__DEV__) console.log('[API] TOKEN REFRESH FAILED: no refresh token in storage');
+        throw new Error('No refresh token');
+      }
+
+      /**
+       * Use refreshClient (no interceptors) to avoid:
+       * - Sending an expired accessToken in the Authorization header
+       * - Triggering another 401 → refresh loop
+       * - Interfering with global loading tracking
+       */
+      const resp = await refreshClient.post<{ accessToken: string; refreshToken: string }>(
         '/auth/refresh',
         { refreshToken: stored.refreshToken },
       );
       const newTokens = resp.data;
+
+      // Guard again — logout may have fired while refresh was in flight
+      if (logoutFired) {
+        if (__DEV__) console.log('[API] TOKEN REFRESH OK but logout already fired, discarding');
+        throw new Error('Logout already triggered');
+      }
+
       accessToken = newTokens.accessToken;
       await setTokens(newTokens);
-      if (__DEV__) console.log('[API] TOKEN REFRESH OK');
+      if (__DEV__) console.log('[API] TOKEN REFRESH SUCCESS');
       return newTokens.accessToken;
     } catch (err) {
       if (__DEV__) console.log('[API] TOKEN REFRESH FAILED');
@@ -219,20 +254,30 @@ client.interceptors.response.use(
 
     if (error.response?.status === 401 && original && !original._retry) {
       const url = original.url ?? '';
+
+      // Auth URLs — never retry refresh on these
       if (url.includes('/auth/login') || url.includes('/auth/refresh') || url.includes('/auth/register')) {
-        // Auth URLs — finish loading then reject
+        if (__DEV__) console.log(`[API] ${url} 401 (auth endpoint, not retrying)`);
         if (shouldTrackLoading(original)) finishLoading();
         return Promise.reject(error);
       }
+
+      // Post-logout guard — do not attempt refresh if user already logged out
+      if (logoutFired) {
+        if (__DEV__) console.log(`[API] ${url} 401 after logout, rejecting`);
+        if (shouldTrackLoading(original)) finishLoading();
+        return Promise.reject(error);
+      }
+
       try {
+        if (__DEV__) console.log(`[API] ${url} 401 → attempting token refresh`);
         await doRefresh();
         original._retry = true;
-        // Retry fires a new request — loading already counted on first attempt.
-        // The retry's request interceptor sees _retry=true and skips startLoading(),
-        // and the retry's response interceptor will call finishLoading().
+        if (__DEV__) console.log(`[API] ${url} → RETRY with new token`);
         return client.request(original);
-      } catch {
-        // Refresh failed — finish loading for this request
+      } catch (refreshError) {
+        // Refresh failed (forceLogout already called inside doRefresh)
+        if (__DEV__) console.log(`[API] ${url} RETRY FAILED after refresh`);
         finishLoading();
         return Promise.reject(error);
       }

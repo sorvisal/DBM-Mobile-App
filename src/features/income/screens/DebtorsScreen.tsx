@@ -66,7 +66,7 @@ export function DebtorsScreen({ onBack }: DebtorsScreenProps) {
   );
 
   return (
-<DetailLayout title="ចំណូលអតិថិជន" onBack={onBack} rightAction={filterButton}>
+<DetailLayout title="បញ្ចីរាយនាមអតិថិជនជំពាក់" onBack={onBack} rightAction={filterButton}>
       <View className="px-5 pt-3 pb-2 bg-gray-50">
         <View className="flex-row items-center bg-white border border-gray-200 rounded-xl px-3 h-11">
           <Ionicons name="search-outline" size={22} color="#9CA3AF" />
@@ -117,7 +117,7 @@ export function DebtorsScreen({ onBack }: DebtorsScreenProps) {
           ) : (
             <View className="items-center justify-center py-16">
               <Ionicons name="checkmark-circle-outline" size={36} color="#D1D5DB" />
-              <Text className="font-khmer text-gray-400 text-xl mt-2">មិនមានចំណូលអតិថិជនទេ</Text>
+              <Text className="font-khmer text-gray-400 text-xl mt-2">មិនមានអតិថិជនេជំពាក់ទេ</Text>
             </View>
           )
         }

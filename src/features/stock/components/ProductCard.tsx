@@ -44,11 +44,17 @@ export function ProductCard({
       )}
 
       <View className="flex-1 ml-3">
-        <View className="flex-row items-start justify-between">
-          <Text className="font-khmerMedium text-gray-900 text-xl flex-1 pr-2" numberOfLines={1}>
+       <View className="flex-row items-start justify-between">
+          <Text
+            className="font-khmerMedium text-gray-900 text-xl flex-1 pr-2"
+            numberOfLines={1}
+          >
             {name}
           </Text>
-          {daysLeft !== undefined && <ExpiryBadge daysLeft={daysLeft} />}
+
+          {daysLeft !== undefined && (
+            <ExpiryBadge daysLeft={daysLeft} />
+          )}
         </View>
 
         <Text className="font-khmer text-gray-400 text-[15px] mt-0.5">{unit}</Text>
