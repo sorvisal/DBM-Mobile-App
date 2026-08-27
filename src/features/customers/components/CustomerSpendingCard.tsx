@@ -76,7 +76,7 @@ export function CustomerSpendingCard({
 
       <View className="bg-white rounded-2xl p-4 mb-5 border border-gray-50 shadow-black/5 shadow-sm">
 
-        <View className="flex-row items-center justify-between py-2 border-b border-gray-50">
+        <View className="flex-row items-center justify-between py-2">
           <View className="flex-row items-center">
             <Ionicons
               name="calendar-outline"
@@ -91,29 +91,6 @@ export function CustomerSpendingCard({
 
           <Text className="font-khmer text-gray-800 text-xl">
             {customer.memberSince}
-          </Text>
-        </View>
-
-        <View className="flex-row items-center justify-between py-2">
-          <View className="flex-row items-center">
-            <Ionicons
-              name="document-text-outline"
-              size={16}
-              color="#9CA3AF"
-            />
-
-            <Text className="font-khmer text-gray-500 text-xl ml-2">
-              ការពិពណ៌នា
-            </Text>
-          </View>
-
-          <Text
-            className="font-khmer text-gray-800 text-xl text-right flex-1 ml-4"
-            numberOfLines={2}
-          >
-            {customer.note && customer.note !== "-"
-              ? customer.note
-              : "មិនមានការពិពណ៌នា"}
           </Text>
         </View>
 

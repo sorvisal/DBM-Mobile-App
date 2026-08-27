@@ -49,8 +49,8 @@ export function Footer({ activeTab, onTabPress }: FooterProps) {
             <Text
               className={
                 isActive
-                  ? "font-khmer text-[13px] text-blue-600 mt-1"
-                  : "font-khmer text-[13px] text-gray-400 mt-1"
+                  ? "font-khmerMedium text-[13px] text-blue-600 mt-2"
+                  : "font-khmerMedium text-[13px] text-gray-400 mt-2"
               }
             >
               {tab.label}

@@ -159,7 +159,13 @@ type BackendOrderDto = {
   totalAmount: number;
   paidAmount: number;
   paymentMethod: string | null;
-  note: string | null;
+
+  // Backend returns the order note as "description"
+  description: string | null;
+
+  // Keep note optional in case another endpoint returns "note"
+  note?: string | null;
+
   createdAt: string;
   confirmedAt: string | null;
   completedAt: string | null;
@@ -328,7 +334,7 @@ function mapOrder(dto: BackendOrderDto): Order {
     deliveryAddress: dto.deliveryAddress ?? undefined,
     driverName: dto.driverName ?? undefined,
     driverPhone: dto.driverPhone ?? undefined,
-    note: dto.note ?? undefined,
+    note: dto.note ?? dto.description ?? undefined,
     createdAt: dto.createdAt,
     confirmedAt: dto.confirmedAt ?? undefined,
     completedAt: dto.completedAt ?? undefined,

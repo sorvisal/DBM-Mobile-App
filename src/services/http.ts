@@ -137,6 +137,11 @@ export function setAccessToken(token: string | null) {
   persistToken(token);
 }
 
+/** Presence check only — never exposes the token value. */
+export function hasAccessToken(): boolean {
+  return !!accessToken;
+}
+
 export async function restoreAccessToken(): Promise<boolean> {
   const stored = await getTokens();
   if (stored?.accessToken) {

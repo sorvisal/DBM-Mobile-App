@@ -8,11 +8,11 @@ type OrderItemRowProps = {
 
 export function OrderItemRow({ item }: OrderItemRowProps) {
   return (
-    <View className="flex-row items-center py-2.5">
+    <View className="flex-row items-center py-3">
       {item.imageUrl ? (
         <Image
           source={{ uri: item.imageUrl }}
-          className="w-12 h-12 rounded-xl bg-gray-100"
+          className="w-10 h-12 rounded-xl bg-gray-100"
           resizeMode="cover"
         />
       ) : (

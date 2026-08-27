@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { api, invalidateOrderCache, invalidateOrderDetailCache } from "@/services";
+import { api, invalidateOrderCache, invalidateOrderDetailCache, hasAccessToken } from "@/services";
+import { isAxiosError, type AxiosError } from "axios";
 import { OrderStatus } from "../types/types";
 import type { OrderDelivery } from "../types/types";
 
@@ -67,10 +68,27 @@ export function useUpdateOrderStatus() {
 
   const completeOrder = async (orderId: string) => {
     setIsLoading(true);
+    const completeUrl = `/orders/${orderId}/complete`;
     try {
+      if (__DEV__) {
+        console.log(
+          `[COMPLETE DEBUG]\nURL: ${completeUrl}\nMethod: POST\nToken exists: ${hasAccessToken()}`,
+        );
+      }
       await api.orders.complete(orderId);
       invalidateOrderCache();
       invalidateOrderDetailCache(orderId);
+    } catch (error) {
+      if (__DEV__) {
+        const receivedResponse = isAxiosError(error)
+          ? `yes (HTTP ${(error as AxiosError).response?.status})`
+          : 'no';
+        console.log(
+          `[COMPLETE DEBUG] FAILED\nURL: ${completeUrl}\nMethod: POST\nToken exists: ${hasAccessToken()}\nAxios response received: ${receivedResponse}\n` +
+            `error.code: ${(error as { code?: string })?.code ?? 'n/a'}\nerror.message: ${(error as Error)?.message}`,
+        );
+      }
+      throw error;
     } finally {
       setIsLoading(false);
     }

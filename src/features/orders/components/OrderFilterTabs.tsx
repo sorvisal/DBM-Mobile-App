@@ -6,6 +6,7 @@ const FILTER_COLORS: Record<OrderStatus | "all", string> = {
   all: "bg-blue-600",
   [OrderStatus.New]: "bg-blue-600",
   [OrderStatus.Pending]: "bg-orange-500",
+  [OrderStatus.Approved]: "bg-teal-500",
   [OrderStatus.Confirmed]: "bg-blue-600",
   [OrderStatus.Shipping]: "bg-purple-600",
   [OrderStatus.Completed]: "bg-green-600",

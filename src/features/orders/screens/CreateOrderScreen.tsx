@@ -428,7 +428,7 @@ export function CreateOrderScreen({ onBack }: CreateOrderScreenProps) {
           </SectionCard>
 
           {/* ── Delivery Information ── */}
-          <SectionCard title="ព័ត៌មានការដឹកជញ្ជូន">
+          {/* <SectionCard title="ព័ត៌មានការដឹកជញ្ជូន">
             <FormField label="ឈ្មោះអ្នកដឹកជញ្ជូន">
               <TextInput
                 value={deliveryName}
@@ -449,7 +449,7 @@ export function CreateOrderScreen({ onBack }: CreateOrderScreenProps) {
                 className="font-khmer border border-gray-200 rounded-xl px-3 h-11 text-lg text-gray-800"
                 style={androidInputStyle}
               />
-            </FormField>
+            </FormField> 
             <FormField label="អាស័យដ្ឋានដឹកជញ្ជូន">
               <AddressAutocomplete
                 value={deliveryAddress}
@@ -460,7 +460,7 @@ export function CreateOrderScreen({ onBack }: CreateOrderScreenProps) {
                 placeholder="បញ្ចូលអាស័យដ្ឋានដឹកជញ្ជូន"
               />
             </FormField>
-          </SectionCard>
+          </SectionCard> */}
 
           {/* ── Payment Information ── */}
           <SectionCard title="ព័ត៌មានការទូទាត់">

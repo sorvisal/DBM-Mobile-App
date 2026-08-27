@@ -14,6 +14,7 @@ export {
   resolveMediaUrl,
   setAccessToken,
   restoreAccessToken,
+  hasAccessToken,
   cancelInflight,
   type AppErrorCode,
 } from "./http";

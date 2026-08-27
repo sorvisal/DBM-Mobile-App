@@ -16,7 +16,7 @@ import { OrderStatusBadge } from "../components/OrderStatusBadge";
 import { OrderStepper } from "../components/OrderStepper";
 import { OrderItemRow } from "../components/OrderItemRow";
 import { OrderSummary } from "../components/OrderSummary";
-import { OrderConfirmModal } from "../components/OrderConfirmModal";
+import { AssignDriverModal } from "../components/AssignDriverModal";
 import { DetailLayout } from "../../../layouts/DetailLayout";
 
 type OrderDetailScreenProps = {
@@ -33,14 +33,15 @@ const PAYMENT_STATUS_LABELS: Record<string, string> = {
 export function OrderDetailScreen({ orderId, onBack }: OrderDetailScreenProps) {
   const { order, isLoading, refresh } = useOrderDetail(orderId);
   const {
-    updateOrderStatus,
     confirmOrder,
+    approveOrder,
+    assignDriver,
     completeOrder,
     uncompleteOrder,
     cancelOrder,
   } = useUpdateOrderStatus();
 
-  const [confirmModalVisible, setConfirmModalVisible] = useState(false);
+  const [assignDriverVisible, setAssignDriverVisible] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const runAction = async (key: string, fn: () => Promise<void>) => {
@@ -80,16 +81,30 @@ export function OrderDetailScreen({ orderId, onBack }: OrderDetailScreenProps) {
     );
   }
 
+  const handleApprove = () => {
+    runAction("approve", () => approveOrder(order!.id));
+  };
+
   const handleConfirm = () => {
-    setConfirmModalVisible(false);
     runAction("confirm", () => confirmOrder(order!.id));
   };
 
-  const handleShipping = () => {
-    runAction("shipping", () => updateOrderStatus(order!.id, OrderStatus.Shipping));
+  const handleAssignDriver = (values: { driverName: string; driverPhone: string; vehiclePlate: string }) => {
+    setAssignDriverVisible(false);
+    runAction("assignDriver", () => assignDriver(order!.id, values.driverName, values.driverPhone));
   };
 
   const handleComplete = () => {
+    const remaining = order!.remainingAmount ?? 0;
+    if (remaining > 0) {
+      Alert.alert(
+        "មិនអាចបញ្ជាទិញបានទេ",
+        `អតិថិជននៅមិនទាន់បង់ប្រាក់ $${remaining.toFixed(2)}។ 
+        សូមទូទាត់ប្រាក់ជាមុនសិន។`,
+        [{ text: "យល់ព្រម" }]
+      );
+      return;
+    }
     runAction("complete", () => completeOrder(order!.id));
   };
 
@@ -151,26 +166,33 @@ export function OrderDetailScreen({ orderId, onBack }: OrderDetailScreenProps) {
         {/* ── Customer Information ── */}
         <View className="bg-white rounded-2xl p-4 mb-3">
           <Text className="font-khmerBold text-gray-900 text-2xl mb-3">ព័ត៌មានអតិថិជន</Text>
-          <View className="flex-row items-center justify-between py-1">
+          <View className="flex-row items-start justify-between py-1">
             <Text className="font-khmer text-gray-400 text-xl">ឈ្មោះ</Text>
-            <Text className="font-khmer text-gray-800 text-xl">{order.customer.name}</Text>
+            <Text className="font-khmer text-gray-800 text-xl text-right flex-1 ml-4">{order.customer.name}</Text>
           </View>
           {order.customer.phone ? (
-            <View className="flex-row items-center justify-between py-1">
+            <View className="flex-row items-start justify-between py-1">
               <Text className="font-khmer text-gray-400 text-xl">ទូរស័ព្ទ</Text>
-              <Text className="font-khmer text-gray-800 text-xl">{order.customer.phone}</Text>
+              <Text className="font-khmer text-gray-800 text-xl text-right flex-1 ml-4">{order.customer.phone}</Text>
             </View>
           ) : null}
-          {order.address ? (
-            <View className="flex-row items-center justify-between py-1">
+          {order.customer.address || order.address ? (
+            <View className="flex-row items-start justify-between py-1">
               <Text className="font-khmer text-gray-400 text-xl">អាស័យដ្ឋាន</Text>
-              <Text className="font-khmer text-gray-800 text-xl text-right flex-1 ml-4" numberOfLines={2}>
-                {order.address}
+              <Text className="font-khmer text-gray-800 text-xl text-right flex-1 ml-4">
+                {order.address || order.customer.address}
               </Text>
             </View>
           ) : null}
+        {/* ── Notes ── */}
+        {order.note?.trim() ? (
+          <View className="flex-row items-start justify-between py-1">
+            <Text className="font-khmer text-gray-400 text-xl">កំណត់ចំណាំ</Text>
+            <Text className="font-khmer text-gray-800 text-xl text-right flex-1 ml-4">{order.note}</Text>
+          </View>
+        ) : null}    
         </View>
-
+          
         {/* ── Delivery Information ── */}
         {order.delivery && (
           <View className="bg-white rounded-2xl p-4 mb-3">
@@ -260,13 +282,6 @@ export function OrderDetailScreen({ orderId, onBack }: OrderDetailScreenProps) {
           ) : null}
         </View>
 
-        {/* ── Notes ── */}
-        {order.note ? (
-          <View className="bg-white rounded-2xl p-4 mb-3">
-            <Text className="font-khmerBold text-gray-900 text-2xl mb-3">កំណត់ចំណាំ</Text>
-            <Text className="font-khmer text-gray-800 text-xl">{order.note}</Text>
-          </View>
-        ) : null}
 
         <View className="h-6" />
       </ScrollView>
@@ -282,23 +297,23 @@ export function OrderDetailScreen({ orderId, onBack }: OrderDetailScreenProps) {
             <Text className="font-khmerBold text-red-500 text-xl">បោះបង់</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => setConfirmModalVisible(true)}
+            onPress={handleApprove}
             disabled={!!actionLoading}
             className="flex-1 bg-blue-600 rounded-xl h-12 items-center justify-center"
           >
-            {actionLabel("confirm", "បញ្ជាក់ការទិញ")}
+            {actionLabel("approve", "អនុម័ត")}
           </TouchableOpacity>
         </View>
       )}
 
-      {order.status === OrderStatus.Confirmed && (
+      {order.status === OrderStatus.Approved && (
         <View className="px-5 py-3 bg-white border-t border-gray-100 flex-row gap-3">
           <TouchableOpacity
-            onPress={handleShipping}
+            onPress={() => setAssignDriverVisible(true)}
             disabled={!!actionLoading}
-            className="flex-1 bg-blue-600 rounded-xl h-12 items-center justify-center mb-8"
+            className="flex-1 bg-blue-600 rounded-xl h-12 items-center justify-center"
           >
-            {actionLabel("shipping", "ដឹកជញ្ជូន")}
+            {actionLabel("assignDriver", "កំណត់ការដឹកជញ្ជូន")}
           </TouchableOpacity>
         </View>
       )}
@@ -316,11 +331,23 @@ export function OrderDetailScreen({ orderId, onBack }: OrderDetailScreenProps) {
             </TouchableOpacity>
           ) : null}
           <TouchableOpacity
-            onPress={handleComplete}
+            onPress={handleConfirm}
             disabled={!!actionLoading}
             className="flex-1 bg-blue-600 rounded-xl h-12 items-center justify-center"
           >
-            {actionLabel("complete", "បានទទួល")}
+            {actionLabel("confirm", "បញ្ជាក់ការដឹកជញ្ជូន")}
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {order.status === OrderStatus.Confirmed && (
+        <View className="px-5 py-3 bg-white border-t border-gray-100 flex-row gap-3">
+          <TouchableOpacity
+            onPress={handleComplete}
+            disabled={!!actionLoading}
+            className="flex-1 bg-blue-600 rounded-xl h-12 items-center justify-center mb-8"
+          >
+            {actionLabel("complete", "បញ្ចប់ការដឹកជញ្ជូន")}
           </TouchableOpacity>
         </View>
       )}
@@ -347,10 +374,11 @@ export function OrderDetailScreen({ orderId, onBack }: OrderDetailScreenProps) {
         </View>
       )}
 
-      <OrderConfirmModal
-        visible={confirmModalVisible}
-        onConfirm={handleConfirm}
-        onCancel={() => setConfirmModalVisible(false)}
+      <AssignDriverModal
+        visible={assignDriverVisible}
+        loading={actionLoading === "assignDriver"}
+        onCancel={() => setAssignDriverVisible(false)}
+        onSubmit={handleAssignDriver}
       />
     </DetailLayout>
   );

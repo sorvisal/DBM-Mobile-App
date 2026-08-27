@@ -1,6 +1,7 @@
 export enum OrderStatus {
   New = "new",
   Pending = "pending",
+  Approved = "approved",
   Confirmed = "confirmed",
   Shipping = "shipping",
   Completed = "completed",
@@ -16,8 +17,10 @@ export type OrderItem = {
 };
 
 export type OrderCustomer = {
+  id: string;
   name: string;
-  phone: string;
+  phone?: string;
+  address?: string;
 };
 
 export type OrderDelivery = {

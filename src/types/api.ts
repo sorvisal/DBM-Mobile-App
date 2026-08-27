@@ -124,7 +124,13 @@ export type Order = {
   deliveryAddress?: string;
   driverName?: string;
   driverPhone?: string;
+
+  // Backend returns the order note as "description"
+  description?: string | null;
+
+  // Normalized order note used by Orders feature
   note?: string;
+
   createdAt: string;
   confirmedAt?: string;
   completedAt?: string;

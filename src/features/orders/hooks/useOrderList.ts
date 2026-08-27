@@ -26,7 +26,7 @@ function mapApiOrder(o: import("@/types/api").Order): Order {
     id: String(o.id),
     code: o.code,
     status: normalizeOrderStatus(o.status),
-    customer: { name: o.customerName, phone: o.driverPhone ?? "" },
+    customer: { id: String(o.customerId), name: o.customerName },
     createdAt: o.createdAt,
     lines,
     subtotal,
