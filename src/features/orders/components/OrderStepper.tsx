@@ -16,7 +16,8 @@ function getStepIndex(status: OrderStatus) {
   if (status === OrderStatus.New || status === OrderStatus.Pending) return -1;
   if (status === OrderStatus.Confirmed) return 0;
   if (status === OrderStatus.Shipping) return 1;
-  return 2; // Completed or Cancelled treated as fully passed
+  if (status === OrderStatus.Completed) return 2;
+  return -1; // Cancelled — no step reached
 }
 
 export function OrderStepper({ status }: OrderStepperProps) {

@@ -17,11 +17,7 @@ export function useUpdateOrderStatus() {
           await api.orders.confirm(orderId);
           break;
         case OrderStatus.Shipping:
-          if (deliveryPatch?.driverName) {
-            await api.orders.assignDriver(orderId, deliveryPatch.driverName, deliveryPatch.driverPhone);
-          } else {
-            await api.orders.confirm(orderId);
-          }
+          await api.orders.setStatus(orderId, OrderStatus.Shipping as any);
           break;
         case OrderStatus.Completed:
           await api.orders.complete(orderId);

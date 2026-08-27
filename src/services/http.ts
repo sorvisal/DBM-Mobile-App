@@ -283,10 +283,22 @@ client.interceptors.response.use(
       }
     }
 
-    // Non-401 error — finish loading
+    // Non-401 error — log for debugging, finish loading
     if (shouldTrackLoading(original)) {
       finishLoading();
     }
+
+    if (__DEV__) {
+      const method = (original?.method ?? "???").toUpperCase();
+      const url = original?.url ?? "???";
+      const status = error.response?.status ?? "N/A";
+      const statusText = error.response?.statusText ?? "";
+      const resData = error.response?.data;
+      console.log(
+        `[API ERROR]\nMethod: ${method}\nURL: ${url}\nStatus: ${status}${statusText ? " " + statusText : ""}\nResponse: ${JSON.stringify(resData, null, 2)}\nMessage: ${error.message}`,
+      );
+    }
+
     return Promise.reject(error);
   },
 );

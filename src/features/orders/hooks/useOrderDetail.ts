@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api, cacheGet, cacheSet, cacheClearKeySync, CacheTTL, suppressGlobalLoading, unsuppressGlobalLoading } from "@/services";
 import { normalizeOrderStatus } from "../constants/order.constants";
 import type { Order } from "../types/types";
@@ -21,12 +21,14 @@ function mapApiOrder(o: import("@/types/api").Order): Order {
     id: o.id,
     code: o.code,
     status: normalizeOrderStatus(o.status),
-    customer: { name: o.customerName, phone: o.driverPhone ?? "" },
+    customer: { name: o.customerName, phone: "" },
     createdAt: o.createdAt,
     lines,
     subtotal,
     deliveryFee: 0.5,
     total: o.totalAmount,
+    paidAmount: o.paidAmount ?? 0,
+    remainingAmount: o.totalAmount - (o.paidAmount ?? 0),
     paymentMethod: o.paymentMethod ?? undefined,
     address: o.deliveryAddress ?? undefined,
     note: o.note ?? undefined,
@@ -45,6 +47,11 @@ function mapApiOrder(o: import("@/types/api").Order): Order {
 export function useOrderDetail(orderId: string) {
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const refreshKey = useRef(0);
+
+  const refresh = useCallback(() => {
+    refreshKey.current += 1;
+  }, []);
 
   useEffect(() => {
     if (!orderId) { setOrder(null); setIsLoading(false); return; }
@@ -79,9 +86,9 @@ export function useOrderDetail(orderId: string) {
     })();
 
     return () => { cancelled = true; };
-  }, [orderId]);
+  }, [orderId, refreshKey.current]);
 
-  return { order, isLoading };
+  return { order, isLoading, refresh };
 }
 
 export function clearOrderDetailCache(orderId: string): void {

@@ -43,4 +43,6 @@ export type Order = {
   address?: string;
   note?: string;
   paymentStatus?: string;
+  paidAmount?: number;
+  remainingAmount?: number;
 };

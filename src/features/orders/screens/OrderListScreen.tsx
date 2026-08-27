@@ -3,25 +3,24 @@ import { View, Text, TextInput, TouchableOpacity, FlatList, ListRenderItemInfo, 
 import { Ionicons } from "@expo/vector-icons";
 import { OrderStatus } from "../types/types";
 import type { Order } from "../types/types";
-import { useOrderList, addOrder } from "../hooks/useOrderList";
+import { useOrderList } from "../hooks/useOrderList";
 import { OrderCard } from "../components/OrderCard";
 import { OrderFilterTabs } from "../components/OrderFilterTabs";
 import { OrderStatsBar } from "../components/OrderStatsBar";
-import { CreateOrderModal, CreateOrderValues } from "../components/CreateOrderModal";
 import { OrderCardSkeleton } from "../../customers/components/CustomerCardSkeleton";
 import { useDebounce } from "@/hooks/useDebounce";
 
 type OrderListScreenProps = {
   onSelectOrder: (orderId: string) => void;
+  onCreateOrder: () => void;
 };
 
 const ITEM_HEIGHT = 72;
 
-export function OrderListScreen({ onSelectOrder }: OrderListScreenProps) {
+export function OrderListScreen({ onSelectOrder, onCreateOrder }: OrderListScreenProps) {
   const [activeFilter, setActiveFilter] = useState<OrderStatus | "all">("all");
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
-  const [createModalVisible, setCreateModalVisible] = useState(false);
   const [showOverlay, setShowOverlay] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -45,11 +44,6 @@ export function OrderListScreen({ onSelectOrder }: OrderListScreenProps) {
           o.customer.name.toLowerCase().includes(debouncedSearch.toLowerCase())
       )
     : orders;
-
-  const handleCreateOrder = (values: CreateOrderValues) => {
-    addOrder(values);
-    setCreateModalVisible(false);
-  };
 
   const handleEndReached = useCallback(() => {
     if (hasMore && !isFetchingMore) loadMore();
@@ -143,19 +137,13 @@ export function OrderListScreen({ onSelectOrder }: OrderListScreenProps) {
         />
 
         <TouchableOpacity
-          onPress={() => setCreateModalVisible(true)}
+          onPress={onCreateOrder}
           className="absolute bottom-5 right-5 w-14 h-14 rounded-full bg-blue-600 items-center justify-center"
           style={{ shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 8, elevation: 4 }}
         >
           <Ionicons name="add" size={28} color="white" />
         </TouchableOpacity>
       </View>
-
-      <CreateOrderModal
-        visible={createModalVisible}
-        onClose={() => setCreateModalVisible(false)}
-        onSubmit={handleCreateOrder}
-      />
 
       {showOverlay && (
         <View
