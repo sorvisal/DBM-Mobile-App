@@ -1,9 +1,24 @@
 import { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, Modal, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Modal,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Dropdown } from "../../stock/components/Dropdown";
-import { Customer, CustomerStatus } from "../types/customer.types";
-import { AddressAutocomplete, type AddressResult } from "@/components/AddressAutocomplete";
+import {
+  Customer,
+  CustomerStatus,
+} from "../types/customer.types";
+import {
+  AddressAutocomplete,
+  type AddressResult,
+} from "@/components/AddressAutocomplete";
 
 export type EditCustomerValues = {
   name: string;
@@ -16,150 +31,358 @@ export type EditCustomerValues = {
 };
 
 const STATUS_OPTIONS = [
-  { label: "សកម្ម", value: CustomerStatus.Active },
-  { label: "មិនសកម្ម", value: CustomerStatus.Inactive },
+  {
+    label: "សកម្ម",
+    value: CustomerStatus.Active,
+  },
+  {
+    label: "មិនសកម្ម",
+    value: CustomerStatus.Inactive,
+  },
 ];
 
 type EditCustomerModalProps = {
   visible: boolean;
   customer: Customer | null;
   onClose: () => void;
-  onSubmit: (values: EditCustomerValues) => void;
+  onSubmit: (
+    values: EditCustomerValues
+  ) => void;
 };
 
-function FormField({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+function FormField({
+  label,
+  required,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  children: React.ReactNode;
+}) {
   return (
     <View className="mb-4">
       <Text className="font-khmerMedium text-xl text-gray-900 mb-1.5">
-        {label} {required && <Text className="text-red-500">*</Text>}
+        {label}{" "}
+        {required && (
+          <Text className="text-red-500">
+            *
+          </Text>
+        )}
       </Text>
+
       {children}
     </View>
   );
 }
 
-export function EditCustomerModal({ visible, customer, onClose, onSubmit }: EditCustomerModalProps) {
-  const [values, setValues] = useState<EditCustomerValues>({
-    name: "",
-    phone: "",
-    address: "",
-    latitude: "",
-    longitude: "",
-    description: "",
-    status: CustomerStatus.Active,
-  });
+const inputStyle = {
+  outlineWidth: 0,
+  paddingVertical: 0,
+  includeFontPadding: false,
+  textAlignVertical:
+    "center" as const,
+};
 
-  // Pre-fill form whenever a new customer is opened for editing
+export function EditCustomerModal({
+  visible,
+  customer,
+  onClose,
+  onSubmit,
+}: EditCustomerModalProps) {
+  const [values, setValues] =
+    useState<EditCustomerValues>({
+      name: "",
+      phone: "",
+      address: "",
+      latitude: "",
+      longitude: "",
+      description: "",
+      status:
+        CustomerStatus.Active,
+    });
+
+  /*
+   * ==========================================
+   * PRE-FILL CUSTOMER DATA
+   * ==========================================
+   */
   useEffect(() => {
-    if (customer) {
-      setValues({
-        name: customer.name ?? "",
-        phone: customer.phone ?? "",
-        address: customer.location ?? "",
-        latitude: "",
-        longitude: "",
-        description: customer.note === "-" ? "" : (customer.note ?? ""),
-        status: customer.status ?? CustomerStatus.Active,
-      });
+    if (!customer) {
+      return;
     }
+
+    setValues({
+      name: customer.name ?? "",
+      phone: customer.phone ?? "",
+      address:
+        customer.location ?? "",
+      latitude: "",
+      longitude: "",
+      description:
+        customer.note === "-"
+          ? ""
+          : customer.note ?? "",
+      status:
+        customer.status ??
+        CustomerStatus.Active,
+    });
   }, [customer]);
 
-  const update = <K extends keyof EditCustomerValues>(key: K, value: EditCustomerValues[K]) =>
-    setValues((prev) => ({ ...prev, [key]: value }));
+  /*
+   * ==========================================
+   * UPDATE FIELD
+   * ==========================================
+   */
+  const update = <
+    K extends keyof EditCustomerValues
+  >(
+    key: K,
+    value: EditCustomerValues[K]
+  ) => {
+    setValues((previous) => ({
+      ...previous,
+      [key]: value,
+    }));
+  };
 
+  /*
+   * ==========================================
+   * SUBMIT
+   * ==========================================
+   */
   const handleSubmit = () => {
     onSubmit(values);
   };
 
-  if (!customer) return null;
+  if (!customer) {
+    return null;
+  }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View className="flex-1 justify-end">
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      {/*
+       * ========================================
+       * KEYBOARD AVOIDING VIEW
+       * ========================================
+       *
+       * iOS:
+       *   padding
+       *
+       * Android:
+       *   height
+       *
+       * This keeps the bottom part of the form
+       * visible when the keyboard opens.
+       */}
+      <KeyboardAvoidingView
+        className="flex-1 bg-black/30 justify-end"
+        behavior={
+          Platform.OS === "ios"
+            ? "padding"
+            : "height"
+        }
+        keyboardVerticalOffset={
+          Platform.OS === "ios"
+            ? 0
+            : 0
+        }
+      >
         <View className="bg-white rounded-t-3xl max-h-[85%]">
-          <View className="flex-row items-center justify-between px-5 pt-4 pb-3 bg-blue-600 rounded-t-xl border-gray-100">
-            <Text className="font-khmerBold text-white text-xl">កែប្រែព័ត៌មានអតិថិជន</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={28} color="#FFFFFF" />
+          {/* ====================================
+              HEADER
+          ==================================== */}
+          <View className="flex-row items-center justify-between px-5 pt-4 pb-3 bg-blue-600 rounded-t-xl">
+            <Text className="font-khmerBold text-white text-xl">
+              កែប្រែព័ត៌មានអតិថិជន
+            </Text>
+
+            <TouchableOpacity
+              onPress={onClose}
+              hitSlop={{
+                top: 10,
+                bottom: 10,
+                left: 10,
+                right: 10,
+              }}
+            >
+              <Ionicons
+                name="close"
+                size={28}
+                color="#FFFFFF"
+              />
             </TouchableOpacity>
           </View>
 
-          <ScrollView className="px-5 pt-4" showsVerticalScrollIndicator={false}>
+          {/* ====================================
+              FORM
+          ==================================== */}
+          <ScrollView
+            className="px-5 pt-4"
+            showsVerticalScrollIndicator={
+              false
+            }
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode={
+              Platform.OS === "ios"
+                ? "interactive"
+                : "on-drag"
+            }
+            contentContainerStyle={{
+              paddingBottom: 24,
+            }}
+          >
+            {/* CUSTOMER CODE */}
             <FormField label="លេខកូដអតិថិជន">
               <View className="border border-gray-100 bg-gray-50 rounded-xl px-3 h-11 justify-center">
-                <Text className="font-khmer text-gray-400 text-xl">{customer.code}</Text>
+                <Text className="font-khmer text-gray-400 text-xl">
+                  {customer.code}
+                </Text>
               </View>
             </FormField>
 
-            <FormField label="ឈ្មោះអតិថិជន" required>
+            {/* NAME */}
+            <FormField
+              label="ឈ្មោះអតិថិជន"
+              required
+            >
               <TextInput
                 value={values.name}
-                onChangeText={(v) => update("name", v)}
+                onChangeText={(value) =>
+                  update(
+                    "name",
+                    value
+                  )
+                }
                 placeholder="បញ្ចូលឈ្មោះអតិថិជន"
                 placeholderTextColor="#D1D5DB"
+                returnKeyType="next"
+                autoCorrect={false}
                 className="font-khmer border border-gray-200 rounded-xl px-3 h-11 text-lg text-gray-800"
-                style={{ outlineWidth: 0, paddingVertical: 0, includeFontPadding: false, textAlignVertical: "center" }}
+                style={inputStyle}
               />
             </FormField>
 
-            <FormField label="លេខទូរស័ព្ទ" required>
+            {/* PHONE */}
+            <FormField
+              label="លេខទូរស័ព្ទ"
+              required
+            >
               <TextInput
                 value={values.phone}
-                onChangeText={(v) => update("phone", v)}
+                onChangeText={(value) =>
+                  update(
+                    "phone",
+                    value
+                  )
+                }
                 keyboardType="phone-pad"
                 placeholder="012 345 678"
                 placeholderTextColor="#D1D5DB"
+                returnKeyType="next"
                 className="font-khmer border border-gray-200 rounded-xl px-3 h-11 text-lg text-gray-800"
-                style={{ outlineWidth: 0, paddingVertical: 0, includeFontPadding: false, textAlignVertical: "center" }}
+                style={inputStyle}
               />
             </FormField>
 
+            {/* ADDRESS */}
             <FormField label="អាសយដ្ឋាន">
               <AddressAutocomplete
                 value={values.address}
-                onChange={(v) => update("address", v)}
-                onSelect={(place: AddressResult) => {
-                  setValues((prev) => ({
-                    ...prev,
-                    address: place.displayName,
-                    latitude: place.latitude,
-                    longitude: place.longitude,
-                  }));
+                onChange={(value) =>
+                  update(
+                    "address",
+                    value
+                  )
+                }
+                onSelect={(
+                  place: AddressResult
+                ) => {
+                  setValues(
+                    (previous) => ({
+                      ...previous,
+                      address:
+                        place.displayName,
+                      latitude:
+                        String(
+                          place.latitude ??
+                            ""
+                        ),
+                      longitude:
+                        String(
+                          place.longitude ??
+                            ""
+                        ),
+                    })
+                  );
                 }}
                 placeholder="ភ្នំពេញ, ខណ្ឌចំការមន"
               />
             </FormField>
 
-            <FormField label="ស្ថានភាព" required>
+            {/* STATUS */}
+            <FormField
+              label="ស្ថានភាព"
+              required
+            >
               <Dropdown
                 placeholder="ជ្រើសរើសស្ថានភាព"
                 options={STATUS_OPTIONS}
                 value={values.status}
-                onChange={(v) => update("status", v as CustomerStatus)}
+                onChange={(value) =>
+                  update(
+                    "status",
+                    value as CustomerStatus
+                  )
+                }
               />
             </FormField>
 
+            {/* DESCRIPTION */}
             <FormField label="ការពិពណ៌នា">
               <TextInput
-                value={values.description}
-                onChangeText={(v) => update("description", v)}
+                value={
+                  values.description
+                }
+                onChangeText={(value) =>
+                  update(
+                    "description",
+                    value
+                  )
+                }
                 placeholder="កំណត់ចំណាំបន្ថែម"
                 placeholderTextColor="#D1D5DB"
                 multiline
+                textAlignVertical="top"
                 className="font-khmer border border-gray-200 rounded-xl px-3 py-2.5 text-lg text-gray-800 h-20"
-                style={{ paddingVertical: 0, includeFontPadding: false, textAlignVertical: "top", outlineWidth: 0 }}
+                style={{
+                  paddingVertical: 8,
+                  includeFontPadding:
+                    false,
+                  textAlignVertical:
+                    "top",
+                  outlineWidth: 0,
+                }}
               />
             </FormField>
 
+            {/* SAVE */}
             <TouchableOpacity
               onPress={handleSubmit}
               className="bg-blue-600 rounded-xl h-12 items-center justify-center mt-2 mb-8"
+              activeOpacity={0.8}
             >
-              <Text className="font-khmerBold text-white text-xl">រក្សាទុក</Text>
+              <Text className="font-khmerBold text-white text-xl">
+                រក្សាទុក
+              </Text>
             </TouchableOpacity>
           </ScrollView>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

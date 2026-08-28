@@ -47,9 +47,15 @@ export function DashboardScreen({ onNavigateTab }: DashboardScreenProps) {
     >
       {/* Greeting */}
       <View className="px-5 pt-2 pb-4">
-        <Text className="font-khmerBold text-2xl text-gray-900">Hi, {user?.name ?? "User"} 👋</Text>
+        <Text className="font-khmerBold text-2xl text-gray-900">
+          Hi, {user?.storeName ?? "Store"} 👋
+        </Text>
+
         <Text className="font-khmer text-xl text-gray-400 mt-0.5">
-          សូមស្វាគមន៍មកកាន់ <Text className="font-bold text-xl text-gray-400">DBM App</Text>
+          សូមស្វាគមន៍មកកាន់{" "}
+          <Text className="font-bold text-xl text-gray-400">
+            DBM App
+          </Text>
         </Text>
       </View>
 

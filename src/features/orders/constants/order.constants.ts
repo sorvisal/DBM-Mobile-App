@@ -3,7 +3,7 @@ import { Order, OrderStatus } from "../types/types";
 export const STATUS_LABELS: Record<OrderStatus, string> = {
   [OrderStatus.New]: "ថ្មី",
   [OrderStatus.Pending]: "រង់ចាំ",
-  [OrderStatus.Approved]: "អនុម័ត",
+  [OrderStatus.Approved]: "ពិនិត្យ",
   [OrderStatus.Confirmed]: "បញ្ជាក់",
   [OrderStatus.Shipping]: "កំពុងដឹក",
   [OrderStatus.Completed]: "បញ្ចប់",

@@ -7,34 +7,81 @@ type DebtorListItemProps = {
   onPress?: () => void;
 };
 
-export function DebtorListItem({ debtor, onPress }: DebtorListItemProps) {
+export function DebtorListItem({
+  debtor,
+  onPress,
+}: DebtorListItemProps) {
   return (
     <TouchableOpacity
       onPress={onPress}
-      disabled={!onPress} 
+      disabled={!onPress}
+      activeOpacity={0.7}
       className="flex-row items-center bg-white rounded-2xl p-3 mb-2"
-      style={{ shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 }}
+      style={{
+        shadowColor: "#000",
+        shadowOpacity: 0.04,
+        shadowRadius: 6,
+        elevation: 1,
+      }}
     >
+      {/* Avatar */}
       <View
-        style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: debtor.avatarColor }}
+        style={{
+          width: 38,
+          height: 38,
+          borderRadius: 19,
+          backgroundColor:
+            debtor.avatarColor,
+        }}
         className="items-center justify-center"
       >
-        <Text className="font-khmerBold text-white text-xl">{debtor.initials}</Text>
+        <Text className="font-khmerBold text-white text-xl">
+          {debtor.initials}
+        </Text>
       </View>
 
+      {/* Customer information */}
       <View className="flex-1 ml-3">
-        <Text className="font-khmerMedium text-gray-900 text-xl" numberOfLines={1}>
+        {/* Customer code + name */}
+        <Text
+          className="font-khmerMedium text-gray-900 text-xl"
+          numberOfLines={1}
+        >
           {debtor.code} | {debtor.name}
         </Text>
-        <View className="flex-row items-center mt-0.5">
-          <Ionicons name="call-outline" size={11} color="#9CA3AF" />
-          <Text className="font-khmer text-gray-400 text-[14px] ml-1">{debtor.phone}</Text>
-        </View>
+
+       {/* Phone */}
+      <View className="flex-row items-center mt-1">
+        <Ionicons
+          name="call-outline"
+          size={14}
+          color="#6B7280"
+        />
+
+       <Text
+        className="font-khmer text-gray-500 text-[15px] ml-1"
+        numberOfLines={1}
+      >
+        {debtor.phone}
+      </Text>
+      </View>
       </View>
 
-      <View className="items-end">
-        <Text className="font-khmerBold text-red-500 text-xl">${debtor.amount.toFixed(2)}</Text>
-        <Text className="font-khmer text-gray-400 text-[14px] mt-0.5">{debtor.dueDate}</Text>
+      {/* Debt */}
+      <View className="items-end ml-2">
+        <Text
+          className="font-khmerBold text-red-500 text-xl"
+          numberOfLines={1}
+        >
+          $
+          {Number(
+            debtor.amount ?? 0
+          ).toFixed(2)}
+        </Text>
+
+        <Text className="font-khmer text-gray-400 text-[14px] mt-0.5">
+          {debtor.dueDate}
+        </Text>
       </View>
     </TouchableOpacity>
   );

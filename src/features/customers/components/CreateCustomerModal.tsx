@@ -1,5 +1,15 @@
 import { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, Modal, ScrollView } from "react-native";
+
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Modal,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { DateField } from "../../stock/components/DateField";
 import { Dropdown } from "../../stock/components/Dropdown";
@@ -75,9 +85,21 @@ const update = <K extends keyof CreateCustomerValues>(key: K, value: CreateCusto
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View className="flex-1 justify-end">
-        <View className="bg-white rounded-t-3xl max-h-[85%]">
+<Modal
+  visible={visible}
+  transparent
+  animationType="slide"
+  onRequestClose={onClose}
+>
+  <KeyboardAvoidingView
+    className="flex-1 bg-black/30 justify-end"
+    behavior={
+      Platform.OS === "ios"
+        ? "padding"
+        : undefined
+    }
+  >
+    <View className="bg-white rounded-t-3xl max-h-[85%]">
           <View className="flex-row items-center justify-between px-5 pt-4 pb-3 bg-blue-600 rounded-t-xl border-gray-100">
             <Text className="font-khmerBold text-white text-xl">បង្កើតអតិថិជនថ្មី</Text>
             <TouchableOpacity onPress={onClose}>
@@ -175,8 +197,8 @@ const update = <K extends keyof CreateCustomerValues>(key: K, value: CreateCusto
               </Text>
             </TouchableOpacity>
           </ScrollView>
-        </View>
-      </View>
-    </Modal>
+    </View>
+  </KeyboardAvoidingView>
+</Modal>
   );
 }

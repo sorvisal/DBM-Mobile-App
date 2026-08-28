@@ -1,13 +1,23 @@
 import { useMemo, useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, RefreshControl } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  RefreshControl,
+} from "react-native";
+
 import { Ionicons } from "@expo/vector-icons";
+
 import { useIncomeSummary } from "../hooks/useIncomeSummary";
+
 import { IncomeTimeTabs } from "../components/IncomeTimeTabs";
 import { IncomeSummaryCard } from "../components/IncomeSummaryCard";
 import { OutstandingDebtCard } from "../components/OutstandingDebtCard";
 import { DebtorListItem } from "../components/DebtorListItem";
 import { RevenueAreaChart } from "../components/RevenueAreaChart";
 import { RangeDropdown, RevenueRange } from "../components/RangeDropdown";
+
 import type { ChartPoint } from "../types/income.types";
 
 type IncomeOverviewScreenProps = {
@@ -23,69 +33,105 @@ const RANGE_TITLE: Record<RevenueRange, string> = {
   "90": "ក្រាហ្វចំណូល (90 ថ្ងៃចុងក្រោយ)",
 };
 
-function buildPlaceholderChart(days: number): ChartPoint[] {
-  const points: ChartPoint[] = [];
-  const today = new Date();
+export function IncomeOverviewScreen({
+  onGoDaily,
+  onGoMonthly,
+  onGoYearly,
+  onGoDebtors,
+}: IncomeOverviewScreenProps) {
+  const [chartRange, setChartRange] =
+    useState<RevenueRange>("7");
 
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    const mockAmount = 100 + ((days - i) % 7) * 20;
+  const {
+    overview,
+    isLoading,
+    refresh,
+  } = useIncomeSummary();
 
-    points.push({
-      label: `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`,
-      amount: mockAmount,
-    });
-  }
+  const [refreshing, setRefreshing] =
+    useState(false);
 
-  return points;
-}
-
-export function IncomeOverviewScreen({ onGoDaily, onGoMonthly, onGoYearly, onGoDebtors }: IncomeOverviewScreenProps) {
-  const [chartRange, setChartRange] = useState<RevenueRange>("7");
-  const [refreshing, setRefreshing] = useState(false);
-  
-  const { overview } = useIncomeSummary();
+  /*
+   * ==========================================
+   * REFRESH
+   * ==========================================
+   */
 
   const handleRefresh = async () => {
-    setRefreshing(true);
-    // Simulate a brief refresh delay or re-fetch trigger if needed
-    setTimeout(() => {
+    try {
+      setRefreshing(true);
+
+      await refresh();
+    } finally {
       setRefreshing(false);
-    }, 600);
+    }
   };
 
-  const chartData = useMemo(() => {
-    if (chartRange === "7") return overview.weeklyChart;
-    return buildPlaceholderChart(Number(chartRange));
-  }, [chartRange, overview.weeklyChart]);
+
+  const chartData = useMemo<ChartPoint[]>(() => {
+    return overview.weeklyChart;
+  }, [overview.weeklyChart]);
+
+  /*
+   * ==========================================
+   * SCREEN
+   * ==========================================
+   */
 
   return (
-    <View className="flex-1 bg-gray-50" style={{ minHeight: 0 }}>
+    <View
+      className="flex-1 bg-gray-50"
+      style={{ minHeight: 0 }}
+    >
+      {/* ======================================
+          INCOME TABS
+      ======================================= */}
+
       <IncomeTimeTabs
         active="overview"
         onChange={(key) => {
-          if (key === "daily") onGoDaily();
-          if (key === "monthly") onGoMonthly();
-          if (key === "yearly") onGoYearly();
-          if (key === "debt") onGoDebtors();
+          if (key === "daily") {
+            onGoDaily();
+          }
+
+          if (key === "monthly") {
+            onGoMonthly();
+          }
+
+          if (key === "yearly") {
+            onGoYearly();
+          }
+
+          if (key === "debt") {
+            onGoDebtors();
+          }
         }}
       />
+
+      {/* ======================================
+          CONTENT
+      ======================================= */}
 
       <ScrollView
         className="flex-1 px-5 pt-3 mt-2"
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
+            refreshing={refreshing || isLoading}
             onRefresh={handleRefresh}
             colors={["#2563EB"]}
             tintColor="#2563EB"
           />
         }
       >
-        {/* 3 summary cards */}
+        {/* ====================================
+            SUMMARY CARDS
+        ===================================== */}
+
         <View className="flex-row gap-2">
+
+          {/* TODAY */}
+
           <IncomeSummaryCard
             icon="calendar-outline"
             iconBg="bg-blue-50"
@@ -95,6 +141,9 @@ export function IncomeOverviewScreen({ onGoDaily, onGoMonthly, onGoYearly, onGoD
             subLabel={overview.todayDate}
             onPress={onGoDaily}
           />
+
+          {/* MONTH */}
+
           <IncomeSummaryCard
             icon="calendar-outline"
             iconBg="bg-green-50"
@@ -102,9 +151,14 @@ export function IncomeOverviewScreen({ onGoDaily, onGoMonthly, onGoYearly, onGoD
             label="ចំណូលខែនេះ"
             amount={overview.monthIncome}
             subLabel={overview.monthLabel}
-            growthPercent={overview.monthGrowthPercent}
+            growthPercent={
+              overview.monthGrowthPercent
+            }
             onPress={onGoMonthly}
           />
+
+          {/* YEAR */}
+
           <IncomeSummaryCard
             icon="calendar-outline"
             iconBg="bg-purple-50"
@@ -112,10 +166,17 @@ export function IncomeOverviewScreen({ onGoDaily, onGoMonthly, onGoYearly, onGoD
             label="ចំណូលឆ្នាំ"
             amount={overview.yearIncome}
             subLabel={overview.yearLabel}
-            growthPercent={overview.yearGrowthPercent}
+            growthPercent={
+              overview.yearGrowthPercent
+            }
             onPress={onGoYearly}
           />
+
         </View>
+
+        {/* ====================================
+            OUTSTANDING DEBT
+        ===================================== */}
 
         <OutstandingDebtCard
           totalDebt={overview.totalDebt}
@@ -123,33 +184,89 @@ export function IncomeOverviewScreen({ onGoDaily, onGoMonthly, onGoYearly, onGoD
           onPress={onGoDebtors}
         />
 
-        {/* Revenue chart */}
+        {/* ====================================
+            REVENUE GRAPH
+        ===================================== */}
+
         <View className="bg-white rounded-xl p-2 mt-3">
+
           <View className="flex-row items-center justify-between mb-2">
+
             <Text className="font-khmerBold text-gray-900 text-lg">
               {RANGE_TITLE[chartRange]}
             </Text>
-            <RangeDropdown value={chartRange} onChange={setChartRange} />
+
+            <RangeDropdown
+              value={chartRange}
+              onChange={setChartRange}
+            />
+
           </View>
-          <RevenueAreaChart data={chartData} />
+
+          {chartData.length > 0 ? (
+            <RevenueAreaChart
+              data={chartData}
+            />
+          ) : (
+            <View className="h-[140px] items-center justify-center">
+
+              <Ionicons
+                name="analytics-outline"
+                size={30}
+                color="#D1D5DB"
+              />
+
+              <Text className="font-khmer text-gray-400 mt-2">
+                មិនមានទិន្នន័យចំណូល
+              </Text>
+
+            </View>
+          )}
+
         </View>
 
-        {/* Top debtors preview */}
+        {/* ====================================
+            TOP DEBTORS
+        ===================================== */}
+
         <View className="mt-4">
+
           <View className="flex-row items-center justify-between mb-2">
-            <Text className="font-khmerBold text-gray-900 text-xl">អតិថិជនជំពាក់សរុប</Text>
-            <TouchableOpacity onPress={onGoDebtors} className="flex-row items-center gap-1">
-              <Text className="font-khmer text-blue-600 text-xl">មើលទាំងអស់</Text>
-              <Ionicons name="chevron-forward" size={16} color="#2563EB" />
+
+            <Text className="font-khmerBold text-gray-900 text-xl">
+              អតិថិជនជំពាក់សរុប
+            </Text>
+
+            <TouchableOpacity
+              onPress={onGoDebtors}
+              className="flex-row items-center gap-1"
+            >
+              <Text className="font-khmer text-blue-600 text-xl">
+                មើលទាំងអស់
+              </Text>
+
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color="#2563EB"
+              />
             </TouchableOpacity>
+
           </View>
 
-          {overview.topDebtors.map((debtor) => (
-            <DebtorListItem key={debtor.id} debtor={debtor} />
-          ))}
+          {overview.topDebtors.map(
+            (debtor) => (
+              <DebtorListItem
+                key={debtor.id}
+                debtor={debtor}
+              />
+            )
+          )}
+
         </View>
 
         <View className="h-6" />
+
       </ScrollView>
     </View>
   );
