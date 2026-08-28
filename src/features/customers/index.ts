@@ -1,5 +1,6 @@
 export * from "./screens/CustomerListScreen";
 export * from "./screens/CustomerDetailScreen";
+
 export * from "./components/CustomerStatsRow";
 export * from "./components/CustomerCard";
 export * from "./components/CustomerAvatar";
@@ -7,7 +8,8 @@ export * from "./components/CustomerInfoCard";
 export * from "./components/CustomerSpendingCard";
 export * from "./components/CustomerActionButtons";
 export * from "./components/CustomerOrderHistoryList";
+
 export * from "./hooks/useCustomerList";
 export * from "./hooks/useCustomerDetail";
-export * from "./types/customer.types";
+
 export * from "./types/customer.types";

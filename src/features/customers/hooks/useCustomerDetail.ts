@@ -31,7 +31,7 @@ export interface CustomerDailyTotal {
   total: number;
 }
 
-export interface FeatureCustomer {
+interface FeatureCustomer {
   id: string;
   code: string;
   name: string;
