@@ -19,11 +19,19 @@ function InfoRow({
   value: string;
 }) {
   return (
-    <View className="flex-row justify-between py-1.5">
-      <Text className="font-khmer text-gray-600 text-xl">
+    <View className="flex-row items-start justify-between py-1.5">
+      <Text
+        className="font-khmer text-gray-600 text-xl"
+        maxFontSizeMultiplier={1.3}
+        style={{ flexShrink: 0 }}
+      >
         {label}
       </Text>
-      <Text className="font-khmerMedium text-gray-900 text-xl">
+      <Text
+        className="font-khmerMedium text-gray-900 text-xl text-right"
+        maxFontSizeMultiplier={1.3}
+        style={{ flex: 1, marginLeft: 12 }}
+      >
         {value}
       </Text>
     </View>
@@ -93,7 +101,7 @@ export function ProductPreview({
   )}
 
   {/* Product Name */}
-  <Text className="font-khmerBold text-blue-700 text-2xl mb-1 text-center">
+  <Text className="font-khmerBold text-blue-700 text-2xl mb-1 text-center" maxFontSizeMultiplier={1.3}>
     {product.name}
   </Text>
 

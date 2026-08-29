@@ -32,6 +32,7 @@ export function IncomeTimeTabs({ active, onChange }: IncomeTimeTabsProps) {
             <Text
               numberOfLines={1}
               adjustsFontSizeToFit
+              allowFontScaling={false}
               className={`font-khmerMedium text-sm ${isActive ? "text-white" : "text-gray-600"}`}
             >
               {tab.label}

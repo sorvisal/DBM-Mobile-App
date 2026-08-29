@@ -180,10 +180,10 @@ export function RegisterScreen({ onRegisterSuccess, onGoLogin }: RegisterScreenP
 
           <AuthButton label={isLoading ? "កំពុងចុះឈ្មោះ..." : "ចុះឈ្មោះ"} onPress={handleRegister} />
 
-          <View className="flex-row items-center justify-center mt-6 mb-8">
-            <Text className="font-khmer text-gray-500 text-xl">មានគណនីរួចហើយ? </Text>
+          <View className="flex-row items-center justify-center mt-6 mb-8 flex-wrap">
+            <Text className="font-khmer text-gray-500 text-xl" numberOfLines={1} maxFontSizeMultiplier={1.3}>មានគណនីរួចហើយ? </Text>
             <TouchableOpacity onPress={onGoLogin}>
-              <Text className="font-khmerBold text-blue-600 text-xl">ចូលប្រើប្រាស់</Text>
+              <Text className="font-khmerBold text-blue-600 text-xl" numberOfLines={1} maxFontSizeMultiplier={1.3}>ចូលប្រើប្រាស់</Text>
             </TouchableOpacity>
           </View>
         </View>

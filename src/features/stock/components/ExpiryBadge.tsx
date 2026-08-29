@@ -16,7 +16,7 @@ export function ExpiryBadge({ daysLeft }: ExpiryBadgeProps) {
 
   return (
     <View className={`${tone.bg} rounded-full px-2.5 py-1 self-start`}>
-      <Text className={`font-khmer text-[14px] ${tone.text}`}>
+      <Text className={`font-khmer text-[14px] ${tone.text}`} numberOfLines={1} allowFontScaling={false}>
         {isExpired ? "ស្តុកផុតកំណត់" : `${daysLeft} ថ្ងៃទៀត`}
       </Text>
     </View>

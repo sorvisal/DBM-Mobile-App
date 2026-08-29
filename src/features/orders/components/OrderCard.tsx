@@ -47,17 +47,17 @@ export function OrderCard({ order, onPress }: OrderCardProps) {
 
       <View className="flex-1 ml-3">
         <View className="flex-row items-center justify-between">
-          <Text className="font-khmerMedium text-gray-900 text-xl" numberOfLines={1}>
+          <Text className="font-khmerMedium text-gray-900 text-xl flex-1 mr-2" numberOfLines={1} maxFontSizeMultiplier={1.3}>
             {order.code}
           </Text>
           <OrderStatusBadge status={order.status} />
         </View>
-        <Text className="font-khmerMedium text-gray-400 text-[17px] mt-1" numberOfLines={1}>
+        <Text className="font-khmerMedium text-gray-400 text-[17px] mt-1" numberOfLines={1} maxFontSizeMultiplier={1.3}>
           {order.customer.name}
         </Text>
         <View className="flex-row items-center justify-between mt-1.5">
-          <Text className="font-khmer text-gray-400 text-[15px]">{order.createdAt}</Text>
-          <Text className="font-khmerBold text-gray-900 text-xl">${order.total.toFixed(2)}</Text>
+          <Text className="font-khmer text-gray-400 text-[15px]" maxFontSizeMultiplier={1.3}>{order.createdAt}</Text>
+          <Text className="font-khmerBold text-gray-900 text-xl" maxFontSizeMultiplier={1.3}>${order.total.toFixed(2)}</Text>
         </View>
       </View>
     </TouchableOpacity>

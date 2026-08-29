@@ -48,6 +48,7 @@ export function ProductCard({
           <Text
             className="font-khmerMedium text-gray-900 text-xl flex-1 pr-2"
             numberOfLines={1}
+            maxFontSizeMultiplier={1.3}
           >
             {name}
           </Text>
@@ -57,15 +58,15 @@ export function ProductCard({
           )}
         </View>
 
-        <Text className="font-khmer text-gray-400 text-[15px] mt-0.5">{unit}</Text>
+        <Text className="font-khmer text-gray-400 text-[15px] mt-0.5" maxFontSizeMultiplier={1.3}>{unit}</Text>
 
         {expiryDate && (
-          <Text className="font-khmer text-gray-500 text-[15px] mt-1.5">
+          <Text className="font-khmer text-gray-500 text-[15px] mt-1.5" maxFontSizeMultiplier={1.3}>
             ថ្ងៃផុតកំណត់: <Text className="font-khmerMedium text-gray-700">{expiryDate}</Text>
           </Text>
         )}
 
-        <Text className="font-khmer text-gray-500 text-[15px] mt-0.5">
+        <Text className="font-khmer text-gray-500 text-[15px] mt-0.5" maxFontSizeMultiplier={1.3}>
           សល់:{" "}
           <Text className={isLowStock ? "font-khmerBold text-red-600" : "font-khmerMedium text-gray-700"}>
             {quantity} កេស

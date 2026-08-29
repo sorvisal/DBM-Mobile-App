@@ -37,7 +37,7 @@ export function OrderFilterTabs({ active, onChange, counts }: OrderFilterTabsPro
             onPress={() => onChange(filter.key)}
             className={`px-4 py-2 rounded-full ${isActive ? FILTER_COLORS[filter.key] : "bg-gray-100"}`}
           >
-            <Text className={`font-khmer text-xl ${isActive ? "text-white" : "text-gray-600"}`}>
+            <Text className={`font-khmer text-xl ${isActive ? "text-white" : "text-gray-600"}`} numberOfLines={1} allowFontScaling={false}>
               {filter.label}({count})
             </Text>
           </TouchableOpacity>

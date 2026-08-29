@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { typography } from "@/theme";
 import { QuickAction } from "../types/dashboard.types";
 
 type QuickActionCardProps = {
@@ -19,8 +20,10 @@ export function QuickActionCard({ action, onPress }: QuickActionCardProps) {
       </View>
       <View className="flex-row items-center justify-between">
         <View className="flex-1">
-          <Text className="font-khmerMedium text-gray-900 text-2xl">{action.title}</Text>
-          <Text className="font-khmer text-gray-400 text-[16px] mt-0.5" numberOfLines={1}>
+          <Text className="font-khmerMedium text-gray-900 text-2xl" numberOfLines={1} maxFontSizeMultiplier={typography.maxFontSizeMultiplier}>
+            {action.title}
+          </Text>
+          <Text className="font-khmer text-gray-400 text-[16px] mt-0.5" numberOfLines={1} maxFontSizeMultiplier={typography.maxFontSizeMultiplier}>
             {action.subtitle}
           </Text>
         </View>

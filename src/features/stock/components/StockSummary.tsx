@@ -27,13 +27,13 @@ export function StockSummary({
       <View className="border-t border-green-100 mb-2" />
 
       <View className="flex-row justify-between py-1">
-        <Text className="font-khmer text-gray-500 text-xl">
+        <Text className="font-khmer text-gray-500 text-xl" style={{ flexShrink: 0 }}>
           ផលិតផល
         </Text>
         <Text
-          className="font-khmerMedium text-gray-900 text-xl"
+          className="font-khmerMedium text-gray-900 text-xl text-right"
           numberOfLines={1}
-          style={{ maxWidth: "60%" }}
+          style={{ flex: 1, marginLeft: 12 }}
         >
           {product.name}
         </Text>
@@ -44,7 +44,7 @@ export function StockSummary({
           <Text className="font-khmer text-gray-500 text-xl">
             ចំនួន
           </Text>
-          <Text className="font-khmerMedium text-green-600 text-xl">
+          <Text className="font-khmerMedium text-green-600 text-xl" maxFontSizeMultiplier={1.3}>
             +{qty}
           </Text>
         </View>
@@ -52,10 +52,10 @@ export function StockSummary({
 
       {price > 0 && (
         <View className="flex-row justify-between py-1">
-          <Text className="font-khmer text-gray-500 text-xl">
+          <Text className="font-khmer text-gray-500 text-xl" style={{ flexShrink: 0 }}>
             តម្លៃលក់
           </Text>
-          <Text className="font-khmerMedium text-gray-900 text-xl">
+          <Text className="font-khmerMedium text-gray-900 text-xl text-right" maxFontSizeMultiplier={1.3}>
             {formatCurrency(price)}
           </Text>
         </View>
@@ -63,10 +63,10 @@ export function StockSummary({
 
       {product.costPrice > 0 && (
         <View className="flex-row justify-between py-1">
-          <Text className="font-khmer text-gray-500 text-xl">
+          <Text className="font-khmer text-gray-500 text-xl" style={{ flexShrink: 0 }}>
             តម្លៃទិញចូល
           </Text>
-          <Text className="font-khmerMedium text-gray-400 text-xl">
+          <Text className="font-khmerMedium text-gray-400 text-xl text-right" maxFontSizeMultiplier={1.3}>
             {formatCurrency(product.costPrice)}
           </Text>
         </View>

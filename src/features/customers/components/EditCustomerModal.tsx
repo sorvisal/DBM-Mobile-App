@@ -10,6 +10,7 @@ import {
   Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Dropdown } from "../../stock/components/Dropdown";
 import {
   Customer,
@@ -89,6 +90,7 @@ export function EditCustomerModal({
   onClose,
   onSubmit,
 }: EditCustomerModalProps) {
+  const insets = useSafeAreaInsets();
   const [values, setValues] =
     useState<EditCustomerValues>({
       name: "",
@@ -197,7 +199,7 @@ export function EditCustomerModal({
               HEADER
           ==================================== */}
           <View className="flex-row items-center justify-between px-5 pt-4 pb-3 bg-blue-600 rounded-t-xl">
-            <Text className="font-khmerBold text-white text-xl">
+            <Text className="font-khmerBold text-white text-xl flex-1 mr-2" numberOfLines={1} maxFontSizeMultiplier={1.3}>
               កែប្រែព័ត៌មានអតិថិជន
             </Text>
 
@@ -233,7 +235,7 @@ export function EditCustomerModal({
                 : "on-drag"
             }
             contentContainerStyle={{
-              paddingBottom: 24,
+              paddingBottom: Math.max(insets.bottom, 24),
             }}
           >
             {/* CUSTOMER CODE */}

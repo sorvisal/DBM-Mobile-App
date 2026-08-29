@@ -25,11 +25,11 @@ export function CustomerCard({ customer, onPress }: CustomerCardProps) {
 
       <View className="flex-1 ml-3">
         <View className="flex-row items-center justify-between">
-          <Text className="font-khmerMedium text-gray-900 text-xl" numberOfLines={1}>
+          <Text className="font-khmerMedium text-gray-900 text-xl flex-1 mr-2" numberOfLines={1}>
             {customer.name}
           </Text>
           <View className={`rounded-full px-2 py-0.5 ${isActive ? "bg-green-50" : "bg-orange-50"}`}>
-            <Text className={`font-khmer text-[16px] ${isActive ? "text-green-600" : "text-orange-600"}`}>
+            <Text className={`font-khmer text-[16px] ${isActive ? "text-green-600" : "text-orange-600"}`} numberOfLines={1} maxFontSizeMultiplier={1.3}>
               {isActive ? "សកម្ម" : "មិនសកម្ម"}
             </Text>
           </View>
@@ -37,24 +37,24 @@ export function CustomerCard({ customer, onPress }: CustomerCardProps) {
 
         <View className="flex-row items-center mt-1">
           <Ionicons name="call-outline" size={11} color="#9CA3AF" />
-          <Text className="font-khmer text-gray-400 text-[16px] ml-1">{customer.phone}</Text>
+          <Text className="font-khmer text-gray-400 text-[16px] ml-1 flex-1" numberOfLines={1} maxFontSizeMultiplier={1.3}>{customer.phone}</Text>
         </View>
 
         <View className="flex-row items-center mt-1">
           <Ionicons name="location-outline" size={11} color="#9CA3AF" />
-          <Text className="font-khmer text-gray-400 text-[16px] ml-1" numberOfLines={1}>
+          <Text className="font-khmer text-gray-400 text-[16px] ml-1 flex-1" numberOfLines={1} maxFontSizeMultiplier={1.3}>
             {customer.location}
           </Text>
         </View>
 
         <View className="flex-row items-center justify-between mt-1.5">
-          <View className="flex-row items-center">
+          <View className="flex-row items-center flex-1 mr-2">
             <Ionicons name="calendar-outline" size={11} color="#9CA3AF" />
-            <Text className="font-khmer text-gray-400 text-[16px] ml-1">
+            <Text className="font-khmer text-gray-400 text-[16px] ml-1 flex-1" numberOfLines={1} maxFontSizeMultiplier={1.3}>
               {customer.totalOrders} ការបញ្ជាទិញ
             </Text>
           </View>
-          <Text className="font-khmerBold text-gray-900 text-xl">${customer.totalSpent.toFixed(2)}</Text>
+          <Text className="font-khmerBold text-gray-900 text-xl" numberOfLines={1} maxFontSizeMultiplier={1.3}>${customer.totalSpent.toFixed(2)}</Text>
         </View>
       </View>
     </TouchableOpacity>

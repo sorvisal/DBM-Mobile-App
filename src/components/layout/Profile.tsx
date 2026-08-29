@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  useWindowDimensions,
   Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,6 +14,9 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { User } from "@/types/api";
+import { useResponsive } from "@/hooks/useResponsive";
+import { moderateScale } from "@/utils/responsive";
+import { typography } from "@/theme";
 
 const DRAWER_RATIO = 0.85;
 
@@ -39,7 +41,7 @@ export function Profile({
   onLogout,
 }: ProfileProps) {
   const { width: screenWidth } =
-    useWindowDimensions();
+    useResponsive();
 
   const insets = useSafeAreaInsets();
 
@@ -138,9 +140,7 @@ export function Profile({
     );
 
   const rowFontSize =
-    screenWidth < 375
-      ? 13
-      : 20;
+    moderateScale(20, 0.5);
 
   /*
    * Extra spacing for Android.
@@ -260,7 +260,7 @@ export function Profile({
           ================================================= */}
 
           <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-2xl font-khmerBold text-gray-900">
+            <Text className="text-2xl font-khmerBold text-gray-900" maxFontSizeMultiplier={typography.maxFontSizeMultiplier}>
               ប្រវត្តិរូប
             </Text>
 
@@ -307,11 +307,12 @@ export function Profile({
             <Text
               className="font-khmerBold text-xl text-gray-900"
               numberOfLines={1}
+              maxFontSizeMultiplier={typography.maxFontSizeMultiplier}
             >
               {user?.name ?? "—"}
             </Text>
 
-            <Text className="font-khmer text-lg text-gray-400 mt-0.5">
+            <Text className="font-khmer text-lg text-gray-400 mt-0.5" numberOfLines={1} maxFontSizeMultiplier={typography.maxFontSizeMultiplier}>
               {ROLE_LABELS[
                 user?.role ?? "user"
               ] ?? "—"}
@@ -411,7 +412,7 @@ export function Profile({
               color="#DC2626"
             />
 
-            <Text className="font-khmer text-xl text-red-600 ml-1.5">
+            <Text className="font-khmer text-xl text-red-600 ml-1.5" maxFontSizeMultiplier={typography.maxFontSizeMultiplier}>
               ចាកចេញ
             </Text>
           </TouchableOpacity>
@@ -458,6 +459,9 @@ function InfoRow({
               fontSize - 2,
           }}
           numberOfLines={1}
+          maxFontSizeMultiplier={
+            typography.maxFontSizeMultiplier
+          }
         >
           {label}
         </Text>
@@ -468,6 +472,9 @@ function InfoRow({
             fontSize,
           }}
           numberOfLines={1}
+          maxFontSizeMultiplier={
+            typography.maxFontSizeMultiplier
+          }
         >
           {value}
         </Text>

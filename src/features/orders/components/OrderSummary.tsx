@@ -10,16 +10,16 @@ export function OrderSummary({ subtotal, deliveryFee, total }: OrderSummaryProps
   return (
     <View className="mt-2">
       <View className="flex-row items-center justify-between py-1">
-        <Text className="font-khmer text-gray-500 text-xl">សរុប</Text>
-        <Text className="font-khmer text-gray-800 text-xl">${subtotal.toFixed(2)}</Text>
+        <Text className="font-khmer text-gray-500 text-xl" style={{ flexShrink: 0 }}>សរុប</Text>
+        <Text className="font-khmer text-gray-800 text-xl text-right" style={{ flex: 1, marginLeft: 12 }} maxFontSizeMultiplier={1.3}>${subtotal.toFixed(2)}</Text>
       </View>
       <View className="flex-row items-center justify-between py-1">
-        <Text className="font-khmer text-gray-500 text-xl">ថ្លៃដឹកជញ្ជូន</Text>
-        <Text className="font-khmer text-gray-800 text-xl">${deliveryFee.toFixed(2)}</Text>
+        <Text className="font-khmer text-gray-500 text-xl" style={{ flexShrink: 0 }}>ថ្លៃដឹកជញ្ជូន</Text>
+        <Text className="font-khmer text-gray-800 text-xl text-right" style={{ flex: 1, marginLeft: 12 }} maxFontSizeMultiplier={1.3}>${deliveryFee.toFixed(2)}</Text>
       </View>
       <View className="flex-row items-center justify-between pt-2 mt-1 border-t border-gray-100">
-        <Text className="font-khmerBold text-gray-900 text-xl">សរុប</Text>
-        <Text className="font-khmerBold text-blue-600 text-xl">${total.toFixed(2)}</Text>
+        <Text className="font-khmerBold text-gray-900 text-xl" style={{ flexShrink: 0 }}>សរុប</Text>
+        <Text className="font-khmerBold text-blue-600 text-xl text-right" style={{ flex: 1, marginLeft: 12 }} maxFontSizeMultiplier={1.3}>${total.toFixed(2)}</Text>
       </View>
     </View>
   );

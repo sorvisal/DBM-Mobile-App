@@ -60,6 +60,8 @@ export function OrderStepper({ status }: OrderStepperProps) {
               className={`font-khmer text-[14px] mt-1.5 ${
                 showAsDone || isActive ? "text-gray-900" : "text-gray-400"
               }`}
+              numberOfLines={1}
+              allowFontScaling={false}
             >
               {step.label}
             </Text>

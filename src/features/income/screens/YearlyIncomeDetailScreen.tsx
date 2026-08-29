@@ -84,7 +84,7 @@ export function YearlyIncomeDetailScreen({ onBack, onGoDebtors }: YearlyIncomeDe
               <View className="bg-blue-600 rounded-2xl p-4 flex-row items-center justify-between">
                 <View>
                   <Text className="font-khmer text-white/80 text-xl">ចំណូលសរុប</Text>
-                  <Text className="font-khmerBold text-white text-2xl mt-1">${summary.totalIncome.toFixed(2)}</Text>
+                  <Text className="font-khmerBold text-white text-2xl mt-1" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} maxFontSizeMultiplier={1.3} style={{ width: "100%" }}>${summary.totalIncome.toFixed(2)}</Text>
                   <View className="flex-row items-center mt-1">
                     <Text className="font-khmer text-white/70 text-[14px]">
                       ការបញ្ជាទិញ {summary.orderCount} ការកម្មង់
@@ -104,7 +104,7 @@ export function YearlyIncomeDetailScreen({ onBack, onGoDebtors }: YearlyIncomeDe
               {/* Chart */}
               <View className="bg-white rounded-xl px-3 py-3  mt-3 mx-0">
                 <View className="flex-row items-center justify-between mb-2">
-                  <Text className="font-khmerBold text-gray-900 text-xl">
+                  <Text className="font-khmerBold text-gray-900 text-xl flex-1 mr-2" numberOfLines={2} maxFontSizeMultiplier={1.3}>
                     ចំណូលប្រចាំឆ្នាំ {selectedYear}
                   </Text>
                   <YearDropdown value={selectedYear} onChange={setSelectedYear} />
@@ -115,9 +115,9 @@ export function YearlyIncomeDetailScreen({ onBack, onGoDebtors }: YearlyIncomeDe
               {/* Debtors */}
               <View className="mt-4">
                 <View className="flex-row items-center justify-between mb-2">
-                  <Text className="font-khmerBold text-gray-900 text-lg">ចំណូលអតិថិជនសរុប</Text>
+                  <Text className="font-khmerBold text-gray-900 text-lg flex-1 mr-2" numberOfLines={2} maxFontSizeMultiplier={1.3}>ចំណូលអតិថិជនសរុប</Text>
                   <TouchableOpacity onPress={onGoDebtors} className="flex-row items-center gap-1">
-                    <Text className="font-khmer text-blue-600 text-lg">មើលទាំងអស់</Text>
+                    <Text className="font-khmer text-blue-600 text-lg" numberOfLines={1} maxFontSizeMultiplier={1.3}>មើលទាំងអស់</Text>
                     <Ionicons name="chevron-forward" size={16} color="#2563EB" />
                   </TouchableOpacity>
                 </View>

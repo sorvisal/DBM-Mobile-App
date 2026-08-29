@@ -14,7 +14,7 @@ export const AuthInput = forwardRef<TextInput, AuthInputProps>(
 
     return (
       <View className="mb-4">
-        <Text className="font-khmerMedium text-blue-600 text-2xl mb-1.5">{label}</Text>
+        <Text className="font-khmerMedium text-blue-600 text-2xl mb-1.5" maxFontSizeMultiplier={1.3}>{label}</Text>
         <View
           className={`flex-row items-center border rounded-xl p-1 h-12 ${
             error ? "border-red-400" : "border-gray-200"
@@ -34,7 +34,11 @@ export const AuthInput = forwardRef<TextInput, AuthInputProps>(
             </TouchableOpacity>
           )}
         </View>
-        {error && <Text className="font-khmer text-red-500 text-[14px] mt-1">{error}</Text>}
+        {error && (
+          <Text className="font-khmer text-red-500 text-[14px] mt-1" numberOfLines={2} maxFontSizeMultiplier={1.3}>
+            {error}
+          </Text>
+        )}
       </View>
     );
   }

@@ -10,6 +10,7 @@ import {
   TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useProductList } from "../hooks/useProductList";
 import { androidInputStyle } from "@/theme/inputStyles";
 
@@ -29,6 +30,8 @@ export function ProductSelector({
     isLoading,
     error: loadError,
   } = useProductList();
+
+  const insets = useSafeAreaInsets();
 
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -167,6 +170,7 @@ export function ProductSelector({
               <FlatList
                 data={filtered}
                 keyExtractor={(item) => item.id}
+                contentContainerStyle={{ paddingBottom: insets.bottom + 12 }}
                 ListEmptyComponent={
                   <View className="items-center py-10">
                     <Text className="font-khmer text-gray-400 text-lg">
@@ -192,6 +196,7 @@ export function ProductSelector({
                               : "text-gray-800"
                           }`}
                           numberOfLines={1}
+                          maxFontSizeMultiplier={1.3}
                         >
                           {item.name}
                         </Text>

@@ -38,18 +38,18 @@ export function TotalProductCard({
       )}
 
       <View className="flex-1 ml-3">
-        <Text className="font-khmerMedium text-gray-900 text-xl" numberOfLines={1}>
+        <Text className="font-khmerMedium text-gray-900 text-xl" numberOfLines={1} maxFontSizeMultiplier={1.3}>
           {name}
         </Text>
-        <Text className="font-khmer text-gray-400 text-[16px] mt-0.5">{unit}</Text>
-        <Text className="font-khmer text-gray-400 text-[16px] mt-1">
+        <Text className="font-khmer text-gray-400 text-[16px] mt-0.5" maxFontSizeMultiplier={1.3}>{unit}</Text>
+        <Text className="font-khmer text-gray-400 text-[16px] mt-1" numberOfLines={2} maxFontSizeMultiplier={1.3}>
           តម្លៃទិញ: {buyPrice}  |  តម្លៃលក់: {sellPrice}
         </Text>
       </View>
 
       <View className="items-end">
-        <Text className={`font-khmerBold text-2xl ${isLowStock ? "text-red-600" : "text-blue-600"}`}>{quantity}</Text>
-        <Text className="font-khmer text-gray-400 text-[17px] mt-0.5">ស្តុក</Text>
+        <Text className={`font-khmerBold text-2xl ${isLowStock ? "text-red-600" : "text-blue-600"}`} numberOfLines={1} maxFontSizeMultiplier={1.3}>{quantity}</Text>
+        <Text className="font-khmer text-gray-400 text-[17px] mt-0.5" allowFontScaling={false}>ស្តុក</Text>
       </View>
     </TouchableOpacity>
   );

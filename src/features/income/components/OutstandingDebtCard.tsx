@@ -18,9 +18,9 @@ export function OutstandingDebtCard({ totalDebt, debtorCount, onPress }: Outstan
         <Ionicons name="cash-outline" size={27} color="white" />
       </View>
       <View className="flex-1 ml-3">
-        <Text className="font-khmer text-red-500 text-xl">អតិថិជនជំពាក់សរុប</Text>
-        <Text className="font-khmerBold text-red-600 text-xl mt-0.5">${totalDebt.toFixed(2)}</Text>
-         <Text className="font-khmer text-gray-800 text-[16px]">{debtorCount} អតិថិជន</Text>
+        <Text className="font-khmer text-red-500 text-xl" numberOfLines={1} maxFontSizeMultiplier={1.3}>អតិថិជនជំពាក់សរុប</Text>
+        <Text className="font-khmerBold text-red-600 text-xl mt-0.5" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.3} style={{ width: "100%" }}>${totalDebt.toFixed(2)}</Text>
+         <Text className="font-khmer text-gray-800 text-[16px]" numberOfLines={1} maxFontSizeMultiplier={1.3}>{debtorCount} អតិថិជន</Text>
       </View>
       <View className="items-end">
        

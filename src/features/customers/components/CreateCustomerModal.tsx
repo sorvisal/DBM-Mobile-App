@@ -11,6 +11,7 @@ import {
   Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DateField } from "../../stock/components/DateField";
 import { Dropdown } from "../../stock/components/Dropdown";
 import { CustomerStatus } from "../types/customer.types";
@@ -68,6 +69,7 @@ function FormField({ label, required, children }: { label: string; required?: bo
 }
 
 export function CreateCustomerModal({ visible, onClose, onSubmit, isLoading }: CreateCustomerModalProps) {
+  const insets = useSafeAreaInsets();
   const [values, setValues] = useState<CreateCustomerValues>(initialValues);
 
 const update = <K extends keyof CreateCustomerValues>(key: K, value: CreateCustomerValues[K]) =>
@@ -101,13 +103,17 @@ const update = <K extends keyof CreateCustomerValues>(key: K, value: CreateCusto
   >
     <View className="bg-white rounded-t-3xl max-h-[85%]">
           <View className="flex-row items-center justify-between px-5 pt-4 pb-3 bg-blue-600 rounded-t-xl border-gray-100">
-            <Text className="font-khmerBold text-white text-xl">បង្កើតអតិថិជនថ្មី</Text>
-            <TouchableOpacity onPress={onClose}>
+            <Text className="font-khmerBold text-white text-xl flex-1 mr-2" numberOfLines={1} maxFontSizeMultiplier={1.3}>បង្កើតអតិថិជនថ្មី</Text>
+            <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
               <Ionicons name="close" size={28} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
 
-          <ScrollView className="px-5 pt-4" showsVerticalScrollIndicator={false}>
+          <ScrollView
+            className="px-5 pt-4"
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 24) }}
+          >
             <FormField label="លេខកូដអតិថិជន">
               <TextInput
                 value={values.code}

@@ -52,6 +52,8 @@ export function Footer({ activeTab, onTabPress }: FooterProps) {
                   ? "font-khmerMedium text-[13px] text-blue-600 mt-2"
                   : "font-khmerMedium text-[13px] text-gray-400 mt-2"
               }
+              numberOfLines={1}
+              allowFontScaling={false}
             >
               {tab.label}
             </Text>

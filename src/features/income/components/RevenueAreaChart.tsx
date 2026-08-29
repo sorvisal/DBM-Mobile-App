@@ -190,6 +190,26 @@ export function RevenueAreaChart({
     [points, paddingTop]
   );
 
+  const getLabelLeft = useCallback(
+    (index: number) => {
+      const point = points[index];
+      if (!point) return 0;
+      const left = point.x - 14;
+      return Math.max(2, Math.min(left, Math.max(chartWidth - 48, 2)));
+    },
+    [points, chartWidth]
+  );
+
+  const getTickLeft = useCallback(
+    (index: number) => {
+      const point = points[index];
+      if (!point) return 0;
+      const left = point.x - 20;
+      return Math.max(0, Math.min(left, Math.max(chartWidth - 40, 0)));
+    },
+    [points, chartWidth]
+  );
+
   if (!data || data.length === 0) {
     return (
       <View
@@ -267,6 +287,7 @@ export function RevenueAreaChart({
                   <Text
                     key={`ylabel-${value}`}
                     className="text-[11px]"
+                    allowFontScaling={false}
                     style={{ position: "absolute", top: y - 7, left: 0, color: AXIS_LABEL_COLOR }}
                   >
                     {formatAxisValue(value)}
@@ -285,11 +306,12 @@ export function RevenueAreaChart({
                 <Text
                   key={`${point.label}-value-${index}`}
                   className="font-khmerBold text-blue-600 text-[12px]"
+                  allowFontScaling={false}
+                  numberOfLines={1}
                   style={{
                     position: "absolute",
-                    left: point.x,
+                    left: getLabelLeft(index),
                     top: getLabelTop(index),
-                    transform: [{ translateX: -14 }],
                   }}
                 >
                   ${Math.round(point.amount)}
@@ -307,12 +329,13 @@ export function RevenueAreaChart({
                 <Text
                   key={`${point.label}-x-${index}`}
                   className="font-khmer text-[11px]"
+                  allowFontScaling={false}
+                  numberOfLines={1}
                   style={{
                     position: "absolute",
-                    left: point.x,
+                    left: getTickLeft(index),
                     top: 0,
                     color: AXIS_LABEL_COLOR,
-                    transform: [{ translateX: -20 }],
                   }}
                 >
                   {point.label}

@@ -20,8 +20,8 @@ export function OrderStatsBar({
         <View className="bg-blue-50 w-12 h-12 rounded-full items-center justify-center mb-1.5">
           <Ionicons name="receipt-outline" size={26} color="#2563EB" />
         </View>
-        <Text className="font-khmerBold text-gray-900 text-2xl">{totalOrders}</Text>
-        <Text className="font-khmer text-gray-500 text-[14px] mt-0.5 text-center" numberOfLines={1}>
+        <Text className="font-khmerBold text-gray-900 text-2xl text-center" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} maxFontSizeMultiplier={1.3} style={{ width: "100%" }}>{totalOrders}</Text>
+        <Text className="font-khmer text-gray-500 text-[14px] mt-0.5 text-center" numberOfLines={1} maxFontSizeMultiplier={1.3}>
           ការបញ្ជាទិញ
         </Text>
       </View>
@@ -30,8 +30,8 @@ export function OrderStatsBar({
         <View className="bg-orange-50 w-12 h-12 rounded-full items-center justify-center mb-1.5">
           <MaterialCommunityIcons name="truck-delivery-outline" size={26} color="#EA580C" />
         </View>
-        <Text className="font-khmerBold text-gray-900 text-2xl">{totalShipping}</Text>
-        <Text className="font-khmer text-gray-500 text-[16px] mt-0.5 text-center" numberOfLines={1}>
+        <Text className="font-khmerBold text-gray-900 text-2xl text-center" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} maxFontSizeMultiplier={1.3} style={{ width: "100%" }}>{totalShipping}</Text>
+        <Text className="font-khmer text-gray-500 text-[16px] mt-0.5 text-center" numberOfLines={1} maxFontSizeMultiplier={1.3}>
           កំពុងដឹក
         </Text>
       </View>
@@ -40,8 +40,8 @@ export function OrderStatsBar({
         <View className="bg-green-50 w-12 h-12 rounded-full items-center justify-center mb-1.5">
           <Ionicons name="checkmark-circle-outline" size={26} color="#16A34A" />
         </View>
-        <Text className="font-khmerBold text-gray-900 text-2xl">{totalConfirmed}</Text>
-        <Text className="font-khmer text-gray-500 text-[16px] mt-0.5 text-center" numberOfLines={1}>
+        <Text className="font-khmerBold text-gray-900 text-2xl text-center" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} maxFontSizeMultiplier={1.3} style={{ width: "100%" }}>{totalConfirmed}</Text>
+        <Text className="font-khmer text-gray-500 text-[16px] mt-0.5 text-center" numberOfLines={1} maxFontSizeMultiplier={1.3}>
           បញ្ចប់
         </Text>
       </View>
@@ -50,8 +50,8 @@ export function OrderStatsBar({
         <View className="bg-red-50 w-12 h-12 rounded-full items-center justify-center mb-1.5">
           <Ionicons name="close-circle-outline" size={26} color="#DC2626" />
         </View>
-        <Text className="font-khmerBold text-gray-900 text-2xl">{totalCancelled}</Text>
-        <Text className="font-khmer text-gray-500 text-[16px] mt-0.5 text-center" numberOfLines={1}>
+        <Text className="font-khmerBold text-gray-900 text-2xl text-center" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} maxFontSizeMultiplier={1.3} style={{ width: "100%" }}>{totalCancelled}</Text>
+        <Text className="font-khmer text-gray-500 text-[16px] mt-0.5 text-center" numberOfLines={1} maxFontSizeMultiplier={1.3}>
           លុបចោល
         </Text>
       </View>

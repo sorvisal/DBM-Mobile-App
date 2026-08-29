@@ -47,11 +47,11 @@ export function DashboardScreen({ onNavigateTab }: DashboardScreenProps) {
     >
       {/* Greeting */}
       <View className="px-5 pt-2 pb-4">
-        <Text className="font-khmerBold text-2xl text-gray-900">
+        <Text className="font-khmerBold text-2xl text-gray-900" numberOfLines={1} maxFontSizeMultiplier={1.3}>
           Hi, {user?.storeName ?? "Store"} 👋
         </Text>
 
-        <Text className="font-khmer text-xl text-gray-400 mt-0.5">
+        <Text className="font-khmer text-xl text-gray-400 mt-0.5" numberOfLines={2} maxFontSizeMultiplier={1.3}>
           សូមស្វាគមន៍មកកាន់{" "}
           <Text className="font-bold text-xl text-gray-400">
             DBM App

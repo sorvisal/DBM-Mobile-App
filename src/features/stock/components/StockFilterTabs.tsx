@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { api } from "@/services";
 import type { StockMovement } from "@/types/api";
+import { useResponsive } from "@/hooks/useResponsive";
 import { DateField } from "./DateField";
 
 const PERIODS = ["ទាំងអស់", "ចូល", "ចេញ"] as const;
@@ -22,6 +23,7 @@ function formatDate(date: Date): string {
 }
 
 export function StockFilterTabs() {
+  const { isSmallPhone } = useResponsive();
   const [activePeriod, setActivePeriod] = useState<Period>("ទាំងអស់");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [movements, setMovements] = useState<StockMovement[]>([]);
@@ -85,23 +87,36 @@ export function StockFilterTabs() {
   return (
     <View className="flex-1 bg-gray-50" style={{ minHeight: 0 }}>
       {/* Period tabs */}
-      <View className="flex-row items-center gap-2 px-5 py-3 bg-white">
+      <View
+        className={`flex-row flex-wrap items-center bg-white ${
+          isSmallPhone ? "gap-1.5 px-4 py-2.5" : "gap-2 px-5 py-3"
+        }`}
+      >
         {PERIODS.map((period) => {
           const isActive = period === activePeriod;
           return (
             <TouchableOpacity
               key={period}
               onPress={() => setActivePeriod(period)}
-              className={`px-4 py-2 rounded-full ${isActive ? PERIOD_COLORS[period] : "bg-gray-100"}`}
+              className={`rounded-full ${
+                isActive ? PERIOD_COLORS[period] : "bg-gray-100"
+              } ${isSmallPhone ? "px-3 py-1.5" : "px-4 py-2"}`}
             >
-              <Text className={`font-khmer text-xl ${isActive ? "text-white" : "text-gray-600"}`}>
+              <Text
+                className={`font-khmer ${
+                  isActive ? "text-white" : "text-gray-600"
+                }`}
+                style={{ fontSize: isSmallPhone ? 16 : 20 }}
+                allowFontScaling={false}
+                numberOfLines={1}
+              >
                 {period}
               </Text>
             </TouchableOpacity>
           );
         })}
 
-        <View className="flex-1 items-end">
+        <View className="flex-1 items-end min-w-[140px]">
           <DateField
             placeholder="ជ្រើសរើសកាលបរិច្ឆេទ"
             value={selectedDate}
@@ -169,11 +184,11 @@ function MovementCard({ movement }: { movement: StockMovement }) {
       </View>
 
       <View className="items-end">
-        <Text className={`font-khmerBold text-xl ${isIncoming ? "text-green-600" : "text-red-600"}`}>
+        <Text className={`font-khmerBold text-xl ${isIncoming ? "text-green-600" : "text-red-600"}`} maxFontSizeMultiplier={1.3}>
           {isIncoming ? "+" : ""}
           {quantityChange} កេស
         </Text>
-        <Text className="font-khmer text-gray-400 text-[16px] mt-0.5">
+        <Text className="font-khmer text-gray-400 text-[16px] mt-0.5" allowFontScaling={false}>
           {new Date(movement.createdAt).toLocaleTimeString()}
         </Text>
       </View>

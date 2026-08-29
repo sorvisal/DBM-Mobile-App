@@ -70,8 +70,12 @@ export function DebtorListItem({
       {/* Debt */}
       <View className="items-end ml-2">
         <Text
-          className="font-khmerBold text-red-500 text-xl"
+          className="font-khmerBold text-red-500 text-xl text-right"
           numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+          maxFontSizeMultiplier={1.3}
+          style={{ alignSelf: "flex-end", maxWidth: "100%" }}
         >
           $
           {Number(
@@ -79,7 +83,7 @@ export function DebtorListItem({
           ).toFixed(2)}
         </Text>
 
-        <Text className="font-khmer text-gray-400 text-[14px] mt-0.5">
+        <Text className="font-khmer text-gray-400 text-[14px] mt-0.5" numberOfLines={1} maxFontSizeMultiplier={1.3}>
           {debtor.dueDate}
         </Text>
       </View>

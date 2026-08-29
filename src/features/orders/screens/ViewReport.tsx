@@ -81,54 +81,67 @@ function buildInvoiceHtml(order: Order) {
 <meta charset="UTF-8" />
 
 <style>
+  @page {
+    size: A4;
+    margin: 18mm 16mm;
+  }
+
   * {
     box-sizing: border-box;
   }
 
-  body {
-    font-family: Arial, "Noto Sans Khmer", sans-serif;
+  html, body {
     margin: 0;
-    padding: 28px;
+    padding: 0;
+  }
+
+  body {
+    font-family: "Noto Sans Khmer", Arial, sans-serif;
     color: #111827;
     background: #ffffff;
+    font-size: 13px;
+    line-height: 1.45;
   }
 
   .header {
     text-align: center;
-    margin-bottom: 24px;
+    margin-bottom: 16px;
+    margin-top: 8px;
   }
 
   .title {
-    font-size: 25px;
+    font-size: 24px;
     font-weight: bold;
-    margin-bottom: 5px;
+    margin-bottom: 3px;
   }
 
   .subtitle {
     color: #6b7280;
-    font-size: 14px;
+    font-size: 12px;
+    letter-spacing: 0.5px;
   }
 
   .divider {
     border-top: 1px solid #e5e7eb;
-    margin: 18px 0;
+    margin: 14px 0;
   }
 
   .section-title {
-    font-size: 17px;
+    font-size: 15px;
     font-weight: bold;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
 
   .info-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 16px;
+    margin-bottom: 10px;
   }
 
   .info-table td {
-    padding: 5px 0;
+    padding: 3px 0;
     vertical-align: top;
+    font-size: 12.5px;
   }
 
   .label {
@@ -144,19 +157,19 @@ function buildInvoiceHtml(order: Order) {
   .items {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 8px;
+    margin-top: 6px;
   }
 
   .items th {
     background: #f3f4f6;
-    padding: 9px 6px;
-    font-size: 12px;
+    padding: 8px 6px;
+    font-size: 11.5px;
     text-align: left;
   }
 
   .items td {
     border-bottom: 1px solid #e5e7eb;
-    padding: 9px 6px;
+    padding: 8px 6px;
     font-size: 12px;
   }
 
@@ -170,31 +183,38 @@ function buildInvoiceHtml(order: Order) {
 
   .summary {
     width: 100%;
-    margin-top: 18px;
+    margin-top: 14px;
   }
 
   .summary-row {
     display: flex;
     justify-content: space-between;
-    padding: 5px 0;
-    font-size: 14px;
+    padding: 4px 0;
+    font-size: 12.5px;
   }
 
   .total {
-    font-size: 19px;
+    font-size: 17px;
     font-weight: bold;
     border-top: 2px solid #111827;
-    margin-top: 8px;
-    padding-top: 10px;
+    margin-top: 6px;
+    padding-top: 8px;
   }
 
   .note {
     background: #f9fafb;
     border-radius: 8px;
-    padding: 12px;
-    margin-top: 18px;
-    font-size: 13px;
-    line-height: 1.5;
+    padding: 11px;
+    margin-top: 14px;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 11px;
+    color: #6b7280;
   }
 </style>
 </head>
@@ -311,25 +331,25 @@ function buildInvoiceHtml(order: Order) {
       </span>
     </div>
 
-        <div class="summary-row">
-        <span>បានបង់</span>
-        <span>
-            $${(order.paidAmount ?? 0).toFixed(2)}
-        </span>
-        </div>
+    <div class="summary-row">
+      <span>បានបង់</span>
+      <span>
+        $${(order.paidAmount ?? 0).toFixed(2)}
+      </span>
+    </div>
 
-        ${
-        (order.remainingAmount ?? 0) > 0
-            ? `
-        <div class="summary-row">
-        <span>នៅសល់</span>
-        <span>
-            $${(order.remainingAmount ?? 0).toFixed(2)}
-        </span>
-        </div>
-        `
-            : ""
-        }
+    ${
+      (order.remainingAmount ?? 0) > 0
+        ? `
+    <div class="summary-row">
+      <span>នៅសល់</span>
+      <span>
+        $${(order.remainingAmount ?? 0).toFixed(2)}
+      </span>
+    </div>
+    `
+        : ""
+    }
 
   </div>
 
@@ -340,7 +360,6 @@ function buildInvoiceHtml(order: Order) {
   </div>
 
   <table class="info-table">
-
     <tr>
       <td class="label">
         ស្ថានភាព
@@ -366,20 +385,23 @@ function buildInvoiceHtml(order: Order) {
     `
         : ""
     }
-
   </table>
 
   ${
     order.note
       ? `
   <div class="note">
-    <strong>កំណត់ចំណាំ</strong>
-    <br />
+    <strong>កំណត់ចំណាំ</strong><br />
     ${escapeHtml(order.note)}
   </div>
   `
       : ""
   }
+
+  <div class="footer">
+    សូមអរគុណសម្រាប់ការគាំទ្រ!
+  </div>
+
 </body>
 </html>
 `;
@@ -745,11 +767,11 @@ export function ViewReport({
           ) : null}
 
           {/* Footer */}
-          {/* <View className="items-center mt-7">
+          <View className="items-center mt-7">
             <Text className="font-khmer text-gray-400 text-xl">
-              សូមអរគុណសម្រាប់ការទិញរបស់អ្នក ❤️
+              សូមអរគុណសម្រាប់ចំពោះការកម្មង់របស់អ្នក❤️
             </Text>
-          </View> */}
+          </View>
         </View>
       </ScrollView>
 

@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useResponsive } from "@/hooks/useResponsive";
 
 type TabKey = "add" | "history" | "products" | "expiry";
 
@@ -16,6 +17,8 @@ type StockTabBarProps = {
 };
 
 export function StockTabBar({ active, onChange }: StockTabBarProps) {
+  const { isSmallPhone } = useResponsive();
+
   return (
     <View className="flex-row bg-gray-50 px-2 py-3 border-b border-gray-100">
       {TABS.map((tab) => {
@@ -25,7 +28,14 @@ export function StockTabBar({ active, onChange }: StockTabBarProps) {
             <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: isActive ? tab.color : `${tab.color}1A` }}>
               <Ionicons name={tab.icon} size={24} color={isActive ? "white" : tab.color} />
             </View>
-            <Text className={`font-khmerMedium text-[18px] mt-1 text-center ${ isActive ? "text-gray-900" : "text-gray-400" }`} numberOfLines={1}>
+            <Text
+              className={`font-khmerMedium mt-1 text-center ${
+                isActive ? "text-gray-900" : "text-gray-400"
+              }`}
+              style={{ fontSize: isSmallPhone ? 14 : 16 }}
+              numberOfLines={1}
+              allowFontScaling={false}
+            >
               {tab.label}
             </Text>
           </TouchableOpacity>

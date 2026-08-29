@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { View, Text, ScrollView, ActivityIndicator, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useResponsive } from "@/hooks/useResponsive";
 import { StockTabBar } from "../components/StockTabBar";
 import { ProductCard } from "../components/ProductCard";
 import type { StockTabKey } from "./StockScreen";
@@ -15,6 +16,7 @@ type LowStockScreenProps = {
 
 export function LowStockScreen({ onNavigate }: LowStockScreenProps) {
   const { data, isLoading } = useExpiringStock();
+  const { isSmallPhone } = useResponsive();
   const [selectedFilter, setSelectedFilter] = useState<FilterKey>("all");
 
   const critical = data.filter((p) => p.expiryBucket === "critical");
@@ -49,8 +51,13 @@ export function LowStockScreen({ onNavigate }: LowStockScreenProps) {
               onPress={() => setSelectedFilter(isSelected ? "all" : item.key)}
               className={`${isSelected ? item.selectedBg : item.bg} flex-1 rounded-xl p-2.5 items-center ${isSelected ? `border-2 ${item.border}` : "border-2 border-transparent"}`}
             >
-              <Text className={`font-khmerBold text-2xl ${item.text}`}>{item.label}</Text>
-              <Text className={`font-khmerBold text-xl mt-1 ${item.text}`}>
+              <Text
+                className={`font-khmerBold text-center ${isSmallPhone ? "text-sm leading-tight" : "text-lg leading-tight"} ${item.text}`}
+                numberOfLines={isSmallPhone ? 3 : 2}
+              >
+                {item.label}
+              </Text>
+              <Text className={`font-khmerBold mt-1 ${item.text}`} style={{ fontSize: isSmallPhone ? 15 : 18 }} allowFontScaling={false}>
                 {item.count} {item.unit}
               </Text>
             </Pressable>

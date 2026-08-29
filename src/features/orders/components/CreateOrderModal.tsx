@@ -12,6 +12,7 @@ import {
   Keyboard,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DateField } from "../../stock/components/DateField";
 import { Dropdown } from "../../stock/components/Dropdown";
 import { useStockList } from "../../stock/hooks/useStockList";
@@ -127,6 +128,8 @@ export function CreateOrderModal({
       [key]: value,
     }));
   };
+
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (visible) {
@@ -245,7 +248,7 @@ export function CreateOrderModal({
                     : "on-drag"
                 }
                 contentContainerStyle={{
-                  paddingBottom: 40,
+                  paddingBottom: 40 + insets.bottom,
                 }}
               >
                 {/* Code */}

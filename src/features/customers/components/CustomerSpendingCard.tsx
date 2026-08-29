@@ -32,15 +32,15 @@ export function CustomerSpendingCard({
             />
           </View>
 
-          <Text className="font-khmer text-gray-400 text-[17px]">
+          <Text className="font-khmer text-gray-400 text-[17px]" maxFontSizeMultiplier={1.3}>
             សរុបការបញ្ជាទិញ
           </Text>
 
-          <Text className="font-khmerBold text-gray-900 text-2xl mt-0.5">
+          <Text className="font-khmerBold text-gray-900 text-2xl mt-0.5 text-center" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.3} style={{ width: "100%" }}>
             {customer.totalOrders}
           </Text>
 
-          <Text className="font-khmer text-gray-400 text-[17px]">
+          <Text className="font-khmer text-gray-400 text-[17px]" maxFontSizeMultiplier={1.3}>
             ការបញ្ជាទិញ
           </Text>
         </Pressable>
@@ -55,15 +55,15 @@ export function CustomerSpendingCard({
             />
           </View>
 
-          <Text className="font-khmer text-gray-400 text-[17px]">
+          <Text className="font-khmer text-gray-400 text-[17px]" maxFontSizeMultiplier={1.3}>
             សរុបប្រាក់
           </Text>
 
-          <Text className="font-khmerBold text-green-600 text-2xl mt-0.5">
+          <Text className="font-khmerBold text-green-600 text-2xl mt-0.5 text-center" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5} maxFontSizeMultiplier={1.3} style={{ width: "100%" }}>
             ${customer.totalSpent.toFixed(2)}
           </Text>
 
-          <Text className="font-khmer text-gray-400 text-[17px]">
+          <Text className="font-khmer text-gray-400 text-[17px]" maxFontSizeMultiplier={1.3}>
             សរុប
           </Text>
         </View>
@@ -84,12 +84,12 @@ export function CustomerSpendingCard({
               color="#9CA3AF"
             />
 
-            <Text className="font-khmer text-gray-500 text-xl ml-2">
+            <Text className="font-khmer text-gray-500 text-xl ml-2 flex-1" numberOfLines={1} maxFontSizeMultiplier={1.3}>
               ចូលរួមបញ្ជាទិញ
             </Text>
           </View>
 
-          <Text className="font-khmer text-gray-800 text-xl">
+          <Text className="font-khmer text-gray-800 text-xl text-right flex-shrink ml-3" numberOfLines={1} maxFontSizeMultiplier={1.3}>
             {customer.memberSince}
           </Text>
         </View>

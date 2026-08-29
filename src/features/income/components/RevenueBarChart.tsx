@@ -88,6 +88,8 @@ export function RevenueBarChart({ data, height = 140 }: RevenueBarChartProps) {
             <Text
               className="font-khmerBold text-blue-600 text-[12px] mb-1"
               numberOfLines={1}
+              allowFontScaling={false}
+              maxFontSizeMultiplier={1.3}
               style={{ opacity: showLabel ? 1 : 0 }}
             >
               ${Math.round(point.amount)}
@@ -99,6 +101,8 @@ export function RevenueBarChart({ data, height = 140 }: RevenueBarChartProps) {
             <Text
               className="font-khmer text-[11px] mt-1.5"
               numberOfLines={1}
+              allowFontScaling={false}
+              maxFontSizeMultiplier={1.3}
               style={{ color: LABEL_COLOR, opacity: showLabel ? 1 : 0 }}
             >
               {point.label}

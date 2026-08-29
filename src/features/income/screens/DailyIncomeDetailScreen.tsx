@@ -578,7 +578,7 @@ export function DailyIncomeDetailScreen({
                     ចំណូលសរុប
                   </Text>
 
-                  <Text className="font-khmerBold text-white text-2xl mt-1">
+                  <Text className="font-khmerBold text-white text-2xl mt-1" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} maxFontSizeMultiplier={1.3} style={{ width: "100%" }}>
                     $
                     {Number(
                       summary.totalIncome ?? 0
@@ -647,7 +647,7 @@ export function DailyIncomeDetailScreen({
                     សាច់ប្រាក់ចូល
                   </Text>
 
-                  <Text className="font-khmer text-gray-800 text-xl">
+                  <Text className="font-khmer text-gray-800 text-xl flex-shrink ml-3 text-right" numberOfLines={1} maxFontSizeMultiplier={1.3}>
                     $
                     {Number(
                       summary.cashCollected ?? 0
@@ -665,7 +665,7 @@ export function DailyIncomeDetailScreen({
                     បញ្ចុះតម្លៃ
                   </Text>
 
-                  <Text className="font-khmer text-gray-800 text-xl">
+                  <Text className="font-khmer text-gray-800 text-xl flex-shrink ml-3 text-right" numberOfLines={1} maxFontSizeMultiplier={1.3}>
                     $
                     {Number(
                       summary.discount ?? 0
@@ -683,7 +683,7 @@ export function DailyIncomeDetailScreen({
                     ចំណាយផ្សេង
                   </Text>
 
-                  <Text className="font-khmer text-gray-800 text-xl">
+                  <Text className="font-khmer text-gray-800 text-xl flex-shrink ml-3 text-right" numberOfLines={1} maxFontSizeMultiplier={1.3}>
                     $
                     {Number(
                       summary.otherExpense ?? 0
@@ -701,7 +701,7 @@ export function DailyIncomeDetailScreen({
                     សរុបចំណេញ
                   </Text>
 
-                  <Text className="font-khmerBold text-blue-600 text-xl">
+                  <Text className="font-khmerBold text-blue-600 text-xl flex-shrink ml-3 text-right" numberOfLines={1} maxFontSizeMultiplier={1.3}>
                     $
                     {Number(
                       summary.netTotal ?? 0

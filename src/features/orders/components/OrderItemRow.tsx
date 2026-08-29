@@ -28,23 +28,24 @@ export function OrderItemRow({ item }: OrderItemRowProps) {
       <View className="flex-1 ml-3">
         <View className="flex-row items-center">
           <Text
-            className="font-khmerMedium text-gray-900 text-xl flex-1"
+            className="font-khmerMedium text-gray-900 text-xl flex-1 mr-2"
             numberOfLines={1}
+            maxFontSizeMultiplier={1.3}
           >
             {item.name}
           </Text>
 
-          <Text className="font-khmer text-gray-400 text-xl mr-2">
+          <Text className="font-khmer text-gray-400 text-xl" maxFontSizeMultiplier={1.3}>
             x{item.qty}
           </Text>
         </View>
 
-        <Text className="font-khmer text-gray-400 text-xl mt-0.5">
+        <Text className="font-khmer text-gray-400 text-xl mt-0.5" maxFontSizeMultiplier={1.3}>
           ${item.price.toFixed(2)}
         </Text>
       </View>
 
-      <Text className="font-khmerBold text-gray-900 text-xl">
+      <Text className="font-khmerBold text-gray-900 text-xl" maxFontSizeMultiplier={1.3}>
         ${(item.price * item.qty).toFixed(2)}
       </Text>
     </View>

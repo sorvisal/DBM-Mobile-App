@@ -311,6 +311,8 @@ export function CustomerOrderHistoryList({
                 >
                   <Text
                     className={`font-khmer text-lg font-medium ${tone.text}`}
+                    numberOfLines={1}
+                    maxFontSizeMultiplier={1.3}
                   >
                     {statusText}
                   </Text>
@@ -328,11 +330,11 @@ export function CustomerOrderHistoryList({
                   ITEM COUNT + TOTAL
               --------------------------------- */}
               <View className="flex-row items-center justify-between">
-                <Text className="font-khmer text-gray-600 text-lg">
+                <Text className="font-khmer text-gray-600 text-lg flex-1 mr-2" numberOfLines={1} maxFontSizeMultiplier={1.3}>
                   {itemCount} មុខទំនិញ
                 </Text>
 
-                <Text className="font-khmerBold text-blue-600 text-lg">
+                <Text className="font-khmerBold text-blue-600 text-lg" numberOfLines={1} maxFontSizeMultiplier={1.3}>
                   ${total.toFixed(2)}
                 </Text>
               </View>

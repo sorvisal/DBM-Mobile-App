@@ -122,6 +122,8 @@ export function MonthlyIncomeDetailScreen({ onBack, onGoDebtors }: MonthlyIncome
                     className={`font-khmer text-xl ${
                       item.value === month ? "text-blue-600" : "text-gray-700"
                     }`}
+                    numberOfLines={1}
+                    maxFontSizeMultiplier={1.3}
                   >
                     {item.label}
                   </Text>
@@ -152,7 +154,7 @@ export function MonthlyIncomeDetailScreen({ onBack, onGoDebtors }: MonthlyIncome
               <View className="bg-blue-600 rounded-2xl p-4 flex-row items-center justify-between">
                 <View>
                   <Text className="font-khmer text-white/80 text-xl">ចំណូលសរុប</Text>
-                  <Text className="font-khmerBold text-white text-3xl mt-1">${summary.totalIncome.toFixed(2)}</Text>
+                  <Text className="font-khmerBold text-white text-3xl mt-1" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5} maxFontSizeMultiplier={1.3} style={{ width: "100%" }}>${summary.totalIncome.toFixed(2)}</Text>
                   <Text className="font-khmer text-white/70 text-[16px] mt-1">
                     ការបញ្ជាទិញ {summary.orderCount} ការកម្មង់
                   </Text>
@@ -165,10 +167,10 @@ export function MonthlyIncomeDetailScreen({ onBack, onGoDebtors }: MonthlyIncome
               {/* Chart */}
               <View className="bg-white rounded-2xl p-4 mt-4">
                 <View className="flex-row items-center justify-between mb-3">
-                  <Text className="font-khmerBold text-gray-900 text-xl">ក្រាហ្វប្រចាំថ្ងៃក្នុងខែនេះ</Text>
+                  <Text className="font-khmerBold text-gray-900 text-xl flex-1 mr-2" numberOfLines={2} maxFontSizeMultiplier={1.3}>ក្រាហ្វប្រចាំថ្ងៃក្នុងខែនេះ</Text>
 
                   <View className="bg-gray-100 rounded-full px-3 py-1">
-                    <Text className="font-khmer text-gray-600 text-xl">ខែ</Text>
+                    <Text className="font-khmer text-gray-600 text-xl" maxFontSizeMultiplier={1.3}>ខែ</Text>
                   </View>
                 </View>
                 <RevenueBarChart data={chartData} height={130} />
@@ -177,9 +179,9 @@ export function MonthlyIncomeDetailScreen({ onBack, onGoDebtors }: MonthlyIncome
               {/* Debtors */}
               <View className="mt-4">
                 <View className="flex-row items-center justify-between mb-2">
-                  <Text className="font-khmerBold text-gray-900 text-xl">ចំណូលអតិថិជនសរុប</Text>
+                  <Text className="font-khmerBold text-gray-900 text-xl flex-1 mr-2" numberOfLines={2} maxFontSizeMultiplier={1.3}>ចំណូលអតិថិជនសរុប</Text>
                   <TouchableOpacity onPress={onGoDebtors} className="flex-row items-center gap-1">
-                    <Text className="font-khmer text-blue-600 text-xl">មើលទាំងអស់</Text>
+                    <Text className="font-khmer text-blue-600 text-xl" numberOfLines={1} maxFontSizeMultiplier={1.3}>មើលទាំងអស់</Text>
                     <Ionicons name="chevron-forward" size={12} color="#2563EB" />
                   </TouchableOpacity>
                 </View>

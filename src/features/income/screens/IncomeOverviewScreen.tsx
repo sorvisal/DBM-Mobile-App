@@ -192,7 +192,7 @@ export function IncomeOverviewScreen({
 
           <View className="flex-row items-center justify-between mb-2">
 
-            <Text className="font-khmerBold text-gray-900 text-lg">
+            <Text className="font-khmerBold text-gray-900 text-lg flex-1 mr-2" numberOfLines={2} maxFontSizeMultiplier={1.3}>
               {RANGE_TITLE[chartRange]}
             </Text>
 

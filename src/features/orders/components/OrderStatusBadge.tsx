@@ -11,7 +11,9 @@ export function OrderStatusBadge({ status }: OrderStatusBadgeProps) {
 
   return (
     <View className={`${tone.bg} rounded-full px-2.5 py-1 self-start`}>
-      <Text className={`font-khmerBold text-[14px] ${tone.text}`}>{STATUS_LABELS[normalized]}</Text>
+      <Text className={`font-khmerBold text-[14px] ${tone.text}`} numberOfLines={1} allowFontScaling={false}>
+        {STATUS_LABELS[normalized]}
+      </Text>
     </View>
   );
 }

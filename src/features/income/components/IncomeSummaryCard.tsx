@@ -32,14 +32,14 @@ export function IncomeSummaryCard({
       <View className={`${iconBg} w-10 h-10 rounded-lg items-center justify-center mb-2`}>
         <Ionicons name={icon} size={22} color={iconColor} />
       </View>
-      <Text className="font-khmer text-gray-400 text-[17px]" numberOfLines={1}>
+      <Text className="font-khmer text-gray-400 text-[17px]" numberOfLines={1} maxFontSizeMultiplier={1.3}>
         {label}
       </Text>
-      <Text className="font-khmerBold text-gray-900 text-xl mt-0.5">${amount.toFixed(2)}</Text>
+      <Text className="font-khmerBold text-gray-900 text-xl mt-0.5" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} maxFontSizeMultiplier={1.3} style={{ width: "100%" }}>${amount.toFixed(2)}</Text>
       <View className="flex-row items-center mt-0.5 ">
-        <Text className="font-khmer text-gray-400 text-[16px]">{subLabel}</Text>
+        <Text className="font-khmer text-gray-400 text-[16px] flex-1 mr-1" numberOfLines={1} maxFontSizeMultiplier={1.3}>{subLabel}</Text>
         {growthPercent !== undefined && (
-          <Text className="font-khmer text-green-600 text-[16px] ml-1">▲{growthPercent}%</Text>
+          <Text className="font-khmer text-green-600 text-[16px]" numberOfLines={1} maxFontSizeMultiplier={1.3}>▲{growthPercent}%</Text>
         )}
       </View>
     </TouchableOpacity>

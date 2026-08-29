@@ -60,7 +60,12 @@ export function DateField({ placeholder, value, onChange }: DateFieldProps) {
           onPress={handleOpen}
           className="flex-row items-center justify-between border border-gray-200 rounded-xl px-3 h-11"
         >
-          <Text className={`font-khmer text-lg ${value ? "text-gray-800" : "text-gray-400"}`}>
+          <Text
+            className={`font-khmer text-lg ${value ? "text-gray-800" : "text-gray-400"}`}
+            numberOfLines={1}
+            maxFontSizeMultiplier={1.3}
+            style={{ flexShrink: 1 }}
+          >
             {displayLabel}
           </Text>
           <Ionicons name="calendar-outline" size={16} color="#9CA3AF" />
@@ -102,7 +107,12 @@ export function DateField({ placeholder, value, onChange }: DateFieldProps) {
         onPress={handleOpen}
         className="flex-row items-center justify-between border border-gray-200 rounded-xl px-3 h-11"
       >
-        <Text className={`font-khmer text-lg ${value ? "text-gray-800" : "text-gray-400"}`}>
+        <Text
+          className={`font-khmer text-lg ${value ? "text-gray-800" : "text-gray-400"}`}
+          numberOfLines={1}
+          maxFontSizeMultiplier={1.3}
+          style={{ flexShrink: 1 }}
+        >
           {displayLabel}
         </Text>
         <Ionicons name="calendar-outline" size={16} color="#9CA3AF" />

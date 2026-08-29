@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { View, Text, TouchableOpacity, Modal, FlatList, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type DropdownOption = {
   label: string;
@@ -16,6 +17,7 @@ type DropdownProps = {
 
 export function Dropdown({ placeholder, options, value, onChange }: DropdownProps) {
   const [open, setOpen] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const selectedLabel = options.find((o) => o.value === value)?.label;
 
@@ -47,6 +49,7 @@ export function Dropdown({ placeholder, options, value, onChange }: DropdownProp
             <FlatList
               data={options}
               keyExtractor={(item) => item.value}
+              contentContainerStyle={{ paddingBottom: insets.bottom + 12 }}
               renderItem={({ item }) => {
                 const isSelected = item.value === value;
                 return (
@@ -57,7 +60,12 @@ export function Dropdown({ placeholder, options, value, onChange }: DropdownProp
                     }}
                     className="flex-row items-center justify-between px-5 py-3.5 border-b border-gray-50"
                   >
-                    <Text className={`font-khmer text-2xl ${isSelected ? "text-blue-600" : "text-gray-800"}`}>
+                    <Text
+                      className={`font-khmer text-2xl ${isSelected ? "text-blue-600" : "text-gray-800"}`}
+                      numberOfLines={1}
+                      maxFontSizeMultiplier={1.3}
+                      style={{ flexShrink: 1 }}
+                    >
                       {item.label}
                     </Text>
                     {isSelected && <Ionicons name="checkmark" size={20} color="#2563EB" />}

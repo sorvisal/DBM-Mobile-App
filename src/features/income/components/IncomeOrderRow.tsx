@@ -143,7 +143,7 @@ export function IncomeOrderRow({
         </Text>
 
         {/* Date / Time */}
-        <Text className="font-khmer text-gray-400 text-[16px] mt-0.5">
+        <Text className="font-khmer text-gray-400 text-[16px] mt-0.5" numberOfLines={1} maxFontSizeMultiplier={1.3}>
           {displayTime}
         </Text>
 
@@ -151,26 +151,29 @@ export function IncomeOrderRow({
         <Text
           className="font-khmer text-gray-400 text-[16px] mt-0.5"
           numberOfLines={1}
+          maxFontSizeMultiplier={1.3}
         >
           {order.customerName}
         </Text>
       </View>
 
       {/* Amount */}
-      <View className="items-end">
+      <View className="items-end ml-2">
         {/* Status */}
         <View
           className={`${tone.bg} rounded-full px-2 py-0.5 mb-1`}
         >
           <Text
             className={`font-khmer text-[14px] ${tone.text}`}
+            numberOfLines={1}
+            maxFontSizeMultiplier={1.3}
           >
             {tone.label}
           </Text>
         </View>
 
         {/* Total */}
-        <Text className="font-khmerBold text-gray-900 text-xl">
+        <Text className="font-khmerBold text-gray-900 text-xl text-right" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.3} style={{ alignSelf: "flex-end", maxWidth: "100%" }}>
           $
           {Number(
             order.amount ?? 0

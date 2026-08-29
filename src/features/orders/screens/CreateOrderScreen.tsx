@@ -20,6 +20,7 @@ import {
   type AddressResult,
 } from "@/components/AddressAutocomplete";
 import { Header } from "@/components/layout/Header";
+import { useResponsive } from "@/hooks/useResponsive";
 import { api, invalidateOrderCache } from "@/services";
 
 type CreateOrderScreenProps = {
@@ -94,6 +95,7 @@ const PAYMENT_METHODS = [
 export function CreateOrderScreen({ onBack }: CreateOrderScreenProps) {
   const { data: products, isLoading: productsLoading } = useStockList();
   const { allCustomers, isLoading: customersLoading } = useCustomerList();
+  const { isSmallPhone } = useResponsive();
 
   const [code] = useState(generateCode);
   const [date, setDate] = useState<Date | null>(new Date());
@@ -366,35 +368,35 @@ export function CreateOrderScreen({ onBack }: CreateOrderScreenProps) {
               )}
             </FormField>
 
-            {orderItems.map((item) => (
-              <View
-                key={item.productId}
-                className="flex-row items-center bg-gray-50 rounded-xl p-3 mb-3"
-              >
-                {item.imageUrl ? (
-                  <Image
-                    source={{ uri: item.imageUrl }}
-                    resizeMode="cover"
-                    className="w-14 h-14 rounded-xl bg-gray-100"
-                  />
-                ) : (
-                  <View className="w-14 h-14 rounded-xl bg-gray-100 items-center justify-center">
-                    <Ionicons name="image-outline" size={24} color="#D1D5DB" />
-                  </View>
-                )}
+            {orderItems.map((item) => {
+              const imageEl = item.imageUrl ? (
+                <Image
+                  source={{ uri: item.imageUrl }}
+                  resizeMode="cover"
+                  className="w-14 h-14 rounded-xl bg-gray-100"
+                />
+              ) : (
+                <View className="w-14 h-14 rounded-xl bg-gray-100 items-center justify-center">
+                  <Ionicons name="image-outline" size={24} color="#D1D5DB" />
+                </View>
+              );
 
+              const infoEl = (
                 <View className="flex-1 ml-3">
                   <Text
                     className="font-khmerMedium text-gray-900 text-lg"
                     numberOfLines={1}
+                    maxFontSizeMultiplier={1.3}
                   >
                     {item.name}
                   </Text>
-                  <Text className="font-khmer text-gray-400 text-base mt-0.5">
+                  <Text className="font-khmer text-gray-400 text-base mt-0.5" maxFontSizeMultiplier={1.3}>
                     ${item.price.toFixed(2)}
                   </Text>
                 </View>
+              );
 
+              const stepperEl = (
                 <View className="flex-row items-center gap-2">
                   <TouchableOpacity
                     onPress={() => handleDecrementQuantity(item.productId)}
@@ -402,7 +404,7 @@ export function CreateOrderScreen({ onBack }: CreateOrderScreenProps) {
                   >
                     <Ionicons name="remove" size={18} color="#374151" />
                   </TouchableOpacity>
-                  <Text className="font-khmerBold text-gray-900 text-lg w-8 text-center">
+                  <Text className="font-khmerBold text-gray-900 text-lg w-8 text-center" allowFontScaling={false}>
                     {item.quantity}
                   </Text>
                   <TouchableOpacity
@@ -412,19 +414,55 @@ export function CreateOrderScreen({ onBack }: CreateOrderScreenProps) {
                     <Ionicons name="add" size={18} color="#2563EB" />
                   </TouchableOpacity>
                 </View>
+              );
 
-                <Text className="font-khmerBold text-gray-900 text-lg ml-3 w-20 text-right">
+              const subtotalEl = (
+                <Text className="font-khmerBold text-gray-900 text-lg ml-3 w-20 text-right" maxFontSizeMultiplier={1.3}>
                   ${(item.price * item.quantity).toFixed(2)}
                 </Text>
+              );
 
+              const removeEl = (
                 <TouchableOpacity
                   onPress={() => handleRemoveItem(item.productId)}
                   className="ml-2 p-1"
                 >
                   <Ionicons name="close-circle" size={22} color="#EF4444" />
                 </TouchableOpacity>
-              </View>
-            ))}
+              );
+
+              if (isSmallPhone) {
+                return (
+                  <View
+                    key={item.productId}
+                    className="bg-gray-50 rounded-xl p-3 mb-3"
+                  >
+                    <View className="flex-row items-center">
+                      {imageEl}
+                      {infoEl}
+                      {removeEl}
+                    </View>
+                    <View className="flex-row items-center justify-between mt-3">
+                      {stepperEl}
+                      {subtotalEl}
+                    </View>
+                  </View>
+                );
+              }
+
+              return (
+                <View
+                  key={item.productId}
+                  className="flex-row items-center bg-gray-50 rounded-xl p-3 mb-3"
+                >
+                  {imageEl}
+                  {infoEl}
+                  {stepperEl}
+                  {subtotalEl}
+                  {removeEl}
+                </View>
+              );
+            })}
           </SectionCard>
 
           {/* ── Delivery Information ── */}
@@ -491,7 +529,7 @@ export function CreateOrderScreen({ onBack }: CreateOrderScreenProps) {
             {subtotal > 0 && (
               <View className="bg-gray-50 rounded-xl px-4 py-3">
                 <Text className="font-khmer text-gray-600 text-base">
-                  នៅសល់៖{" "}
+                  ទឹកប្រាក់សរុប{" "}
                   <Text className="font-khmerBold text-gray-900">
                     ${remaining.toFixed(2)}
                   </Text>

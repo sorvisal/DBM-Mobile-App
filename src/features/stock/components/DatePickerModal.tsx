@@ -55,6 +55,7 @@ function WheelColumn({
                   ? "text-gray-500 text-2xl"
                   : "text-gray-400 text-2xl"
               }`}
+              allowFontScaling={false}
             >
               {item}
             </Text>
@@ -102,11 +103,11 @@ export function DatePickerModal({ visible, initialDate, onCancel, onConfirm }: D
 
           <View className="flex-row border-t border-gray-200">
             <TouchableOpacity onPress={onCancel} className="flex-1 items-center justify-center py-3.5">
-              <Text className="font-khmer text-gray-500 text-2xl">CANCEL</Text>
+              <Text className="font-khmer text-gray-500 text-2xl" allowFontScaling={false}>CANCEL</Text>
             </TouchableOpacity>
             <View className="w-px bg-gray-100" />
             <TouchableOpacity onPress={handleOk} className="flex-1 items-center justify-center py-3.5">
-              <Text className="font-khmerBold text-blue-600 text-2xl">OK</Text>
+              <Text className="font-khmerBold text-blue-600 text-2xl" allowFontScaling={false}>OK</Text>
             </TouchableOpacity>
           </View>
         </View>

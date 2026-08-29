@@ -1,6 +1,7 @@
 import { Fragment } from "react";
 import { View, Text } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { typography } from "@/theme";
 import { DashboardStat } from "../types/dashboard.types";
 import { StatItem } from "./StatItem";
 
@@ -15,7 +16,16 @@ export function SummaryStatsCard({ stats }: SummaryStatsCardProps) {
         <View className="bg-white/30 rounded-full p-1">
           <Feather name="trending-up" size={24} color="rgba(255,255,255,0.85)" />
         </View>
-        <Text className="font-khmerMedium text-white/85 text-2xl">សង្ខេបព័ត៌មានប្រចាំថ្ងៃ</Text>
+        <Text
+          className="font-khmerMedium text-white/85 text-xl"
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.8}
+          maxFontSizeMultiplier={typography.maxFontSizeMultiplier}
+          style={{ flexShrink: 1, width: "91%" }}
+        >
+          សង្ខេបព័ត៌មានប្រចាំថ្ងៃ
+        </Text>
       </View>
 
       <View className="flex-row items-stretch">

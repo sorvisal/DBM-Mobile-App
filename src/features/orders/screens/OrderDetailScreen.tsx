@@ -9,6 +9,8 @@ import {
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useResponsive } from "@/hooks/useResponsive";
 
 import { OrderStatus } from "../types/types";
 import { useOrderDetail } from "../hooks/useOrderDetail";
@@ -44,6 +46,12 @@ export function OrderDetailScreen({
 
   const { order, isLoading, refresh } =
     useOrderDetail(orderId);
+
+  const insets = useSafeAreaInsets();
+  const { isSmallPhone } = useResponsive();
+  const footerStyle = {
+    paddingBottom: Math.max(insets.bottom, 8),
+  };
 
   const {
     confirmOrder,
@@ -287,7 +295,7 @@ export function OrderDetailScreen({
         color="#FFFFFF"
       />
     ) : (
-      <Text className="font-khmerBold text-white text-xl">
+      <Text className="font-khmerBold text-white text-xl" maxFontSizeMultiplier={1.3}>
         {label}
       </Text>
     );
@@ -601,13 +609,13 @@ export function OrderDetailScreen({
         OrderStatus.New ||
         order.status ===
           OrderStatus.Pending) && (
-        <View className="px-5 py-3 bg-white border-t border-gray-100 flex-row gap-3">
+        <View className="px-5 pt-3 bg-white border-t border-gray-100 flex-row gap-3" style={footerStyle}>
           <TouchableOpacity
             onPress={handleCancel}
             disabled={!!actionLoading}
             className="flex-1 border border-red-500 rounded-xl h-12 items-center justify-center"
           >
-            <Text className="font-khmerBold text-red-500 text-xl">
+            <Text className="font-khmerBold text-red-500 text-xl" maxFontSizeMultiplier={1.3}>
               បោះបង់
             </Text>
           </TouchableOpacity>
@@ -631,13 +639,13 @@ export function OrderDetailScreen({
 
       {order.status ===
         OrderStatus.Approved && (
-        <View className="px-5 py-3 bg-white border-t border-gray-100 flex-row gap-3">
+        <View className="px-5 pt-3 bg-white border-t border-gray-100" style={footerStyle}>
           <TouchableOpacity
             onPress={() =>
               setAssignDriverVisible(true)
             }
             disabled={!!actionLoading}
-            className="flex-1 bg-blue-600 rounded-xl h-12 items-center justify-center mb-8"
+            className="bg-blue-600 rounded-xl h-12 items-center justify-center"
           >
             {actionLabel(
               "assignDriver",
@@ -653,12 +661,19 @@ export function OrderDetailScreen({
 
       {order.status ===
         OrderStatus.Shipping && (
-        <View className="px-5 py-3 bg-white border-t border-gray-100 flex-row gap-3 mb-6">
+        <View
+          className={`px-5 pt-3 bg-white border-t border-gray-100 gap-3 ${
+            isSmallPhone ? "" : "flex-row"
+          }`}
+          style={footerStyle}
+        >
           {order.delivery?.driverPhone ? (
             <TouchableOpacity
               onPress={callDriver}
               disabled={!!actionLoading}
-              className="flex-1 border border-blue-600 rounded-xl h-12 items-center justify-center flex-row gap-1.5"
+              className={`${
+                isSmallPhone ? "" : "flex-1"
+              } border border-blue-600 rounded-xl h-12 items-center justify-center flex-row gap-1.5`}
             >
               <Ionicons
                 name="call-outline"
@@ -666,7 +681,7 @@ export function OrderDetailScreen({
                 color="#2563EB"
               />
 
-              <Text className="font-khmerBold text-blue-600 text-xl">
+              <Text className="font-khmerBold text-blue-600 text-xl" maxFontSizeMultiplier={1.3}>
                 ទាក់ទងអ្នកដឹកជញ្ជូន
               </Text>
             </TouchableOpacity>
@@ -675,7 +690,9 @@ export function OrderDetailScreen({
           <TouchableOpacity
             onPress={handleConfirm}
             disabled={!!actionLoading}
-            className="flex-1 bg-blue-600 rounded-xl h-12 items-center justify-center"
+            className={`${
+              isSmallPhone ? "" : "flex-1"
+            } bg-blue-600 rounded-xl h-12 items-center justify-center`}
           >
             {actionLabel(
               "confirm",
@@ -691,11 +708,11 @@ export function OrderDetailScreen({
 
       {order.status ===
         OrderStatus.Confirmed && (
-        <View className="px-5 py-3 bg-white border-t border-gray-100 flex-row gap-3">
+        <View className="px-5 pt-3 bg-white border-t border-gray-100" style={footerStyle}>
           <TouchableOpacity
             onPress={handleComplete}
             disabled={!!actionLoading}
-            className="flex-1 bg-blue-600 rounded-xl h-12 items-center justify-center mb-8"
+            className="bg-blue-600 rounded-xl h-12 items-center justify-center"
           >
             {actionLabel(
               "complete",
@@ -711,12 +728,13 @@ export function OrderDetailScreen({
 
       {order.status ===
         OrderStatus.Completed && (
-        <View className="px-5 py-3 bg-white border-t border-gray-100 flex-row gap-3">
+        <View className="px-5 pt-3 bg-white border-t border-gray-100" style={footerStyle}>
           {/* Uncomplete */}
           <TouchableOpacity
             onPress={handleUncomplete}
             disabled={!!actionLoading}
-            className="flex-1 border border-orange-500 rounded-xl h-12 items-center justify-center mb-8"
+            activeOpacity={0.7}
+            className="border border-orange-500 rounded-xl h-12 items-center justify-center"
           >
             {actionLoading ===
             "uncomplete" ? (
@@ -725,7 +743,7 @@ export function OrderDetailScreen({
                 color="#EA580C"
               />
             ) : (
-              <Text className="font-khmerBold text-orange-500 text-xl">
+              <Text className="font-khmerBold text-orange-500 text-xl" maxFontSizeMultiplier={1.3}>
                 មិនទាន់បញ្ចប់
               </Text>
             )}
@@ -738,7 +756,7 @@ export function OrderDetailScreen({
             }
             disabled={!!actionLoading}
             activeOpacity={0.7}
-            className="flex-1 border border-blue-600 rounded-xl h-12 items-center justify-center mb-8"
+            className="border border-blue-600 rounded-xl h-12 items-center justify-center mt-3"
           >
             <View className="flex-row items-center">
               <Ionicons
@@ -747,7 +765,7 @@ export function OrderDetailScreen({
                 color="#2563EB"
               />
 
-              <Text className="font-khmerBold text-blue-600 text-xl ml-2">
+              <Text className="font-khmerBold text-blue-600 text-xl ml-2" maxFontSizeMultiplier={1.3}>
                 មើលវិក័យប័ត្រ
               </Text>
             </View>

@@ -70,14 +70,15 @@ export function Header({
 
           {/* Centered Title */}
           <View
-            className="absolute left-0 right-0 items-center justify-center"
+            className="absolute left-0 right-0 flex-row justify-center px-12"
             pointerEvents="none"
           >
-            <Text 
+            <Text
               className={`font-khmerBold text-2xl ${
                 isWhite ? "text-gray-900" : "text-white"
-              }`} 
+              }`}
               numberOfLines={1}
+              maxFontSizeMultiplier={1.2}
             >
               {title ?? "DBM App"}
             </Text>
