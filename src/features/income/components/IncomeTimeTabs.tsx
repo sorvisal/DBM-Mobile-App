@@ -7,7 +7,7 @@ const TABS: { key: IncomeTabKey; label: string }[] = [
   { key: "daily", label: "ប្រចាំថ្ងៃ" },
   { key: "monthly", label: "ប្រចាំខែ" },
   { key: "yearly", label: "ប្រចាំឆ្នាំ" },
-  { key: "debt", label: "ចំណូល" },
+  { key: "debt", label: "បំណុល" },
 ];
 
 type IncomeTimeTabsProps = {
@@ -33,7 +33,7 @@ export function IncomeTimeTabs({ active, onChange }: IncomeTimeTabsProps) {
               numberOfLines={1}
               adjustsFontSizeToFit
               allowFontScaling={false}
-              className={`font-khmerMedium text-sm ${isActive ? "text-white" : "text-gray-600"}`}
+              className={`font-khmerMedium text-lg ${isActive ? "text-white" : "text-gray-600"}`}
             >
               {tab.label}
             </Text>

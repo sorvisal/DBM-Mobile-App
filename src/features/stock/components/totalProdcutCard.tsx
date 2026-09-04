@@ -30,9 +30,9 @@ export function TotalProductCard({
       style={{ shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 }}
     >
       {imageUrl && !/^(blob|data):/i.test(imageUrl) ? (
-        <Image source={{ uri: imageUrl }} resizeMode="cover" className="w-12 h-16 rounded-xl" />
+        <Image source={{ uri: imageUrl }} resizeMode="cover" className="w-16 h-16 rounded-xl" />
       ) : (
-        <View className="w-12 h-16 rounded-xl bg-gray-100 items-center justify-center">
+        <View className="w-16 h-16 rounded-xl bg-gray-100 items-center justify-center">
           <Ionicons name="image-outline" size={20} color="#D1D5DB" />
         </View>
       )}
