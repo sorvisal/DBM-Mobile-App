@@ -1,3 +1,4 @@
+
 {
   "expo": {
     "name": "DBM App",
@@ -6,14 +7,12 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "statusBar": {
-      "style": "dark",
-      "backgroundColor": "blue"
-    },
+
     "ios": {
       "bundleIdentifier": "com.dbmapp.mobile",
       "supportsTablet": true
     },
+
     "android": {
       "package": "com.dbmapp.mobile",
       "adaptiveIcon": {
@@ -24,15 +23,18 @@
       },
       "predictiveBackGestureEnabled": false
     },
+
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
+
     "plugins": [
       "expo-font",
       "expo-splash-screen",
       "@react-native-community/datetimepicker"
     ],
+
     "extra": {
       "eas": {
         "projectId": "679818ed-d9ea-4494-866e-68456de91f0e"
