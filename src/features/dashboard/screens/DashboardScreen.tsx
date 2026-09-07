@@ -5,6 +5,7 @@ import { SummaryStatsCard } from "../components/SummaryStatsCard";
 import { QuickActionGrid } from "../components/QuickActionGrid";
 import { RecentActivityList } from "../components/RecentActivityList";
 import { QuickAction } from "../types/dashboard.types";
+import { DashboardStat } from "../types/dashboard.types";
 import { useAuth } from "@/hooks/useAuth";
 
 const QUICK_ACTIONS: QuickAction[] = [
@@ -13,12 +14,18 @@ const QUICK_ACTIONS: QuickAction[] = [
   { key: "customers", icon: "people-outline", iconBg: "bg-purple-50", iconColor: "#9333EA", title: "អតិថិជន", subtitle: "គ្រប់គ្រងអតិថិជន" },
   { key: "income", icon: "bar-chart-outline", iconBg: "bg-orange-50", iconColor: "#EA580C", title: "ហិរញ្ញវត្ថុ", subtitle: "របាយការណ៍ចំណូល" },
 ];
-
 type DashboardScreenProps = {
-  onNavigateTab?: (tab: "stock" | "orders" | "customers" | "income") => void;
+  onNavigateTab?: (
+    tab: "stock" | "orders" | "customers" | "income"
+  ) => void;
+
+  onNavigateStockTab?: (tab: "products" | "expiry" | "history" | "add") => void;
 };
 
-export function DashboardScreen({ onNavigateTab }: DashboardScreenProps) {
+export function DashboardScreen({
+  onNavigateTab,
+  onNavigateStockTab,
+}: DashboardScreenProps) {
   // If your hook returns a refresh/refetch function, destructure it here (e.g., refresh)
   const { stats, recentActivity, isLoading, refresh } = useDashboardSummary();
   const { user } = useAuth();
@@ -59,13 +66,36 @@ export function DashboardScreen({ onNavigateTab }: DashboardScreenProps) {
         </Text>
       </View>
 
-      <SummaryStatsCard stats={stats} />
+<SummaryStatsCard
+  stats={stats}
+  onPressStat={(stat: DashboardStat) => {
+    switch (stat.key) {
+      case "totalStock":
+        onNavigateTab?.("stock");
+        break;
+
+      case "totalIncome":
+        onNavigateTab?.("income");
+        break;
+
+      case "totalOrder":
+        onNavigateTab?.("orders");
+        break;
+
+      case "expiringSoon":
+        onNavigateStockTab?.("expiry");
+        break;
+
+      default:
+        break;
+    }
+  }}
+/>
 
       <QuickActionGrid
         actions={QUICK_ACTIONS}
         onPressAction={(key) => onNavigateTab?.(key as "stock" | "orders" | "customers" | "income")}
       />
-
       <RecentActivityList items={recentActivity} isLoading={isLoading} onViewAll={() => onNavigateTab?.("orders")} />
     </ScrollView>
   );

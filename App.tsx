@@ -4,7 +4,7 @@ import * as SplashScreenNative from "expo-splash-screen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ReducedMotionConfig, ReduceMotion } from "react-native-reanimated";
-
+import { KeyboardProvider } from "react-native-keyboard-controller";
 import { RootLayout } from "./src/layouts/RootLayout";
 import { AuthLayout } from "./src/layouts/AuthLayout";
 import { SplashScreen } from "./src/screens/SplashScreen";
@@ -66,16 +66,31 @@ export default function App() {
   if (!fontsLoaded && !fontError) {
     return null;
   }
-
-  return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+return (
+  <GestureHandlerRootView style={{ flex: 1 }}>
+    <KeyboardProvider>
       <ReducedMotionConfig mode={ReduceMotion.Never} />
+
       <SafeAreaProvider>
-        {stage === "splash" && <SplashScreen onFinish={handleSplashFinish} />}
-        {stage === "auth" && <AuthLayout onAuthenticated={() => setStage("main")} />}
-        {stage === "main" && <RootLayout onLogout={() => setStage("auth")} />}
+        {stage === "splash" && (
+          <SplashScreen onFinish={handleSplashFinish} />
+        )}
+
+        {stage === "auth" && (
+          <AuthLayout
+            onAuthenticated={() => setStage("main")}
+          />
+        )}
+
+        {stage === "main" && (
+          <RootLayout
+            onLogout={() => setStage("auth")}
+          />
+        )}
+
         <ApiLoadingOverlay />
       </SafeAreaProvider>
-    </GestureHandlerRootView>
-  );
+    </KeyboardProvider>
+  </GestureHandlerRootView>
+);
 }

@@ -17,7 +17,7 @@ import { OrdersScreen } from "../features/orders/screens/OrdersScreen";
 import { CustomersScreen } from "../features/customers/screens/CustomersScreen";
 import { IncomeScreen } from "../features/income/screens/IncomeScreen";
 import { MoreScreen } from "../features/more/screens/MoreScreen";
-
+import type { StockTabKey } from "../features/stock/screens/StockScreen";
 type TabKey =
   | "dashboard"
   | "stock"
@@ -139,25 +139,31 @@ export function RootLayout({
 
   const { user } = useAuth();
 
-  const handleTabPress = useCallback(
-    (tab: TabKey) => {
-      if (tab !== activeTab) {
-        setPrevTab(activeTab);
-        setActiveTab(tab);
+const handleTabPress = useCallback(
+  (tab: TabKey) => {
+    if (tab !== activeTab) {
+      setPrevTab(activeTab);
+      setActiveTab(tab);
 
-        setMountedTabs((prev) =>
-          prev[tab]
-            ? prev
-            : {
-                ...prev,
-                [tab]: true,
-              }
-        );
-      }
-    },
-    [activeTab]
-  );
-
+      setMountedTabs((prev) =>
+        prev[tab]
+          ? prev
+          : {
+              ...prev,
+              [tab]: true,
+            }
+      );
+    }
+  },
+  [activeTab]
+);
+const handleStockNavigation = useCallback(
+  (tab: StockTabKey) => {
+    setStockInitialTab(tab);
+    handleTabPress("stock");
+  },
+  [handleTabPress]
+);
   const handleCustomersChromeChange =
     useCallback((hidden: boolean) => {
       setChromeHiddenByTab((prev) =>
@@ -203,6 +209,8 @@ export function RootLayout({
   const enterFrom =
     activeIdx > prevIdx ? 1 : -1;
 
+    const [stockInitialTab, setStockInitialTab] =
+  useState<StockTabKey>("products");
   return (
     <View className="flex-1 bg-gray-50">
       <MainLayout
@@ -225,9 +233,10 @@ export function RootLayout({
               activeTab={activeTab}
               enterFrom={enterFrom}
             >
-              <DashboardScreen
-                onNavigateTab={handleTabPress}
-              />
+            <DashboardScreen
+              onNavigateTab={handleTabPress}
+              onNavigateStockTab={handleStockNavigation}
+            />
             </TabHost>
           )}
 
@@ -237,7 +246,7 @@ export function RootLayout({
               activeTab={activeTab}
               enterFrom={enterFrom}
             >
-              <StockScreen />
+              <StockScreen initialTab={stockInitialTab} />
             </TabHost>
           )}
 

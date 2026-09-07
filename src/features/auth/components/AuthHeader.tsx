@@ -21,7 +21,7 @@ export function AuthHeader() {
 
       {/* App name + tagline */}
       <Text className="font-khmerBold text-white text-3xl" numberOfLines={1} maxFontSizeMultiplier={1.3}>DBM App</Text>
-      <Text className="font-khmer text-white/70 text-2xl mt-1 text-center px-4" numberOfLines={2} maxFontSizeMultiplier={1.3}>ប្រព័ន្ធគ្រប់គ្រងស្តុក</Text>
+      <Text className="font-khmer text-white/70 text-2xl mt-1 text-center px-4" numberOfLines={2} maxFontSizeMultiplier={1.3}>ប្រព័ន្ធគ្រប់គ្រងអាជីវកម្មបែបឌីជីថល</Text>
     </View>
   );
 }

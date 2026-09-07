@@ -4,12 +4,12 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  ScrollView,
   ActivityIndicator,
-  KeyboardAvoidingView,
   Platform,
   Image,
 } from "react-native";
+
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { Ionicons } from "@expo/vector-icons";
 import { DateField } from "../../stock/components/DateField";
 import { Dropdown } from "../../stock/components/Dropdown";
@@ -87,9 +87,8 @@ const androidInputStyle = {
 };
 
 const PAYMENT_METHODS = [
-  { label: "សាច់ប្រាក់", value: "cash" },
-  { label: "ធនាគារ", value: "bank" },
-  { label: "ផ្សេងទៀត", value: "other" },
+  { label: "លុយខ្មែរ", value: "cash" },
+  { label: "លុយដុល្លារ", value: "bank" },
 ];
 
 export function CreateOrderScreen({ onBack }: CreateOrderScreenProps) {
@@ -278,15 +277,21 @@ export function CreateOrderScreen({ onBack }: CreateOrderScreenProps) {
         variant="white"
       />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        className="flex-1"
-      >
-        <ScrollView
+        <KeyboardAwareScrollView
+          className="flex-1"
+          bottomOffset={24}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingBottom: 40,
+          }}
+        >
+        {/* <ScrollView
           className="flex-1"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 40 }}
-        >
+        > */}
           {/* ── Order Information ── */}
           <SectionCard title="ព័ត៌មានការបញ្ជាទិញ">
             <FormField label="លេខកូដ">
@@ -310,16 +315,14 @@ export function CreateOrderScreen({ onBack }: CreateOrderScreenProps) {
           {/* ── Customer Information ── */}
           <SectionCard title="ព័ត៌មានអតិថិជន">
             <FormField label="ឈ្មោះអតិថិជន" required>
-              <Dropdown
-                placeholder={
-                  customersLoading
-                    ? "កំពុងផ្ទុកអតិថិជន..."
-                    : "ជ្រើសរើសអតិថិជន"
-                }
-                options={customerOptions}
-                value={customerId || null}
-                onChange={handleSelectCustomer}
-              />
+            <Dropdown
+              placeholder="ជ្រើសរើសអតិថិជន"
+              options={customerOptions}
+              value={customerId || null}
+              onChange={handleSelectCustomer}
+              searchable
+              searchPlaceholder="ស្វែងរកឈ្មោះអតិថិជន..."
+            />
               {errors.customer && (
                 <Text className="text-red-500 font-khmer text-sm mt-1">
                   {errors.customer}
@@ -336,7 +339,7 @@ export function CreateOrderScreen({ onBack }: CreateOrderScreenProps) {
                 ) : null}
                 {customerAddress ? (
                   <Text className="font-khmer text-gray-600 text-lg mt-1">
-                    អាសយដ្ឋាន៖ {customerAddress}
+                    អាស័យដ្ឋាន៖ {customerAddress}
                   </Text>
                 ) : null}
                 {!customerPhone && !customerAddress && (
@@ -352,14 +355,12 @@ export function CreateOrderScreen({ onBack }: CreateOrderScreenProps) {
           <SectionCard title="ព័ត៌មានទំនិញ">
             <FormField label="ទំនិញ" required>
               <Dropdown
-                placeholder={
-                  productsLoading
-                    ? "កំពុងផ្ទុកទំនិញ..."
-                    : "ជ្រើសរើសទំនិញ"
-                }
+                placeholder="ជ្រើសរើសទំនិញ"
                 options={productOptions}
                 value={selectedProductId}
                 onChange={handleSelectProduct}
+                searchable
+                searchPlaceholder="ស្វែងរកឈ្មោះផលិតផល..."
               />
               {errors.product && (
                 <Text className="text-red-500 font-khmer text-sm mt-1">
@@ -503,7 +504,7 @@ export function CreateOrderScreen({ onBack }: CreateOrderScreenProps) {
           {/* ── Payment Information ── */}
           <SectionCard title="ព័ត៌មានការទូទាត់">
             <FormField label="វិធីបង់ប្រាក់">
-              <Dropdown
+             <Dropdown
                 placeholder="ជ្រើសរើសវិធីបង់ប្រាក់"
                 options={PAYMENT_METHODS}
                 value={paymentMethod}
@@ -622,8 +623,7 @@ export function CreateOrderScreen({ onBack }: CreateOrderScreenProps) {
               </Text>
             </TouchableOpacity>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
     </View>
   );
 }
