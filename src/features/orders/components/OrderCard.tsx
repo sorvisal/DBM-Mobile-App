@@ -1,17 +1,43 @@
 import { useRef } from "react";
-import { View, Text, TouchableOpacity, Animated } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Animated,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Swipeable } from "react-native-gesture-handler";
-import { Order, OrderStatus } from "../types/types";
+import {
+  Order,
+  OrderStatus,
+} from "../types/types";
 import { OrderStatusBadge } from "./OrderStatusBadge";
 import { deleteOrder } from "../hooks/useOrderList";
+
+const USD_TO_KHR = 4046.81;
 
 type OrderCardProps = {
   order: Order;
   onPress: () => void;
 };
 
-function DeleteAction({ progress, orderId }: { progress: Animated.AnimatedInterpolation<number>; orderId: string }) {
+const formatUSD = (amount: number) => {
+  return `$${amount.toFixed(2)}`;
+};
+
+const formatKHR = (amount: number) => {
+  return `${Math.round(amount).toLocaleString(
+    "en-US"
+  )} ៛`;
+};
+
+function DeleteAction({
+  progress,
+  orderId,
+}: {
+  progress: Animated.AnimatedInterpolation<number>;
+  orderId: string;
+}) {
   const scale = progress.interpolate({
     inputRange: [0, 1],
     outputRange: [0.8, 1],
@@ -21,43 +47,129 @@ function DeleteAction({ progress, orderId }: { progress: Animated.AnimatedInterp
     <TouchableOpacity
       onPress={() => deleteOrder(orderId)}
       className="bg-red-500 rounded-2xl mb-3 ml-2 items-center justify-center"
-      style={{ width: 72 }}
+      style={{
+        width: 72,
+      }}
     >
-      <Animated.View style={{ transform: [{ scale }] }} className="items-center">
-        <Ionicons name="trash-outline" size={20} color="white" />
-        <Text className="font-khmer text-white text-[10px] mt-1">លុប</Text>
+      <Animated.View
+        style={{
+          transform: [{ scale }],
+        }}
+        className="items-center"
+      >
+        <Ionicons
+          name="trash-outline"
+          size={20}
+          color="white"
+        />
+
+        <Text className="font-khmer text-white text-[10px] mt-1">
+          លុប
+        </Text>
       </Animated.View>
     </TouchableOpacity>
   );
 }
 
-export function OrderCard({ order, onPress }: OrderCardProps) {
-  const swipeableRef = useRef<Swipeable>(null);
-  const isCancelled = order.status === OrderStatus.Cancelled;
+export function OrderCard({
+  order,
+  onPress,
+}: OrderCardProps) {
+  const swipeableRef =
+    useRef<Swipeable>(null);
+
+  const isCancelled =
+    order.status ===
+    OrderStatus.Cancelled;
+
+  const isKHRPayment =
+    order.paymentMethod === "cash";
+
+  const displayTotal = isKHRPayment
+    ? formatKHR(
+        order.total * USD_TO_KHR
+      )
+    : formatUSD(order.total);
 
   const cardContent = (
     <TouchableOpacity
       onPress={onPress}
       className="flex-row items-center bg-white rounded-2xl p-3 mb-3"
-      style={{ shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 }}
+      style={{
+        shadowColor: "#000",
+        shadowOpacity: 0.04,
+        shadowRadius: 6,
+        elevation: 1,
+      }}
     >
-      <View className="w-11 h-11 rounded-xl bg-blue-50 items-center justify-center">
-        <Ionicons name="receipt-outline" size={26} color="#2563EB" />
-      </View>
 
+      <View className="w-11 h-11 rounded-xl bg-blue-50 items-center justify-center">
+        <Ionicons
+          name="receipt-outline"
+          size={26}
+          color="#2563EB"
+        />
+      </View>
       <View className="flex-1 ml-3">
+        {/* CODE + STATUS */}
+
         <View className="flex-row items-center justify-between">
-          <Text className="font-khmerMedium text-gray-900 text-xl flex-1 mr-2" numberOfLines={1} maxFontSizeMultiplier={1.3}>
+          <Text
+            className="font-khmerMedium text-gray-900 text-xl flex-1 mr-2"
+            numberOfLines={1}
+            maxFontSizeMultiplier={1.3}
+          >
             {order.code}
           </Text>
-          <OrderStatusBadge status={order.status} />
+
+          <OrderStatusBadge
+            status={order.status}
+          />
         </View>
-        <Text className="font-khmerMedium text-gray-400 text-[17px] mt-1" numberOfLines={1} maxFontSizeMultiplier={1.3}>
+
+        {/* CUSTOMER */}
+
+        <Text
+          className="font-khmerMedium text-gray-400 text-[17px] mt-1"
+          numberOfLines={1}
+          maxFontSizeMultiplier={1.3}
+        >
           {order.customer.name}
         </Text>
+
+        {/* DATE + TOTAL */}
+
         <View className="flex-row items-center justify-between mt-1.5">
-          <Text className="font-khmer text-gray-400 text-[15px]" maxFontSizeMultiplier={1.3}>{order.createdAt}</Text>
-          <Text className="font-khmerBold text-gray-900 text-xl" maxFontSizeMultiplier={1.3}>${order.total.toFixed(2)}</Text>
+          <Text
+            className="font-khmer text-gray-400 text-[15px]"
+            maxFontSizeMultiplier={1.3}
+          >
+            {order.createdAt}
+          </Text>
+
+          {/* TOTAL */}
+
+          <View className="items-end">
+            <Text
+              className="font-khmerBold text-gray-900 text-xl"
+              maxFontSizeMultiplier={1.3}
+            >
+              {displayTotal}
+            </Text>
+
+            {/* Show USD equivalent for KHR */}
+
+            {isKHRPayment && (
+              <Text
+                className="font-khmer text-gray-400 text-base mt-0.5"
+                maxFontSizeMultiplier={1.2}
+              >
+                ({formatUSD(
+                  order.total
+                )})
+              </Text>
+            )}
+          </View>
         </View>
       </View>
     </TouchableOpacity>
@@ -70,7 +182,14 @@ export function OrderCard({ order, onPress }: OrderCardProps) {
   return (
     <Swipeable
       ref={swipeableRef}
-      renderRightActions={(progress) => <DeleteAction progress={progress} orderId={order.id} />}
+      renderRightActions={(
+        progress
+      ) => (
+        <DeleteAction
+          progress={progress}
+          orderId={order.id}
+        />
+      )}
       overshootRight={false}
     >
       {cardContent}

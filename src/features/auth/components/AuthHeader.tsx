@@ -1,27 +1,48 @@
-import { View, Text } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { View, Text, Image } from "react-native";
+import { APP_LOGO } from "../../../constants/appAssets";
 
 export function AuthHeader() {
   return (
-    <View className="bg-blue-600 h-60 items-center justify-center overflow-hidden mt-0.5">
-      {/* Decorative light-primary blobs */}
+    <View className="items-center pt-10 pb-8">
+      {/* Logo */}
       <View
-        className="absolute bg-blue-400/30 rounded-full"
-        style={{ width: 160, height: 160, top: -60, left: -40 }}
-      />
-      <View
-        className="absolute bg-blue-500/40 rounded-full"
-        style={{ width: 120, height: 120, bottom: -50, right: -30 }}
-      />
-
-      {/* Logo mark */}
-      <View className="w-16 h-16 rounded-2xl bg-white/15 items-center justify-center mb-3">
-        <Ionicons name="cube" size={36} color="white" />
+        className="w-24 h-24 bg-white rounded-3xl items-center justify-center overflow-hidden"
+        style={{
+          shadowColor: "#000",
+          shadowOpacity: 0.08,
+          shadowRadius: 12,
+          shadowOffset: {
+            width: 0,
+            height: 5,
+          },
+          elevation: 3,
+        }}
+      >
+        <Image
+          source={APP_LOGO}
+          style={{
+            width: 100,
+            height: 70,
+          }}
+          resizeMode="contain"
+        />
       </View>
 
-      {/* App name + tagline */}
-      <Text className="font-khmerBold text-white text-3xl" numberOfLines={1} maxFontSizeMultiplier={1.3}>DBM App</Text>
-      <Text className="font-khmer text-white/70 text-2xl mt-1 text-center px-4" numberOfLines={2} maxFontSizeMultiplier={1.3}>ប្រព័ន្ធគ្រប់គ្រងអាជីវកម្មបែបឌីជីថល</Text>
+      {/* App Name */}
+      <Text
+        className="font-khmerBold text-gray-900 text-3xl mt-2"
+        numberOfLines={1}
+      >
+        DB Management
+      </Text>
+
+      {/* Description */}
+      <Text
+        className="font-khmerMedium text-gray-400 text-lg mt-1 text-center px-6"
+        numberOfLines={2}
+      >
+        ប្រព័ន្ធគ្រប់គ្រងអាជីវកម្មបែបឌីជីថល
+      </Text>
     </View>
   );
 }

@@ -12,7 +12,7 @@ const QUICK_ACTIONS: QuickAction[] = [
   { key: "stock", icon: "cube-outline", iconBg: "bg-blue-50", iconColor: "#2563EB", title: "ស្តុក", subtitle: "គ្រប់គ្រងស្តុកទំនិញ" },
   { key: "orders", icon: "cart-outline", iconBg: "bg-green-50", iconColor: "#16A34A", title: "ការបញ្ជាទិញ", subtitle: "គ្រប់គ្រងការបញ្ជាទិញ" },
   { key: "customers", icon: "people-outline", iconBg: "bg-purple-50", iconColor: "#9333EA", title: "អតិថិជន", subtitle: "គ្រប់គ្រងអតិថិជន" },
-  { key: "income", icon: "bar-chart-outline", iconBg: "bg-orange-50", iconColor: "#EA580C", title: "ហិរញ្ញវត្ថុ", subtitle: "របាយការណ៍ចំណូល" },
+  { key: "income", icon: "bar-chart-outline", iconBg: "bg-orange-50", iconColor: "#EA580C", title: "ចំណូល", subtitle: "របាយការណ៍ចំណូល" },
 ];
 type DashboardScreenProps = {
   onNavigateTab?: (

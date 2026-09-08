@@ -13,7 +13,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { DateField } from "../../stock/components/DateField";
-import { Dropdown } from "../../stock/components/Dropdown";
 import { useStockList } from "../../stock/hooks/useStockList";
 import { useCustomerList } from "../../customers/hooks/useCustomerList";
 
@@ -531,11 +530,6 @@ export function CreateOrderModal({
                 placeholder="បញ្ចូលអាសយដ្ឋានដឹកជញ្ជូន"
               />
             </FormField>
-
-            {/* =================================================
-                SUBMIT
-            ================================================== */}
-
             <TouchableOpacity
               onPress={handleSubmit}
               activeOpacity={0.8}

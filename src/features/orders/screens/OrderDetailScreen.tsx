@@ -34,23 +34,66 @@ const PAYMENT_STATUS_LABELS: Record<string, string> = {
   paid: "បានបង់រួច",
 };
 
+/*
+ * ============================================================
+ * CURRENCY
+ * ============================================================
+ *
+ * CreateOrderScreen:
+ *
+ * cash = KHR
+ * bank = USD
+ *
+ * Exchange rate:
+ * 1 USD = 4,046.81 KHR
+ */
+const USD_TO_KHR = 4046.81;
+
+const PAYMENT_CURRENCY_LABELS: Record<string, string> = {
+  cash: "🇰🇭 លុយខ្មែរ (៛)",
+  bank: "🇺🇸 លុយដុល្លារ ($)",
+};
+
+/*
+ * ============================================================
+ * FORMAT CURRENCY
+ * ============================================================
+ */
+
+const formatUSD = (amount: number) => {
+  return `$${amount.toFixed(2)}`;
+};
+
+const formatKHR = (amount: number) => {
+  return `${Math.round(amount).toLocaleString(
+    "en-US"
+  )} ៛`;
+};
+
 export function OrderDetailScreen({
   orderId,
   onBack,
 }: OrderDetailScreenProps) {
   // =========================================================
   // HOOKS
-  // IMPORTANT:
-  // ALL HOOKS MUST BE BEFORE ANY CONDITIONAL RETURN
   // =========================================================
 
-  const { order, isLoading, refresh } =
-    useOrderDetail(orderId);
+  const {
+    order,
+    isLoading,
+    refresh,
+  } = useOrderDetail(orderId);
 
   const insets = useSafeAreaInsets();
-  const { isSmallPhone } = useResponsive();
+
+  const { isSmallPhone } =
+    useResponsive();
+
   const footerStyle = {
-    paddingBottom: Math.max(insets.bottom, 8),
+    paddingBottom: Math.max(
+      insets.bottom,
+      8
+    ),
   };
 
   const {
@@ -62,16 +105,20 @@ export function OrderDetailScreen({
     cancelOrder,
   } = useUpdateOrderStatus();
 
-  const [assignDriverVisible, setAssignDriverVisible] =
-    useState(false);
+  const [
+    assignDriverVisible,
+    setAssignDriverVisible,
+  ] = useState(false);
 
-  const [actionLoading, setActionLoading] =
-    useState<string | null>(null);
+  const [
+    actionLoading,
+    setActionLoading,
+  ] = useState<string | null>(null);
 
-  // FIX:
-  // This hook must be declared with the other hooks.
-  const [showReport, setShowReport] =
-    useState(false);
+  const [
+    showReport,
+    setShowReport,
+  ] = useState(false);
 
   // =========================================================
   // ACTION HELPER
@@ -88,7 +135,6 @@ export function OrderDetailScreen({
     try {
       await fn();
 
-      // Reload order after successful action
       refresh();
     } catch (error) {
       if (__DEV__) {
@@ -159,17 +205,14 @@ export function OrderDetailScreen({
   // =========================================================
   // VIEW REPORT
   // =========================================================
-  //
-  // IMPORTANT:
-  // This is AFTER all hooks.
-  // No hooks are declared below this point.
-  //
 
   if (showReport) {
     return (
       <ViewReport
         order={order}
-        onBack={() => setShowReport(false)}
+        onBack={() =>
+          setShowReport(false)
+        }
       />
     );
   }
@@ -181,22 +224,26 @@ export function OrderDetailScreen({
   const handleApprove = () => {
     runAction(
       "approve",
-      () => approveOrder(order.id)
+      () =>
+        approveOrder(order.id)
     );
   };
 
   const handleConfirm = () => {
     runAction(
       "confirm",
-      () => confirmOrder(order.id)
+      () =>
+        confirmOrder(order.id)
     );
   };
 
-  const handleAssignDriver = (values: {
-    driverName: string;
-    driverPhone: string;
-    vehiclePlate: string;
-  }) => {
+  const handleAssignDriver = (
+    values: {
+      driverName: string;
+      driverPhone: string;
+      vehiclePlate: string;
+    }
+  ) => {
     setAssignDriverVisible(false);
 
     runAction(
@@ -210,16 +257,58 @@ export function OrderDetailScreen({
     );
   };
 
-  const handleComplete = () => {
-    const remaining =
-      order.remainingAmount ?? 0;
+  // =========================================================
+  // PAYMENT / CURRENCY
+  // =========================================================
 
-    if (remaining > 0) {
+  /*
+   * cash = KHR
+   * bank = USD
+   */
+  const isKHRPayment =
+    order.paymentMethod === "cash";
+
+  const paidAmountUSD =
+    order.paidAmount ?? 0;
+
+  const remainingAmountUSD =
+    order.remainingAmount ?? 0;
+
+  const paidAmountKHR =
+    paidAmountUSD * USD_TO_KHR;
+
+  const remainingAmountKHR =
+    remainingAmountUSD * USD_TO_KHR;
+
+  /*
+   * Used by complete validation.
+   *
+   * Backend values are USD-equivalent,
+   * so this remains in USD internally.
+   */
+  const remainingForValidation =
+    remainingAmountUSD;
+
+  // =========================================================
+  // COMPLETE
+  // =========================================================
+
+  const handleComplete = () => {
+    if (remainingForValidation > 0) {
+      const remainingText =
+        isKHRPayment
+          ? `${formatKHR(
+              remainingAmountKHR
+            )} (≈ ${formatUSD(
+              remainingAmountUSD
+            )})`
+          : formatUSD(
+              remainingAmountUSD
+            );
+
       Alert.alert(
         "មិនអាចបញ្ចប់ការបញ្ជាទិញបានទេ",
-        `អតិថិជននៅមិនទាន់បង់ប្រាក់ $${remaining.toFixed(
-          2
-        )}។ សូមទូទាត់ប្រាក់ជាមុនសិន។`,
+        `អតិថិជននៅមិនទាន់បង់ប្រាក់ ${remainingText}។ សូមទូទាត់ប្រាក់ជាមុនសិន។`,
         [
           {
             text: "យល់ព្រម",
@@ -232,9 +321,14 @@ export function OrderDetailScreen({
 
     runAction(
       "complete",
-      () => completeOrder(order.id)
+      () =>
+        completeOrder(order.id)
     );
   };
+
+  // =========================================================
+  // CANCEL
+  // =========================================================
 
   const handleCancel = () => {
     Alert.alert(
@@ -251,17 +345,23 @@ export function OrderDetailScreen({
           onPress: () =>
             runAction(
               "cancel",
-              () => cancelOrder(order.id)
+              () =>
+                cancelOrder(order.id)
             ),
         },
       ]
     );
   };
 
+  // =========================================================
+  // UNCOMPLETE
+  // =========================================================
+
   const handleUncomplete = () => {
     runAction(
       "uncomplete",
-      () => uncompleteOrder(order.id)
+      () =>
+        uncompleteOrder(order.id)
     );
   };
 
@@ -270,14 +370,18 @@ export function OrderDetailScreen({
   // =========================================================
 
   const callDriver = () => {
-    if (order.delivery?.driverPhone) {
+    if (
+      order.delivery?.driverPhone
+    ) {
       const phone =
         order.delivery.driverPhone.replace(
           /\s/g,
           ""
         );
 
-      Linking.openURL(`tel:${phone}`);
+      Linking.openURL(
+        `tel:${phone}`
+      );
     }
   };
 
@@ -295,7 +399,10 @@ export function OrderDetailScreen({
         color="#FFFFFF"
       />
     ) : (
-      <Text className="font-khmerBold text-white text-xl" maxFontSizeMultiplier={1.3}>
+      <Text
+        className="font-khmerBold text-white text-xl"
+        maxFontSizeMultiplier={1.3}
+      >
         {label}
       </Text>
     );
@@ -308,7 +415,20 @@ export function OrderDetailScreen({
     order.paymentStatus
       ? PAYMENT_STATUS_LABELS[
           order.paymentStatus
-        ] ?? order.paymentStatus
+        ] ??
+        order.paymentStatus
+      : null;
+
+  // =========================================================
+  // PAYMENT CURRENCY LABEL
+  // =========================================================
+
+  const paymentCurrencyLabel =
+    order.paymentMethod
+      ? PAYMENT_CURRENCY_LABELS[
+          order.paymentMethod
+        ] ??
+        order.paymentMethod
       : null;
 
   // =========================================================
@@ -360,9 +480,11 @@ export function OrderDetailScreen({
             STATUS / STEPPER
         ================================================== */}
 
-        {/* <View className="bg-white rounded-2xl p-4 mb-3">
+        {/*
+        <View className="bg-white rounded-2xl p-4 mb-3">
           <OrderStepper status={order.status} />
-        </View> */}
+        </View>
+        */}
 
         {/* =================================================
             CUSTOMER INFORMATION
@@ -373,7 +495,6 @@ export function OrderDetailScreen({
             ព័ត៌មានអតិថិជន
           </Text>
 
-          {/* Name */}
           <View className="flex-row items-start justify-between py-1">
             <Text className="font-khmer text-gray-400 text-xl">
               ឈ្មោះ
@@ -384,7 +505,6 @@ export function OrderDetailScreen({
             </Text>
           </View>
 
-          {/* Phone */}
           {order.customer.phone ? (
             <View className="flex-row items-start justify-between py-1">
               <Text className="font-khmer text-gray-400 text-xl">
@@ -397,7 +517,6 @@ export function OrderDetailScreen({
             </View>
           ) : null}
 
-          {/* Address */}
           {order.customer.address ||
           order.address ? (
             <View className="flex-row items-start justify-between py-1">
@@ -412,7 +531,6 @@ export function OrderDetailScreen({
             </View>
           ) : null}
 
-          {/* Order Note */}
           {order.note?.trim() ? (
             <View className="flex-row items-start justify-between py-1">
               <Text className="font-khmer text-gray-400 text-xl">
@@ -443,7 +561,10 @@ export function OrderDetailScreen({
                 </Text>
 
                 <Text className="font-khmer text-gray-800 text-xl">
-                  {order.delivery.driverName}
+                  {
+                    order.delivery
+                      .driverName
+                  }
                 </Text>
               </View>
             ) : null}
@@ -455,11 +576,13 @@ export function OrderDetailScreen({
                 </Text>
 
                 <Text className="font-khmer text-gray-800 text-xl">
-                  {order.delivery.driverPhone}
+                  {
+                    order.delivery
+                      .driverPhone
+                  }
                 </Text>
               </View>
             ) : null}
-
             {order.delivery.vehiclePlate ? (
               <View className="flex-row items-center justify-between py-1">
                 <Text className="font-khmer text-gray-400 text-xl">
@@ -467,19 +590,23 @@ export function OrderDetailScreen({
                 </Text>
 
                 <Text className="font-khmer text-gray-800 text-xl">
-                  {order.delivery.vehiclePlate}
+                  {
+                    order.delivery
+                      .vehiclePlate
+                  }
                 </Text>
               </View>
             ) : null}
-
             {order.delivery.confirmedAt ? (
               <View className="flex-row items-center justify-between py-1">
                 <Text className="font-khmer text-gray-400 text-xl">
                   ការបញ្ជាក់
                 </Text>
-
                 <Text className="font-khmer text-gray-800 text-xl">
-                  {order.delivery.confirmedAt}
+                  {
+                    order.delivery
+                      .confirmedAt
+                  }
                 </Text>
               </View>
             ) : null}
@@ -491,16 +618,15 @@ export function OrderDetailScreen({
                 </Text>
 
                 <Text className="font-khmer text-gray-800 text-xl">
-                  {order.delivery.deliveredAt}
+                  {
+                    order.delivery
+                      .deliveredAt
+                  }
                 </Text>
               </View>
             ) : null}
           </View>
         )}
-
-        {/* =================================================
-            ORDER ITEMS
-        ================================================== */}
 
         <View className="bg-white rounded-2xl p-4 mb-3">
           <Text className="font-khmerBold text-gray-900 text-2xl mb-1">
@@ -518,20 +644,18 @@ export function OrderDetailScreen({
 
           <OrderSummary
             subtotal={order.subtotal}
-            deliveryFee={order.deliveryFee}
+            deliveryFee={
+              order.deliveryFee
+            }
             total={order.total}
           />
         </View>
-
-        {/* =================================================
-            PAYMENT INFORMATION
-        ================================================== */}
-
         <View className="bg-white rounded-2xl p-4 mb-3">
           <Text className="font-khmerBold text-gray-900 text-2xl mb-3">
             ព័ត៌មានបង់ប្រាក់
           </Text>
 
+          {/* PAYMENT STATUS */}
           {paymentStatusLabel ? (
             <View className="flex-row items-center justify-between py-1">
               <Text className="font-khmer text-gray-400 text-xl">
@@ -544,7 +668,7 @@ export function OrderDetailScreen({
                   "paid"
                     ? "text-green-600"
                     : order.paymentStatus ===
-                      "partial"
+                        "partial"
                     ? "text-orange-600"
                     : "text-red-600"
                 }`}
@@ -554,45 +678,100 @@ export function OrderDetailScreen({
             </View>
           ) : null}
 
-          {order.paidAmount != null ? (
+          {/* PAID AMOUNT */}
+          {order.paidAmount !=
+          null ? (
             <View className="flex-row items-center justify-between py-1">
               <Text className="font-khmer text-gray-400 text-xl">
                 បានបង់
               </Text>
 
-              <Text className="font-khmer text-gray-800 text-xl">
-                $
-                {order.paidAmount.toFixed(
-                  2
-                )}
-              </Text>
+              <View className="items-end">
+                <Text className="font-khmerBold text-green-600 text-xl">
+                  {isKHRPayment
+                    ? formatKHR(
+                        paidAmountKHR
+                      )
+                    : formatUSD(
+                        paidAmountUSD
+                      )}
+                </Text>
+
+                {isKHRPayment ? (
+                  <Text className="font-khmer text-gray-400 text-sm mt-0.5">
+                    (
+                    {formatUSD(
+                      paidAmountUSD
+                    )}
+                    )
+                  </Text>
+                ) : null}
+              </View>
             </View>
           ) : null}
 
-          {order.remainingAmount != null &&
-          order.remainingAmount > 0 ? (
+          {/* REMAINING AMOUNT */}
+          {order.remainingAmount !=
+            null &&
+          remainingAmountUSD > 0 ? (
             <View className="flex-row items-center justify-between py-1">
               <Text className="font-khmer text-gray-400 text-xl">
                 នៅសល់
               </Text>
 
-              <Text className="font-khmer text-red-500 text-xl">
-                $
-                {order.remainingAmount.toFixed(
-                  2
-                )}
+              <View className="items-end">
+                <Text className="font-khmer text-red-500 text-xl">
+                  {isKHRPayment
+                    ? formatKHR(
+                        remainingAmountKHR
+                      )
+                    : formatUSD(
+                        remainingAmountUSD
+                      )}
+                </Text>
+
+                {isKHRPayment ? (
+                  <Text className="font-khmer text-gray-400 text-sm mt-0.5">
+                    (
+                    {formatUSD(
+                      remainingAmountUSD
+                    )}
+                    )
+                  </Text>
+                ) : null}
+              </View>
+            </View>
+          ) : null}
+
+          {/* PAYMENT METHOD */}
+          {paymentCurrencyLabel ? (
+            <View className="flex-row items-center justify-between py-1">
+              <Text className="font-khmer text-gray-400 text-xl">
+                រូបិយប័ណ្ណ
+              </Text>
+
+              <Text className="font-khmer text-gray-800 text-xl">
+                {
+                  paymentCurrencyLabel
+                }
               </Text>
             </View>
           ) : null}
 
-          {order.paymentMethod ? (
-            <View className="flex-row items-center justify-between py-1">
-              <Text className="font-khmer text-gray-400 text-xl">
-                វិធីបង់ប្រាក់
-              </Text>
-
-              <Text className="font-khmer text-gray-800 text-xl">
-                {order.paymentMethod}
+          {/* EXCHANGE RATE */}
+          {isKHRPayment ? (
+            <View className="mt-3 pt-3 border-t border-gray-100">
+              <Text className="font-khmer text-gray-400 text-sm">
+                អត្រាប្តូរប្រាក់៖ 1 USD
+                ={" "}
+                {USD_TO_KHR.toLocaleString(
+                  "en-US",
+                  {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  }
+                )}{" "}
+                ៛
               </Text>
             </View>
           ) : null}
@@ -600,22 +779,23 @@ export function OrderDetailScreen({
 
         <View className="h-6" />
       </ScrollView>
-
-      {/* =================================================
-          ACTION BUTTONS
-      ================================================== */}
-
       {(order.status ===
         OrderStatus.New ||
         order.status ===
           OrderStatus.Pending) && (
-        <View className="px-5 pt-3 bg-white border-t border-gray-100 flex-row gap-3" style={footerStyle}>
+        <View
+          className="px-5 pt-3 bg-white border-t border-gray-100 flex-row gap-3"
+          style={footerStyle}
+        >
           <TouchableOpacity
             onPress={handleCancel}
             disabled={!!actionLoading}
             className="flex-1 border border-red-500 rounded-xl h-12 items-center justify-center"
           >
-            <Text className="font-khmerBold text-red-500 text-xl" maxFontSizeMultiplier={1.3}>
+            <Text
+              className="font-khmerBold text-red-500 text-xl"
+              maxFontSizeMultiplier={1.3}
+            >
               បោះបង់
             </Text>
           </TouchableOpacity>
@@ -632,17 +812,17 @@ export function OrderDetailScreen({
           </TouchableOpacity>
         </View>
       )}
-
-      {/* =================================================
-          APPROVED
-      ================================================== */}
-
       {order.status ===
         OrderStatus.Approved && (
-        <View className="px-5 pt-3 bg-white border-t border-gray-100" style={footerStyle}>
+        <View
+          className="px-5 pt-3 bg-white border-t border-gray-100"
+          style={footerStyle}
+        >
           <TouchableOpacity
             onPress={() =>
-              setAssignDriverVisible(true)
+              setAssignDriverVisible(
+                true
+              )
             }
             disabled={!!actionLoading}
             className="bg-blue-600 rounded-xl h-12 items-center justify-center"
@@ -654,25 +834,25 @@ export function OrderDetailScreen({
           </TouchableOpacity>
         </View>
       )}
-
-      {/* =================================================
-          SHIPPING
-      ================================================== */}
-
       {order.status ===
         OrderStatus.Shipping && (
         <View
           className={`px-5 pt-3 bg-white border-t border-gray-100 gap-3 ${
-            isSmallPhone ? "" : "flex-row"
+            isSmallPhone
+              ? ""
+              : "flex-row"
           }`}
           style={footerStyle}
         >
-          {order.delivery?.driverPhone ? (
+          {order.delivery
+            ?.driverPhone ? (
             <TouchableOpacity
               onPress={callDriver}
               disabled={!!actionLoading}
               className={`${
-                isSmallPhone ? "" : "flex-1"
+                isSmallPhone
+                  ? ""
+                  : "flex-1"
               } border border-blue-600 rounded-xl h-12 items-center justify-center flex-row gap-1.5`}
             >
               <Ionicons
@@ -681,7 +861,12 @@ export function OrderDetailScreen({
                 color="#2563EB"
               />
 
-              <Text className="font-khmerBold text-blue-600 text-xl" maxFontSizeMultiplier={1.3}>
+              <Text
+                className="font-khmerBold text-blue-600 text-xl"
+                maxFontSizeMultiplier={
+                  1.3
+                }
+              >
                 ទាក់ទងអ្នកដឹកជញ្ជូន
               </Text>
             </TouchableOpacity>
@@ -691,7 +876,9 @@ export function OrderDetailScreen({
             onPress={handleConfirm}
             disabled={!!actionLoading}
             className={`${
-              isSmallPhone ? "" : "flex-1"
+              isSmallPhone
+                ? ""
+                : "flex-1"
             } bg-blue-600 rounded-xl h-12 items-center justify-center`}
           >
             {actionLabel(
@@ -701,14 +888,12 @@ export function OrderDetailScreen({
           </TouchableOpacity>
         </View>
       )}
-
-      {/* =================================================
-          CONFIRMED
-      ================================================== */}
-
       {order.status ===
         OrderStatus.Confirmed && (
-        <View className="px-5 pt-3 bg-white border-t border-gray-100" style={footerStyle}>
+        <View
+          className="px-5 pt-3 bg-white border-t border-gray-100"
+          style={footerStyle}
+        >
           <TouchableOpacity
             onPress={handleComplete}
             disabled={!!actionLoading}
@@ -721,15 +906,12 @@ export function OrderDetailScreen({
           </TouchableOpacity>
         </View>
       )}
-
-      {/* =================================================
-          COMPLETED
-      ================================================== */}
-
       {order.status ===
         OrderStatus.Completed && (
-        <View className="px-5 pt-3 bg-white border-t border-gray-100" style={footerStyle}>
-          {/* Uncomplete */}
+        <View
+          className="px-5 pt-3 bg-white border-t border-gray-100"
+          style={footerStyle}
+        >
           <TouchableOpacity
             onPress={handleUncomplete}
             disabled={!!actionLoading}
@@ -743,13 +925,17 @@ export function OrderDetailScreen({
                 color="#EA580C"
               />
             ) : (
-              <Text className="font-khmerBold text-orange-500 text-xl" maxFontSizeMultiplier={1.3}>
+              <Text
+                className="font-khmerBold text-orange-500 text-xl"
+                maxFontSizeMultiplier={
+                  1.3
+                }
+              >
                 មិនទាន់បញ្ចប់
               </Text>
             )}
           </TouchableOpacity>
 
-          {/* View Report */}
           <TouchableOpacity
             onPress={() =>
               setShowReport(true)
@@ -765,27 +951,32 @@ export function OrderDetailScreen({
                 color="#2563EB"
               />
 
-              <Text className="font-khmerBold text-blue-600 text-xl ml-2" maxFontSizeMultiplier={1.3}>
+              <Text
+                className="font-khmerBold text-blue-600 text-xl ml-2"
+                maxFontSizeMultiplier={
+                  1.3
+                }
+              >
                 មើលវិក័យប័ត្រ
               </Text>
             </View>
           </TouchableOpacity>
         </View>
       )}
-
-      {/* =================================================
-          ASSIGN DRIVER MODAL
-      ================================================== */}
-
       <AssignDriverModal
         visible={assignDriverVisible}
         loading={
-          actionLoading === "assignDriver"
+          actionLoading ===
+          "assignDriver"
         }
         onCancel={() =>
-          setAssignDriverVisible(false)
+          setAssignDriverVisible(
+            false
+          )
         }
-        onSubmit={handleAssignDriver}
+        onSubmit={
+          handleAssignDriver
+        }
       />
     </DetailLayout>
   );

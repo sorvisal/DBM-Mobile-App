@@ -44,7 +44,6 @@ export function SummaryStatsCard({
               stat={stat}
               onPress={() => onPressStat?.(stat)}
             />
-
             {index !== stats.length - 1 && (
               <View className="w-px bg-white/20 mx-1 my-1" />
             )}
