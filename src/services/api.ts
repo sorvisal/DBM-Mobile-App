@@ -94,10 +94,15 @@ type BackendUserDto = {
   id: number;
   username: string;
   fullName: string;
+  email?: string | null;
   phone: string | null;
   storeName: string | null;
   role: string;
+  isActive?: boolean;
   isGoogleLinked?: boolean;
+  createdAt?: string | null;
+  photoPath?: string | null;
+  description?: string | null;
 };
 
 type BackendProductDto = {
@@ -203,20 +208,58 @@ function mapUserRole(role: string): UserRole {
   return 'user';
 }
 
-function mapUser(raw: BackendUserDto): User {
+function mapUser(
+  raw: BackendUserDto
+): User {
   return {
     id: String(raw.id),
+
     name: raw.fullName,
+
     username: raw.username,
-    email: '',
-    phone: raw.phone ?? undefined,
-    role: mapUserRole(raw.role),
-    storeName: raw.storeName ?? undefined,
-    createdAt: new Date().toISOString(),
-    googleLinked: raw.isGoogleLinked ?? false,
+
+    email: raw.email ?? "",
+
+    phone:
+      raw.phone ?? undefined,
+
+    role:
+      mapUserRole(raw.role),
+
+    storeName:
+      raw.storeName ?? undefined,
+
+    createdAt:
+      raw.createdAt ??
+      new Date().toISOString(),
+
+    googleLinked:
+      raw.isGoogleLinked ?? false,
+
+    avatarUrl:
+      resolveMediaUrl(
+        raw.photoPath
+      ) ?? undefined,
+
+    // Extra profile fields
+    fullName:
+      raw.fullName,
+
+    isActive:
+      raw.isActive ?? true,
+
+    photoPath:
+      raw.photoPath ?? undefined,
+
+    description:
+      raw.description ?? undefined,
+  } as User & {
+    fullName?: string;
+    isActive?: boolean;
+    photoPath?: string;
+    description?: string;
   };
 }
-
 function mapAuthResponse(raw: BackendAuthResponse): LoginResponse {
   return {
     tokens: { accessToken: raw.accessToken, refreshToken: raw.refreshToken },
@@ -361,19 +404,30 @@ function mapPurchaseOrder(dto: BackendPurchaseOrderDto): PurchaseOrder {
   };
 }
 
-function mapAdminUser(dto: BackendUserDto): AdminUserDto {
+function mapAdminUser(
+  dto: BackendUserDto
+): AdminUserDto {
   return {
     id: String(dto.id),
     username: dto.username,
     fullName: dto.fullName,
-    email: '',
+    email: dto.email ?? "",
     phone: dto.phone ?? undefined,
     storeName: dto.storeName ?? undefined,
     role: mapUserRole(dto.role),
-    isActive: true,
+    isActive: dto.isActive ?? true,
     googleLinked: dto.isGoogleLinked ?? false,
-    createdAt: new Date().toISOString(),
-  };
+    createdAt:
+      dto.createdAt ??
+      new Date().toISOString(),
+    ...(resolveMediaUrl(dto.photoPath)
+      ? {
+          avatarUrl: resolveMediaUrl(
+            dto.photoPath
+          ),
+        }
+      : {}),
+  } as AdminUserDto;
 }
 
 function mapSupplier(dto: BackendSupplierDto): Supplier {
@@ -525,14 +579,44 @@ export const realApi: Api = {
       return { accessToken: raw.accessToken, refreshToken: raw.refreshToken };
     },
     logout: () => httpPost<void>('/auth/logout'),
-    me: async () => mapUser(await httpGet<BackendUserDto>('/auth/me')),
+me: async () => {
+  const data =
+    await httpGet<
+      BackendUserDto | BackendUserDto[]
+    >("/auth/me");
+
+  const raw = Array.isArray(data)
+    ? data[0]
+    : data;
+
+  if (!raw) {
+    throw new Error(
+      "Profile data not found"
+    );
+  }
+
+  return mapUser(raw);
+},
     updateMe: async (req) => {
-      const mapped = await httpPut<BackendUserDto>('/auth/me', {
+      const mapped = await httpPut<
+        BackendUserDto | BackendUserDto[]
+      >('/auth/me', {
         fullName: req.name,
         phone: req.phone,
         storeName: req.storeName,
       });
-      return mapUser(mapped);
+
+      const raw = Array.isArray(mapped)
+        ? mapped[0]
+        : mapped;
+
+      if (!raw) {
+        throw new Error(
+          'Profile data was not returned after update'
+        );
+      }
+
+      return mapUser(raw);
     },
     changePassword: (req) => httpPut<void>('/auth/me/password', req),
     googleLoginUrl: async (mode) => {

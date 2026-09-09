@@ -3,7 +3,7 @@ import { APP_LOGO } from "../../../constants/appAssets";
 
 export function AuthHeader() {
   return (
-    <View className="items-center pt-10 pb-8">
+    <View className="items-center pt-10 pb-8 mt-8">
       {/* Logo */}
       <View
         className="w-24 h-24 bg-white rounded-3xl items-center justify-center overflow-hidden"
@@ -21,7 +21,7 @@ export function AuthHeader() {
         <Image
           source={APP_LOGO}
           style={{
-            width: 100,
+            width: 500,
             height: 70,
           }}
           resizeMode="contain"

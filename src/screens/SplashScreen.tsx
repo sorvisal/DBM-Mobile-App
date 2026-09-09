@@ -11,9 +11,9 @@ import { StatusBar } from "expo-status-bar";
 import { APP_LOGO } from "../constants/appAssets";
 
 type SplashScreenProps = {
-  onFinish: () => void;
+  onFinish: () => void | Promise<void>;
+  duration?: number;
 };
-
 export function SplashScreen({
   onFinish,
 }: SplashScreenProps) {
@@ -478,10 +478,8 @@ const styles = StyleSheet.create({
     height: 66,
   },
 
-  // ---------------------------------------------------------
   // Text
-  // ---------------------------------------------------------
-
+  
   title: {
     marginTop: 8,
     color: "#111827",

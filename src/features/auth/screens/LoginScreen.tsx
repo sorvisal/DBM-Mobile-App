@@ -347,7 +347,7 @@ return (
             </Text>
 
             <Text className="font-khmer text-gray-400 text-base mt-1 mb-6">
-              សូមបញ្ចូលព័ត៌មានរបស់អ្នក
+              សូមបញ្ចូលព័ត៌មាន
             </Text>
 
             {/* Username */}

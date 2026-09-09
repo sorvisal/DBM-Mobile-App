@@ -1,9 +1,19 @@
+import type React from "react";
 import { View } from "react-native";
-import { Header } from "../components/layout/Header";
-import { Footer } from "../components/layout/Footer";
-import { TABS } from "../components/layout/Footer";
 
-type TabKey = "dashboard" | "stock" | "orders" | "customers" | "income" | "more";
+import { Header } from "../components/layout/Header";
+import {
+  Footer,
+  TABS,
+} from "../components/layout/Footer";
+
+type TabKey =
+  | "dashboard"
+  | "stock"
+  | "orders"
+  | "customers"
+  | "income"
+  | "more";
 
 type MainLayoutProps = {
   activeTab: TabKey;
@@ -13,18 +23,52 @@ type MainLayoutProps = {
   children: React.ReactNode;
 };
 
-export function MainLayout({ activeTab, onTabPress, onMenuPress, hideChrome, children }: MainLayoutProps) {
-  const tabLabel = TABS.find((t) => t.key === activeTab)?.label ?? "DBM App";
+export function MainLayout({
+  activeTab,
+  onTabPress,
+  onMenuPress,
+  hideChrome = false,
+  children,
+}: MainLayoutProps) {
+  const tabLabel =
+    TABS.find((tab) => tab.key === activeTab)?.label ??
+    "DBM App";
 
   return (
-    <View className="flex-1" style={{ height: "100%" }}>
-      {!hideChrome && <Header title={tabLabel} onMenuPress={onMenuPress} />}
+    <View
+      className="flex-1"
+      style={{
+        minHeight: 0,
+        minWidth: 0,
+        backgroundColor: "#F8FAFC",
+      }}
+    >
+      {/* Header */}
+      {!hideChrome && (
+        <Header
+          title={tabLabel}
+          onMenuPress={onMenuPress}
+        />
+      )}
 
-      <View className="flex-1" style={{ minHeight: 0 }}>
+      {/* Main content */}
+      <View
+        className="flex-1"
+        style={{
+          minHeight: 0,
+          minWidth: 0,
+        }}
+      >
         {children}
       </View>
 
-      {!hideChrome && <Footer activeTab={activeTab} onTabPress={onTabPress} />}
+      {/* Footer */}
+      {!hideChrome && (
+        <Footer
+          activeTab={activeTab}
+          onTabPress={onTabPress}
+        />
+      )}
     </View>
   );
 }

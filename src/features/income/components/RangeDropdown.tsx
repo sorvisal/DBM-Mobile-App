@@ -1,13 +1,19 @@
-import { useState } from "react";
-import { View, Text, TouchableOpacity, Modal, Pressable } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  Pressable,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 export type RevenueRange = "7" | "28" | "90";
 
 const RANGE_LABELS: Record<RevenueRange, string> = {
-  "7": "7 ថ្ងៃ",
-  "28": "28 ថ្ងៃ",
-  "90": "90 ថ្ងៃ",
+  '7': '7 ថ្ងៃ',
+  '28': '28 ថ្ងៃ',
+  '90': '90 ថ្ងៃ',
 };
 
 type RangeDropdownProps = {
@@ -15,7 +21,10 @@ type RangeDropdownProps = {
   onChange: (range: RevenueRange) => void;
 };
 
-export function RangeDropdown({ value, onChange }: RangeDropdownProps) {
+export function RangeDropdown({
+  value,
+  onChange,
+}: RangeDropdownProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -28,33 +37,53 @@ export function RangeDropdown({ value, onChange }: RangeDropdownProps) {
         <Text className="font-khmer text-gray-600 text-xl">
           {RANGE_LABELS[value]}
         </Text>
-        <Ionicons name="chevron-down" size={12} color="#6B7280" style={{ marginLeft: 4 }} />
+
+        <Ionicons
+          name="chevron-down"
+          size={12}
+          color="#6B7280"
+          style={{ marginLeft: 4 }}
+        />
       </TouchableOpacity>
 
-      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
+      <Modal
+        visible={open}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setOpen(false)}
+      >
         <Pressable
           className="flex-1 bg-black/20 justify-center items-center"
           onPress={() => setOpen(false)}
         >
-          <View className="bg-white rounded-2xl py-2 w-40" style={{ elevation: 4 }}>
-            {(Object.keys(RANGE_LABELS) as RevenueRange[]).map((key) => (
-              <TouchableOpacity
-                key={key}
-                onPress={() => {
-                  onChange(key);
-                  setOpen(false);
-                }}
-                className={`px-4 py-3 ${value === key ? "bg-blue-50" : ""}`}
-              >
-                <Text
-                  className={`font-khmer text-base ${
-                    value === key ? "text-blue-600" : "text-gray-700"
+          <View
+            className="bg-white rounded-2xl py-2 w-40"
+            style={{ elevation: 4 }}
+          >
+            {(Object.keys(RANGE_LABELS) as RevenueRange[]).map(
+              (key) => (
+                <TouchableOpacity
+                  key={key}
+                  onPress={() => {
+                    onChange(key);
+                    setOpen(false);
+                  }}
+                  className={`px-4 py-3 ${
+                    value === key ? 'bg-blue-50' : ''
                   }`}
                 >
-                  {RANGE_LABELS[key]}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    className={`font-khmer text-base ${
+                      value === key
+                        ? 'text-blue-600'
+                        : 'text-gray-700'
+                    }`}
+                  >
+                    {RANGE_LABELS[key]}
+                  </Text>
+                </TouchableOpacity>
+              ),
+            )}
           </View>
         </Pressable>
       </Modal>

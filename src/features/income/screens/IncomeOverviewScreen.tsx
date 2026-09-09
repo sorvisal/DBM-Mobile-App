@@ -39,14 +39,14 @@ export function IncomeOverviewScreen({
   onGoYearly,
   onGoDebtors,
 }: IncomeOverviewScreenProps) {
-  const [chartRange, setChartRange] =
-    useState<RevenueRange>("7");
+const [chartRange, setChartRange] =
+  useState<RevenueRange>("7");
 
-  const {
-    overview,
-    isLoading,
-    refresh,
-  } = useIncomeSummary();
+const {
+  overview,
+  isLoading,
+  refresh,
+} = useIncomeSummary();
 
   const [refreshing, setRefreshing] =
     useState(false);

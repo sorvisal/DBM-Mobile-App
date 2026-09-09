@@ -211,22 +211,30 @@ const handleStockNavigation = useCallback(
 
     const [stockInitialTab, setStockInitialTab] =
   useState<StockTabKey>("products");
-  return (
-    <View className="flex-1 bg-gray-50">
-      <MainLayout
-        activeTab={activeTab}
-        onTabPress={handleTabPress}
-        onMenuPress={() =>
-          setProfileVisible(true)
-        }
-        hideChrome={
-          chromeHiddenByTab[activeTab]
-        }
-      >
-        <View
-          className="flex-1"
-          style={{ minHeight: 0 }}
-        >
+return (
+  <View
+    className="flex-1 bg-gray-50"
+    style={{
+      minHeight: 0,
+    }}
+  >
+    <MainLayout
+      activeTab={activeTab}
+      onTabPress={handleTabPress}
+      onMenuPress={() =>
+        setProfileVisible(true)
+      }
+      hideChrome={
+        chromeHiddenByTab[activeTab]
+      }
+    >
+    <View
+      className="flex-1"
+      style={{
+        minHeight: 0,
+        minWidth: 0,
+      }}
+    >
           {mountedTabs.dashboard && (
             <TabHost
               tab="dashboard"

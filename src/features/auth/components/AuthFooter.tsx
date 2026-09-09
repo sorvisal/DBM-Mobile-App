@@ -9,7 +9,7 @@ export function AuthFooter({
 }: AuthFooterProps) {
   return (
     <View className="items-center justify-center px-6 py-5">
-      <Text
+      {/* <Text
         className="font-khmerMedium text-gray-400 text-sm"
         numberOfLines={1}
       >
@@ -26,7 +26,7 @@ export function AuthFooter({
         <Text className="font-khmer text-gray-300 text-xs">
           v{version}
         </Text>
-      </View>
+      </View> */}
     </View>
   );
 }
