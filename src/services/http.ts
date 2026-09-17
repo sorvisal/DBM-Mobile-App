@@ -142,35 +142,89 @@ export function hasAccessToken(): boolean {
   return !!accessToken;
 }
 
-export async function restoreAccessToken(): Promise<boolean> {
-  const stored = await getTokens();
-  if (stored?.accessToken) {
-    accessToken = stored.accessToken;
-    return true;
-  }
-  const fromCookie = isWeb ? readCookie(TOKEN_COOKIE) : null;
-  const token = fromCookie ?? (await AsyncStorage.getItem(TOKEN_STORAGE_KEY));
-  if (token) {
-    accessToken = token;
-    return true;
-  }
-  return false;
+/**
+ * Token getter for SignalR's accessTokenFactory ONLY.
+ * Returns the in-memory access token so the SignalR connection can
+ * authenticate without duplicating token storage. Never log the returned value.
+ */
+export function getAccessToken(): string | null {
+  return accessToken;
 }
 
-client.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
-   if (accessToken) {
-     config.headers.Authorization = `Bearer ${accessToken}`;
-   }
-   if (config.data instanceof FormData) {
-     delete config.headers['Content-Type'];
-   }
-   // Global loading tracking — skip retried requests (401 retry) and auth URLs
-   const cfg = config as InternalAxiosRequestConfig & { _retry?: boolean };
-   if (!cfg._retry && shouldTrackLoading(config)) {
-     startLoading();
-   }
-   return config;
- });
+export async function restoreAccessToken(): Promise<boolean> {
+  try {
+    const stored = await getTokens();
+
+    if (stored?.accessToken) {
+      accessToken = stored.accessToken;
+
+      if (__DEV__) {
+        console.log("[AUTH] Access token restored from storage");
+      }
+
+      return true;
+    }
+
+    const fromCookie = isWeb ? readCookie(TOKEN_COOKIE) : null;
+
+    const token =
+      fromCookie ??
+      (await AsyncStorage.getItem(TOKEN_STORAGE_KEY));
+
+    if (token) {
+      accessToken = token;
+
+      if (__DEV__) {
+        console.log("[AUTH] Access token restored");
+      }
+
+      return true;
+    }
+
+    if (__DEV__) {
+      console.log("[AUTH] No access token found");
+    }
+
+    return false;
+  } catch (error) {
+    if (__DEV__) {
+      console.log("[AUTH] Failed to restore access token", error);
+    }
+
+    return false;
+  }
+}
+
+client.interceptors.request.use(
+  async (config: InternalAxiosRequestConfig) => {
+    // Restore token from storage if memory token is empty
+    if (!accessToken) {
+      await restoreAccessToken();
+    }
+
+    // Attach access token to every authenticated request
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+
+    // Let Axios set the correct Content-Type for FormData
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
+    }
+
+    // Global loading tracking
+    const cfg = config as InternalAxiosRequestConfig & {
+      _retry?: boolean;
+    };
+
+    if (!cfg._retry && shouldTrackLoading(config)) {
+      startLoading();
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 type LogoutListener = () => void;
 const logoutListeners = new Set<LogoutListener>();
@@ -367,6 +421,24 @@ function dedupKey(method: string, url: string, config?: AxiosRequestConfig): str
   return `${method}:${url}:${params}`;
 }
 
+/** Dev-only: render query string from Axios params for the [API] log line. */
+function paramsToQuery(config?: AxiosRequestConfig): string {
+  const params = config?.params;
+  if (!params || typeof params !== 'object' || Array.isArray(params)) return '';
+  const parts: string[] = [];
+  const source = params as Record<string, unknown>;
+  for (const key of Object.keys(source)) {
+    const value = source[key];
+    if (value === undefined || value === null) continue;
+    if (Array.isArray(value)) {
+      value.forEach((item) => parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(item))}`));
+    } else {
+      parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
+    }
+  }
+  return parts.length ? `?${parts.join('&')}` : '';
+}
+
 /* ── HTTP helpers ── */
 
 export async function httpGet<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
@@ -378,14 +450,15 @@ export async function httpGet<T>(url: string, config?: AxiosRequestConfig): Prom
   }
 
   const start = Date.now();
+  const logUrl = __DEV__ ? `${url}${paramsToQuery(config)}` : url;
   const promise = client
     .get<BackendApiResponse<T> | T>(url, config)
     .then((res) => {
-      perfLog('GET', url, start);
+      perfLog('GET', logUrl, start);
       return unwrapData(res.data);
     })
     .catch((err) => {
-      perfLog('GET', url, start, 'ERROR');
+      perfLog('GET', logUrl, start, 'ERROR');
       throw err;
     })
     .finally(() => inflight.delete(key));
@@ -457,10 +530,11 @@ export async function httpGetPaginated<T>(url: string, config?: AxiosRequestConf
   }
 
   const start = Date.now();
+  const logUrl = __DEV__ ? `${url}${paramsToQuery(config)}` : url;
   const promise = client
     .get<BackendApiResponse<T[]>>(url, config)
     .then((response) => {
-      perfLog('GET', url, start);
+      perfLog('GET', logUrl, start);
       const body = response.data as BackendApiResponse<T[]>;
       if (!body?.success) throw new Error(body.error || 'Request failed');
       const rawMeta = body.meta;
@@ -472,7 +546,7 @@ export async function httpGetPaginated<T>(url: string, config?: AxiosRequestConf
       };
     })
     .catch((err) => {
-      perfLog('GET', url, start, 'ERROR');
+      perfLog('GET', logUrl, start, 'ERROR');
       throw err;
     })
     .finally(() => inflight.delete(key));

@@ -1,82 +1,202 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { api, suppressGlobalLoading, unsuppressGlobalLoading } from "@/services";
+import {
+  api,
+  suppressGlobalLoading,
+  unsuppressGlobalLoading,
+} from "@/services";
 import type { MonthlyIncomeSummary } from "../types/income.types";
 import { useDebtors } from "./useDebtors";
 
 const ERROR_MESSAGE = "មិនអាចទាញយកទិន្នន័យបាន";
 
 export function useMonthlyIncome(month: string) {
-  const { allDebtors, totalDebt, isLoading: debtorsLoading } = useDebtors();
-  const [summary, setSummary] = useState<MonthlyIncomeSummary>({
-    month,
-    totalIncome: 0,
-    orderCount: 0,
-    dailyChart: [],
-    debtors: allDebtors,
+  const {
+    allDebtors,
+    totalDebt,
+    isLoading: debtorsLoading,
+  } = useDebtors();
+
+  const debtorsRef = useRef({
+    allDebtors,
     totalDebt,
   });
+
+  debtorsRef.current = {
+    allDebtors,
+    totalDebt,
+  };
+
+  const requestIdRef = useRef(0);
+
+  const [summary, setSummary] =
+    useState<MonthlyIncomeSummary>({
+      month,
+      totalIncome: 0,
+      orderCount: 0,
+      dailyChart: [],
+      debtors: allDebtors,
+      totalDebt,
+    });
+
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const debtorsRef = useRef({ allDebtors, totalDebt });
-  debtorsRef.current = { allDebtors, totalDebt };
+  const clearMonthData = useCallback(() => {
+    setSummary({
+      month,
+      totalIncome: 0,
+      orderCount: 0,
+      dailyChart: [],
+      debtors: debtorsRef.current.allDebtors,
+      totalDebt: debtorsRef.current.totalDebt,
+    });
+  }, [month]);
 
-  const load = useCallback(
-    (isRefresh: boolean) => {
-      let cancelled = false;
+  const loadMonth = useCallback(
+    async (isRefresh = false) => {
+      const requestId = ++requestIdRef.current;
+
+      if (isRefresh) {
+        setIsRefreshing(true);
+        suppressGlobalLoading();
+      } else {
+        setIsLoading(true);
+      }
+
       setError(null);
-      if (isRefresh) setIsRefreshing(true);
-      else setIsLoading(true);
+      clearMonthData();
 
-      // Suppress global overlay for refresh (pull-to-refresh uses its own UI)
-      if (isRefresh) suppressGlobalLoading();
+      try {
+        const [monthValue, yearValue] = month
+          .split("/")
+          .map(Number);
 
-      api.reports
-        .revenueChart("30d")
-        .then((points) => {
-          if (cancelled) return;
-          const chart = points.map((p) => ({ label: p.date, amount: p.revenue }));
-          const totalIncome = chart.reduce((s, p) => s + p.amount, 0);
-          setSummary({
-            month,
-            totalIncome,
-            orderCount: chart.length,
-            dailyChart: chart,
-            debtors: debtorsRef.current.allDebtors,
-            totalDebt: debtorsRef.current.totalDebt,
+        if (
+          !monthValue ||
+          !yearValue ||
+          monthValue < 1 ||
+          monthValue > 12
+        ) {
+          throw new Error(`Invalid month: ${month}`);
+        }
+
+        if (__DEV__) {
+          console.log(
+            "[MonthlyIncome] Loading:",
+            `${monthValue}/${yearValue}`
+          );
+
+          console.log("[MonthlyIncome] Request params:", {
+            month: monthValue,
+            year: yearValue,
           });
-          setError(null);
-        })
-        .catch(() => {
-          if (cancelled) return;
-          setSummary({ month, totalIncome: 0, orderCount: 0, dailyChart: [], debtors: debtorsRef.current.allDebtors, totalDebt: debtorsRef.current.totalDebt });
-          setError(ERROR_MESSAGE);
-        })
-        .finally(() => {
-          if (cancelled) return;
-          if (isRefresh) {
-            unsuppressGlobalLoading();
-            setIsRefreshing(false);
-          } else {
-            setIsLoading(false);
-          }
+        }
+
+        const points =
+          await api.reports.monthlyRevenueChart(month);
+
+        if (requestId !== requestIdRef.current) {
+          return;
+        }
+
+          const chart = (points ?? []).map((point) => ({
+        label: String(point.date),
+        amount: Number(point.revenue) || 0,
+      }));
+
+        if (__DEV__) {
+          console.log(
+            "[MonthlyIncome] Response labels:",
+            chart.map((point) => point.label)
+          );
+        }
+
+        const totalIncome = chart.reduce(
+          (sum, point) => sum + point.amount,
+          0
+        );
+
+        setSummary({
+          month,
+          totalIncome,
+          orderCount: chart.filter(
+            (point) => point.amount > 0
+          ).length,
+          dailyChart: chart,
+          debtors: debtorsRef.current.allDebtors,
+          totalDebt: debtorsRef.current.totalDebt,
         });
 
-      return () => { cancelled = true; };
+        if (__DEV__) {
+          console.log("[MonthlyIncome] Updated:", {
+            month,
+            totalIncome,
+            points: chart.length,
+            chart,
+          });
+        }
+      } catch (err) {
+        if (requestId !== requestIdRef.current) {
+          return;
+        }
+
+        console.error(
+          "[MonthlyIncome] Error:",
+          err
+        );
+
+        setSummary({
+          month,
+          totalIncome: 0,
+          orderCount: 0,
+          dailyChart: [],
+          debtors: debtorsRef.current.allDebtors,
+          totalDebt: debtorsRef.current.totalDebt,
+        });
+
+        setError(ERROR_MESSAGE);
+      } finally {
+        if (requestId !== requestIdRef.current) {
+          return;
+        }
+
+        if (isRefresh) {
+          unsuppressGlobalLoading();
+          setIsRefreshing(false);
+        } else {
+          setIsLoading(false);
+        }
+      }
     },
-    [month]
+    [month, clearMonthData]
   );
 
-  useEffect(() => load(false), [load]);
+  useEffect(() => {
+    loadMonth(false);
+
+    return () => {
+      requestIdRef.current += 1;
+    };
+  }, [loadMonth]);
 
   useEffect(() => {
-    setSummary((prev) => ({ ...prev, debtors: allDebtors, totalDebt }));
+    setSummary((previous) => ({
+      ...previous,
+      debtors: allDebtors,
+      totalDebt,
+    }));
   }, [allDebtors, totalDebt]);
 
   const refresh = useCallback(() => {
-    load(true);
-  }, [load]);
+    return loadMonth(true);
+  }, [loadMonth]);
 
-  return { summary, isLoading: isLoading || debtorsLoading, isRefreshing, error, refresh };
+  return {
+    summary,
+    isLoading: isLoading || debtorsLoading,
+    isRefreshing,
+    error,
+    refresh,
+  };
 }

@@ -2,6 +2,7 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
+import { NotificationBadge } from "../../features/notifications/components/NotificationBadge";
 
 type HeaderProps = {
   title?: string;
@@ -109,7 +110,7 @@ export function Header({
                 }
               />
               {notificationCount > 0 && (
-                <View className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-red-500" />
+                <NotificationBadge count={notificationCount} />
               )}
             </TouchableOpacity>
           )}

@@ -21,7 +21,7 @@ import {
   type AddressResult,
 } from "@/components/AddressAutocomplete";
 
-type CreateOrderValues = {
+export type CreateOrderValues = {
   code: string;
   customerId: string;
   customerName: string;

@@ -19,6 +19,8 @@ type MainLayoutProps = {
   activeTab: TabKey;
   onTabPress: (tab: TabKey) => void;
   onMenuPress: () => void;
+  onNotificationPress?: () => void;
+  notificationCount?: number;
   hideChrome?: boolean;
   children: React.ReactNode;
 };
@@ -27,6 +29,8 @@ export function MainLayout({
   activeTab,
   onTabPress,
   onMenuPress,
+  onNotificationPress,
+  notificationCount = 0,
   hideChrome = false,
   children,
 }: MainLayoutProps) {
@@ -48,6 +52,8 @@ export function MainLayout({
         <Header
           title={tabLabel}
           onMenuPress={onMenuPress}
+          onNotificationPress={onNotificationPress}
+          notificationCount={notificationCount}
         />
       )}
 

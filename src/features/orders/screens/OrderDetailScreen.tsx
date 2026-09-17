@@ -237,25 +237,41 @@ export function OrderDetailScreen({
     );
   };
 
-  const handleAssignDriver = (
-    values: {
-      driverName: string;
-      driverPhone: string;
-      vehiclePlate: string;
-    }
-  ) => {
-    setAssignDriverVisible(false);
+const handleAssignDriver = (values: {
+  method: "delivery" | "pickup";
+  driverName: string;
+  driverPhone: string;
+  vehiclePlate: string;
+}) => {
+  setAssignDriverVisible(false);
 
+  // ============================================================
+  // PICKUP
+  // ============================================================
+
+  if (values.method === "pickup") {
     runAction(
-      "assignDriver",
-      () =>
-        assignDriver(
-          order.id,
-          values.driverName,
-          values.driverPhone
-        )
+      "complete",
+      () => completeOrder(order.id)
     );
-  };
+
+    return;
+  }
+
+  // ============================================================
+  // DELIVERY
+  // ============================================================
+
+  runAction(
+    "assignDriver",
+    () =>
+      assignDriver(
+        order.id,
+        values.driverName,
+        values.driverPhone
+      )
+  );
+};
 
   // =========================================================
   // PAYMENT / CURRENCY

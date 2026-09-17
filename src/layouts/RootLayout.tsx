@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { View } from "react-native";
 import Animated, {
   Easing,
@@ -17,6 +17,12 @@ import { OrdersScreen } from "../features/orders/screens/OrdersScreen";
 import { CustomersScreen } from "../features/customers/screens/CustomersScreen";
 import { IncomeScreen } from "../features/income/screens/IncomeScreen";
 import { MoreScreen } from "../features/more/screens/MoreScreen";
+import { NotificationScreen } from "../features/notifications/screens/NotificationScreen";
+import {
+  useNotifications,
+  startNotificationService,
+  stopNotificationService,
+} from "../features/notifications/hooks/useNotifications";
 import type { StockTabKey } from "../features/stock/screens/StockScreen";
 type TabKey =
   | "dashboard"
@@ -122,6 +128,9 @@ export function RootLayout({
   const [profileVisible, setProfileVisible] =
     useState(false);
 
+  const [notificationsVisible, setNotificationsVisible] =
+    useState(false);
+
   const [mountedTabs, setMountedTabs] =
     useState<Record<TabKey, boolean>>({
       dashboard: true,
@@ -138,6 +147,18 @@ export function RootLayout({
     );
 
   const { user } = useAuth();
+
+  const { unreadCount } = useNotifications();
+
+  // Start the notification service (SignalR + initial fetch) when the main
+  // layout mounts, and stop it cleanly when it unmounts (logout / teardown).
+  useEffect(() => {
+    startNotificationService().catch(() => {});
+
+    return () => {
+      stopNotificationService().catch(() => {});
+    };
+  }, []);
 
 const handleTabPress = useCallback(
   (tab: TabKey) => {
@@ -224,6 +245,10 @@ return (
       onMenuPress={() =>
         setProfileVisible(true)
       }
+      onNotificationPress={() =>
+        setNotificationsVisible(true)
+      }
+      notificationCount={unreadCount}
       hideChrome={
         chromeHiddenByTab[activeTab]
       }
@@ -320,6 +345,26 @@ return (
         }
         onLogout={onLogout}
       />
+
+      {notificationsVisible && (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 90,
+            backgroundColor: "#F8FAFC",
+          }}
+        >
+          <NotificationScreen
+            onClose={() =>
+              setNotificationsVisible(false)
+            }
+          />
+        </View>
+      )}
     </View>
   );
 }

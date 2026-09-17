@@ -1,12 +1,15 @@
 import { useState } from "react";
-import { View, Text, TouchableOpacity, FlatList } from "react-native";
+import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
 import { useYearlyIncome } from "../hooks/useYearlyIncome";
 import { RevenueAreaChart } from "../components/RevenueAreaChart";
 import { DebtorListItem } from "../components/DebtorListItem";
 import { OutstandingDebtCard } from "../components/OutstandingDebtCard";
 import { LoadingState, EmptyState, ErrorState } from "@/components/states";
 import { YearDropdown } from "../components/YearDropdown";
+import { generateYearlyIncomeReport } from "../utils/generateYearlyIncomeReport";
 import { DetailLayout } from "../../../layouts/DetailLayout"; // adjust path if needed
 
 type YearlyIncomeDetailScreenProps = {
@@ -22,6 +25,8 @@ export function YearlyIncomeDetailScreen({ onBack, onGoDebtors }: YearlyIncomeDe
   
   // Pass selectedYear as a string to your hook
   const { summary, isLoading, isRefreshing, error, refresh } = useYearlyIncome(selectedYear.toString());
+
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const currentIndex = AVAILABLE_YEARS.indexOf(selectedYear);
   const canGoBack = currentIndex > 0;
@@ -49,6 +54,61 @@ export function YearlyIncomeDetailScreen({ onBack, onGoDebtors }: YearlyIncomeDe
       <Ionicons name="calendar-outline" size={22} color="black" />
     </TouchableOpacity>
   );
+
+  /*
+   * ========================================
+   * DOWNLOAD YEARLY INCOME REPORT
+   * ========================================
+   */
+  const handleDownloadReport = async () => {
+    if (isDownloading || isLoading) {
+      return;
+    }
+
+    if (!Number.isFinite(selectedYear) || selectedYear <= 0) {
+      Alert.alert("មានបញ្ហា", "មិនអាចបង្កើតរបាយការណ៍បានទេ");
+      return;
+    }
+
+    if (summary.monthlyChart.length === 0) {
+      Alert.alert("មិនមានទិន្នន័យ", "មិនមានទិន្នន័យចំណូលសម្រាប់ឆ្នាំនេះទេ");
+      return;
+    }
+
+    setIsDownloading(true);
+
+    try {
+      const { uri, html } = await generateYearlyIncomeReport({
+        year: selectedYear,
+        summary,
+      });
+
+      const sharingAvailable = await Sharing.isAvailableAsync();
+
+      if (sharingAvailable) {
+        await Sharing.shareAsync(uri, {
+          mimeType: "application/pdf",
+          dialogTitle: "ទាញយករបាយការណ៍ចំណូល",
+          UTI: "com.adobe.pdf",
+        });
+      } else {
+        await Print.printAsync({ html });
+      }
+    } catch (error) {
+      if (__DEV__) {
+        console.error("[YEARLY INCOME REPORT] Failed:", error);
+      }
+
+      const message = error instanceof Error ? error.message : String(error);
+      const isCancel = /cancel|dismiss|user.*(cancel|dismiss)/i.test(message);
+
+      if (!isCancel) {
+        Alert.alert("មានបញ្ហា", "មិនអាចបង្កើតរបាយការណ៍បានទេ");
+      }
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   return (
     <DetailLayout title="ចំណូលប្រចាំឆ្នាំ" onBack={onBack} rightAction={calendarButton}>
@@ -100,6 +160,42 @@ export function YearlyIncomeDetailScreen({ onBack, onGoDebtors }: YearlyIncomeDe
                   <Ionicons name="wallet-outline" size={20} color="white" />
                 </View>
               </View>
+
+              {/* DOWNLOAD YEARLY INCOME REPORT BUTTON */}
+              <TouchableOpacity
+                onPress={handleDownloadReport}
+                disabled={isDownloading}
+                activeOpacity={0.8}
+                className="mt-4 flex-row h-12 items-center justify-center rounded-2xl bg-blue-600"
+              >
+                {isDownloading ? (
+                  <>
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+
+                    <Text
+                      className="ml-2 font-khmerBold text-white text-xl"
+                      maxFontSizeMultiplier={1.3}
+                    >
+                      កំពុងបង្កើតរបាយការណ៍...
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    <Ionicons
+                      name="download-outline"
+                      size={18}
+                      color="#FFFFFF"
+                    />
+
+                    <Text
+                      className="ml-2 font-khmerBold text-white text-xl"
+                      maxFontSizeMultiplier={1.3}
+                    >
+                      ទាញយករបាយការណ៍
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
 
               {/* Chart */}
               <View className="bg-white rounded-xl px-3 py-3  mt-3 mx-0">

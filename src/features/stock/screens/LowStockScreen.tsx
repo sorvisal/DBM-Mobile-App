@@ -33,9 +33,9 @@ export function LowStockScreen({ onNavigate }: LowStockScreenProps) {
           : safe;
 
   const summary = [
-    { key: "critical" as const, label: " ស្តុកផុតកំណត់ក្នុង 7 ថ្ងៃ", count: critical.length, unit: "មុខទំនិញ", bg: "bg-red-50", text: "text-red-600", selectedBg: "bg-red-100", border: "border-red-400" },
-    { key: "warning" as const, label: " ស្តុកផុតកំណត់ក្នុង 15 ថ្ងៃ", count: warning.length, unit: "មុខទំនិញ", bg: "bg-orange-50", text: "text-orange-600", selectedBg: "bg-orange-100", border: "border-orange-400" },
-    { key: "safe" as const, label: "​ស្តុកលើសពី 15 ថ្ងៃ", count: safe.length, unit: "មុខទំនិញ", bg: "bg-green-50", text: "text-green-600", selectedBg: "bg-green-100", border: "border-green-400" },
+    { key: "critical" as const, label: " ស្តុកផុតកំណត់ក្នុង ១ខែ", count: critical.length, unit: "មុខទំនិញ", bg: "bg-red-50", text: "text-red-600", selectedBg: "bg-red-100", border: "border-red-400" },
+    { key: "warning" as const, label: " ស្តុកផុតកំណត់ក្នុង ២ខែ", count: warning.length, unit: "មុខទំនិញ", bg: "bg-orange-50", text: "text-orange-600", selectedBg: "bg-orange-100", border: "border-orange-400" },
+    { key: "safe" as const, label: "​ស្តុកលើស ៣ខែ", count: safe.length, unit: "មុខទំនិញ", bg: "bg-green-50", text: "text-green-600", selectedBg: "bg-green-100", border: "border-green-400" },
   ] as const;
 
   return (

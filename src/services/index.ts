@@ -15,6 +15,7 @@ export {
   setAccessToken,
   restoreAccessToken,
   hasAccessToken,
+  getAccessToken,
   cancelInflight,
   type AppErrorCode,
 } from "./http";

@@ -33,10 +33,33 @@ export function useYearlyIncome(year: string) {
       // Suppress global overlay for refresh (pull-to-refresh uses its own UI)
       if (isRefresh) suppressGlobalLoading();
 
-      Promise.all([api.reports.revenue("12m"), api.reports.revenueChart("12m")])
+      const yearNumber = Number(year);
+      const hasValidYear = Number.isFinite(yearNumber) && yearNumber > 0;
+
+      if (__DEV__) {
+        console.log("[YearlyIncome] Loading year:", year);
+        console.log("[YearlyIncome] Request:", {
+          range: "12m",
+          year: hasValidYear ? yearNumber : undefined,
+        });
+      }
+
+      Promise.all([
+        api.reports.revenue("12m", hasValidYear ? yearNumber : undefined),
+        api.reports.revenueChart("12m", hasValidYear ? yearNumber : undefined),
+      ])
         .then(([res, points]) => {
           if (cancelled) return;
           const monthlyChart = points.map((p) => ({ label: p.date, amount: p.revenue }));
+
+          if (__DEV__) {
+            console.log("[YearlyIncome] Response:", points);
+            console.log("[YearlyIncome] Updated:", {
+              year,
+              points: monthlyChart.length,
+            });
+          }
+
           setSummary({
             year,
             totalIncome: res.totalRevenue,
@@ -48,8 +71,11 @@ export function useYearlyIncome(year: string) {
           });
           setError(null);
         })
-        .catch(() => {
+        .catch((err) => {
           if (cancelled) return;
+          if (__DEV__) {
+            console.error("[YearlyIncome] Error:", err);
+          }
           setSummary({ year, totalIncome: 0, orderCount: 0, monthlyChart: [], debtors: debtorsRef.current.allDebtors, totalDebt, growthPercent: 0 });
           setError(ERROR_MESSAGE);
         })

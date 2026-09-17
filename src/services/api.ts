@@ -150,7 +150,19 @@ type BackendCustomerDto = {
 type BackendCustomerStatsDto = { orderCount: number; balance: number; totalSpent: number };
 type BackendCustomerDetailDto = { customer: BackendCustomerDto; stats: BackendCustomerStatsDto };
 
-type BackendOrderItemDto = { productId: number; productName: string; qty: number; unitPrice: number; lineTotal: number };
+// type BackendOrderItemDto = { productId: number; productName: string; qty: number; unitPrice: number; lineTotal: number };
+type BackendOrderItemDto = {
+  productId: number;
+  productName: string;
+  qty: number;
+  unitPrice: number;
+  lineTotal: number;
+
+  // Product image returned by API
+  photoPath?: string | null;
+  imageUrl?: string | null;
+  image?: string | null;
+};
 type BackendOrderDto = {
   id: number;
   code: string;
@@ -355,35 +367,84 @@ function mapCustomer(dto: BackendCustomerDto, stats?: BackendCustomerStatsDto): 
   };
 }
 
+// function mapOrder(dto: BackendOrderDto): Order {
+//   return {
+//     id: String(dto.id),
+//     code: dto.code,
+//     customerId: String(dto.customerId),
+//     customerName: dto.customerName,
+//     status: dto.status as OrderStatus,
+//     paymentStatus: dto.paymentStatus as PaymentStatus,
+//     lines: dto.lines.map((i) => ({
+//       productId: String(i.productId),
+//       productName: i.productName,
+//       qty: i.qty,
+//       unitPrice: i.unitPrice,
+//       lineTotal: i.lineTotal,
+//       imageUrl: resolveMediaUrl(undefined),
+//     })),
+//     totalAmount: dto.totalAmount,
+//     paidAmount: dto.paidAmount,
+//     paymentMethod: dto.paymentMethod ?? undefined,
+//     deliveryAddress: dto.deliveryAddress ?? undefined,
+//     driverName: dto.driverName ?? undefined,
+//     driverPhone: dto.driverPhone ?? undefined,
+//     note: dto.note ?? dto.description ?? undefined,
+//     createdAt: dto.createdAt,
+//     confirmedAt: dto.confirmedAt ?? undefined,
+//     completedAt: dto.completedAt ?? undefined,
+//   };
+// }
 function mapOrder(dto: BackendOrderDto): Order {
   return {
     id: String(dto.id),
+
     code: dto.code,
+
     customerId: String(dto.customerId),
+
     customerName: dto.customerName,
+
     status: dto.status as OrderStatus,
+
     paymentStatus: dto.paymentStatus as PaymentStatus,
+
     lines: dto.lines.map((i) => ({
       productId: String(i.productId),
+
       productName: i.productName,
+
       qty: i.qty,
+
       unitPrice: i.unitPrice,
+
       lineTotal: i.lineTotal,
-      imageUrl: resolveMediaUrl(undefined),
+
+      // ✅ Product image
+      imageUrl: resolveMediaUrl(i.photoPath),
     })),
+
     totalAmount: dto.totalAmount,
+
     paidAmount: dto.paidAmount,
+
     paymentMethod: dto.paymentMethod ?? undefined,
+
     deliveryAddress: dto.deliveryAddress ?? undefined,
+
     driverName: dto.driverName ?? undefined,
+
     driverPhone: dto.driverPhone ?? undefined,
+
     note: dto.note ?? dto.description ?? undefined,
+
     createdAt: dto.createdAt,
+
     confirmedAt: dto.confirmedAt ?? undefined,
+
     completedAt: dto.completedAt ?? undefined,
   };
 }
-
 function mapPurchaseOrder(dto: BackendPurchaseOrderDto): PurchaseOrder {
   return {
     id: String(dto.id),
@@ -476,10 +537,35 @@ function toId(value?: string): number | undefined {
   return Number.isFinite(n) && n > 0 ? n : undefined;
 }
 
-function chartRangeFor(range: string): string {
-  return range === '12m' || range === '30d' ? range : '7d';
-}
+// function chartRangeFor(range: string): string {
+//   return range === '12m' || range === '30d' ? range : '7d';
+// }
+function chartRangeFor(
+  range: string
+): string {
+  switch (range) {
+    case "7d":
+    case "7":
+      return "7d";
 
+    case "30d":
+    case "28":
+      return "30d";
+
+    case "90d":
+      return "90d";
+
+    case "month":
+      return "month";
+
+    case "year":
+    case "12m":
+      return "12m";
+
+    default:
+      return "7d";
+  }
+}
 /* ── Interface ── */
 export interface Api {
   auth: {
@@ -549,15 +635,19 @@ export interface Api {
     remove: (id: string) => Promise<void>;
   };
   reports: {
-    revenue: (range: string) => Promise<RevenueSummary>;
-    revenueChart: (range: string) => Promise<RevenuePoint[]>;
+    revenue: (range: string, year?: number) => Promise<RevenueSummary>;
+    revenueChart: (range: string, year?: number) => Promise<RevenuePoint[]>;
+    monthlyRevenueChart: (month: string) => Promise<RevenuePoint[]>;
     receivables: () => Promise<ReceivablesSummary>;
     export: (params: { type: 'excel' | 'pdf'; period: string }) => Promise<{ url: string }>;
   };
   notifications: {
     list: (params?: NotificationListParams) => Promise<Paginated<AppNotification>>;
+    unread: () => Promise<AppNotification[]>;
+    count: () => Promise<number>;
     markRead: (id: string) => Promise<AppNotification>;
     markAllRead: () => Promise<void>;
+    delete: (id: string) => Promise<void>;
   };
   users: {
     list: (params: { search?: string; role?: UserRole; active?: boolean; page?: number; pageSize?: number }) => Promise<Paginated<AdminUserDto>>;
@@ -974,14 +1064,17 @@ me: async () => {
   },
 
   reports: {
-    revenue: async (range) => {
+    revenue: async (range, year) => {
       let totalRevenue = 0;
       if (range === 'thisMonth') {
         const data = await httpGet<{ revenue: number }>('/reports/revenue', { params: { period: 'month' } });
         totalRevenue = data?.revenue ?? 0;
       } else {
         const points = await httpGet<{ label: string; revenue: number }[]>('/reports/revenue/chart', {
-          params: { range: chartRangeFor(range) },
+          params: {
+            range: chartRangeFor(range),
+            ...(year !== undefined ? { year } : {}),
+          },
         });
         totalRevenue = (points ?? []).reduce((sum, p) => sum + p.revenue, 0);
       }
@@ -994,12 +1087,44 @@ me: async () => {
         range,
       };
     },
-    revenueChart: async (range) => {
+    revenueChart: async (range, year) => {
       const data = await httpGet<{ label: string; revenue: number }[]>('/reports/revenue/chart', {
-        params: { range: chartRangeFor(range) },
+        params: {
+          range: chartRangeFor(range),
+          ...(year !== undefined ? { year } : {}),
+        },
       });
       return (data ?? []).map((p) => ({ date: p.label, revenue: p.revenue }));
     },
+monthlyRevenueChart: async (month: string) => {
+  const [monthValue, yearValue] = month
+    .split("/")
+    .map(Number);
+
+  if (
+    !monthValue ||
+    !yearValue ||
+    monthValue < 1 ||
+    monthValue > 12
+  ) {
+    throw new Error(`Invalid month: ${month}`);
+  }
+
+  const data = await httpGet<
+    { label: string; revenue: number }[]
+  >("/reports/revenue/chart", {
+    params: {
+      range: "7d",
+      month: monthValue,
+      year: yearValue,
+    },
+  });
+
+  return (data ?? []).map((point) => ({
+    date: point.label,
+    revenue: point.revenue,
+  }));
+},
     receivables: async () => {
       const data = await httpGet<{ customerId: number; customerName: string; balance: number }[]>('/reports/receivables');
       const customers = (data ?? []).map((r) => ({
@@ -1028,7 +1153,6 @@ me: async () => {
       return { url: '' };
     },
   },
-
   notifications: {
     list: async (params) => {
       const data = await httpGet<BackendNotificationDto[]>('/notifications', {
@@ -1037,12 +1161,39 @@ me: async () => {
       const items = (data ?? []).map(mapNotification);
       return { items, total: items.length, page: 1, pageSize: items.length };
     },
+    unread: async () => {
+      const data = await httpGet<BackendNotificationDto[]>('/notifications/unread');
+      return (data ?? []).map(mapNotification);
+    },
+    count: async () => {
+      const data = await httpGet<
+        number | { count?: number; unreadCount?: number }
+      >('/notifications/count', {
+        params: { unread: true },
+      });
+
+      if (typeof data === 'number') {
+        return Number.isFinite(data) ? Math.max(0, data) : 0;
+      }
+
+      if (data && typeof data === 'object') {
+        const value = data.count ?? data.unreadCount;
+        if (typeof value === 'number' && Number.isFinite(value)) {
+          return Math.max(0, value);
+        }
+      }
+
+      return 0;
+    },
     markRead: async (id) => {
-      await httpPut<void>(`/notifications/${id}/read`, {});
+      await httpPut<BackendNotificationDto>(`/notifications/${id}/read`, {});
       return { id, type: 'system' as const, title: '', body: '', read: true, createdAt: new Date().toISOString() };
     },
     markAllRead: async () => {
       await httpPut<void>('/notifications/read-all', {});
+    },
+    delete: async (id) => {
+      await httpDelete<void>(`/notifications/${id}`);
     },
   },
 

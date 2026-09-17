@@ -241,7 +241,11 @@ function mapChart(
   );
 }
 
-export function useIncomeSummary(): {
+export type RevenueRange = "7" | "28" | "90";
+
+export function useIncomeSummary(
+  range: RevenueRange = "7"
+): {
   overview: IncomeOverview;
   isLoading: boolean;
   refresh: () => Promise<void>;
@@ -282,8 +286,7 @@ export function useIncomeSummary(): {
               "thisMonth"
             ),
 
-            api.reports
-              .revenueChart("7")
+           api.reports.revenueChart(range)
               .catch(() => []),
 
             api.orders.list({
@@ -412,6 +415,7 @@ export function useIncomeSummary(): {
       allDebtors,
       totalDebt,
       debtorCount,
+      range,
     ]);
   useEffect(() => {
     load();

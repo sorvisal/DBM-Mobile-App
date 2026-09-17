@@ -46,7 +46,7 @@ const {
   overview,
   isLoading,
   refresh,
-} = useIncomeSummary();
+} = useIncomeSummary(chartRange);
 
   const [refreshing, setRefreshing] =
     useState(false);
