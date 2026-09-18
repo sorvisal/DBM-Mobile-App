@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -6,215 +6,178 @@ import {
   Animated,
   Easing,
   StyleSheet,
+  Dimensions,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
+import LottieView from "lottie-react-native";
 import { APP_LOGO } from "../constants/appAssets";
+
+const { width } = Dimensions.get("window");
 
 type SplashScreenProps = {
   onFinish: () => void | Promise<void>;
   duration?: number;
 };
+
 export function SplashScreen({
   onFinish,
+  duration = 5000, // Logo App និង Dots បង្ហាញនៅស្ងៀម ៥ វិនាទី មុននឹងចាកចេញ
 }: SplashScreenProps) {
-  // =========================================================
-  // Animation values
-  // =========================================================
+  const lottieRef = useRef<LottieView>(null);
 
-  const logoOpacity = useRef(
-    new Animated.Value(0)
-  ).current;
+  // Scene 1: Warehouse / Delivery Scene
+  const scene1Opacity = useRef(new Animated.Value(1)).current;
+  const scene1Scale = useRef(new Animated.Value(1)).current;
 
-  const logoScale = useRef(
-    new Animated.Value(0.55)
-  ).current;
+  // Scene 2: Logo Reveal
+  const logoOpacity = useRef(new Animated.Value(0)).current;
+  const logoScale = useRef(new Animated.Value(0.5)).current;
+  const logoTranslateY = useRef(new Animated.Value(20)).current;
 
-  const logoTranslateY = useRef(
-    new Animated.Value(15)
-  ).current;
+  // Text Animation
+  const textOpacity = useRef(new Animated.Value(0)).current;
+  const textTranslateY = useRef(new Animated.Value(15)).current;
 
-  const ringScale = useRef(
-    new Animated.Value(0.65)
-  ).current;
+  // 3 Loading Dots
+  const dot1 = useRef(new Animated.Value(0)).current;
+  const dot2 = useRef(new Animated.Value(0)).current;
+  const dot3 = useRef(new Animated.Value(0)).current;
 
-  const ringOpacity = useRef(
-    new Animated.Value(0)
-  ).current;
-
-  const titleOpacity = useRef(
-    new Animated.Value(0)
-  ).current;
-
-  const titleTranslateY = useRef(
-    new Animated.Value(14)
-  ).current;
-
-  const subtitleOpacity = useRef(
-    new Animated.Value(0)
-  ).current;
-
-  const subtitleTranslateY = useRef(
-    new Animated.Value(10)
-  ).current;
-
-  const underlineScale = useRef(
-    new Animated.Value(0)
-  ).current;
-
-  const contentOpacity = useRef(
-    new Animated.Value(1)
-  ).current;
-
-  const contentScale = useRef(
-    new Animated.Value(1)
-  ).current;
-
-  // =========================================================
-  // Animation
-  // =========================================================
+  // Exit transition
+  const screenOpacity = useRef(new Animated.Value(1)).current;
+  const screenScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    const animation = Animated.sequence([
-      // -------------------------------------------------------
-      // 1. Logo appears
-      // -------------------------------------------------------
+    // ចលនា Loading Dots លោតចុះឡើងរង្វិលជុំ
+    const createBounce = (val: Animated.Value, delay: number) => {
+      return Animated.loop(
+        Animated.sequence([
+          Animated.delay(delay),
+          Animated.timing(val, {
+            toValue: -9,
+            duration: 280,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }),
+          Animated.timing(val, {
+            toValue: 0,
+            duration: 280,
+            easing: Easing.in(Easing.quad),
+            useNativeDriver: true,
+          }),
+          Animated.delay(260),
+        ])
+      );
+    };
+
+    const dotsAnim = Animated.parallel([
+      createBounce(dot1, 0),
+      createBounce(dot2, 160),
+      createBounce(dot3, 320),
+    ]);
+
+    // លំដាប់ដំណើរការ Storyboard (Flow):
+    const mainTimeline = Animated.sequence([
+      // វគ្គទី ១៖ រក្សាល្បឿន Lottie Scene ដដែល (២.២ វិនាទី) មិនប៉ះពាល់ឡើយ
+      Animated.delay(2200),
+
+      // Transition ប្តូរពី Scene 1 ទៅ Scene 2
+      Animated.parallel([
+        Animated.timing(scene1Opacity, {
+          toValue: 0,
+          duration: 450,
+          easing: Easing.in(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(scene1Scale, {
+          toValue: 0.9,
+          duration: 450,
+          useNativeDriver: true,
+        }),
+      ]),
+
+      // វគ្គទី ២៖ Logo DBM បង្ហាញចេញមកចំកណ្តាល
       Animated.parallel([
         Animated.timing(logoOpacity, {
           toValue: 1,
-          duration: 280,
-          easing: Easing.out(Easing.cubic),
+          duration: 500,
+          easing: Easing.out(Easing.back(1.4)),
           useNativeDriver: true,
         }),
-
         Animated.spring(logoScale, {
           toValue: 1,
           friction: 6,
-          tension: 70,
+          tension: 65,
           useNativeDriver: true,
         }),
-
         Animated.timing(logoTranslateY, {
           toValue: 0,
-          duration: 420,
+          duration: 500,
           easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
       ]),
 
-      // -------------------------------------------------------
-      // 2. Ring expands
-      // -------------------------------------------------------
+      // អក្សរឈ្មោះ និង Tagline រំកិលឡើងមក
       Animated.parallel([
-        Animated.timing(ringOpacity, {
+        Animated.timing(textOpacity, {
           toValue: 1,
-          duration: 180,
-          easing: Easing.out(Easing.ease),
-          useNativeDriver: true,
-        }),
-
-        Animated.spring(ringScale, {
-          toValue: 1,
-          friction: 7,
-          tension: 55,
-          useNativeDriver: true,
-        }),
-      ]),
-
-      // -------------------------------------------------------
-      // 3. Title appears
-      // -------------------------------------------------------
-      Animated.parallel([
-        Animated.timing(titleOpacity, {
-          toValue: 1,
-          duration: 300,
+          duration: 450,
           easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
-
-        Animated.timing(titleTranslateY, {
+        Animated.timing(textTranslateY, {
           toValue: 0,
-          duration: 300,
+          duration: 450,
           easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
       ]),
 
-      // -------------------------------------------------------
-      // 4. Subtitle appears
-      // -------------------------------------------------------
+      // -------------------------------------------------------------
+      // បង្កើនរយៈពេលឱ្យ Logo App (Scene 2) បង្ហាញនៅនឹងអេក្រង់បានយូរ
+      // -------------------------------------------------------------
+      Animated.delay(duration),
+
+      // ចាកចេញទៅ Main App មួយៗយ៉ាងរលូន (Smooth Fade Out)
       Animated.parallel([
-        Animated.timing(subtitleOpacity, {
-          toValue: 1,
-          duration: 280,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }),
-
-        Animated.timing(subtitleTranslateY, {
+        Animated.timing(screenOpacity, {
           toValue: 0,
-          duration: 280,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }),
-      ]),
-
-      // -------------------------------------------------------
-      // 5. Underline
-      // -------------------------------------------------------
-      Animated.timing(underlineScale, {
-        toValue: 1,
-        duration: 260,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
-
-      // -------------------------------------------------------
-      // 6. Hold
-      // -------------------------------------------------------
-      Animated.delay(500),
-
-      // -------------------------------------------------------
-      // 7. Exit
-      // -------------------------------------------------------
-      Animated.parallel([
-        Animated.timing(contentOpacity, {
-          toValue: 0,
-          duration: 300,
+          duration: 450,
           easing: Easing.inOut(Easing.cubic),
           useNativeDriver: true,
         }),
-
-        Animated.timing(contentScale, {
-          toValue: 1.04,
-          duration: 300,
-          easing: Easing.inOut(Easing.cubic),
+        Animated.timing(screenScale, {
+          toValue: 1.05,
+          duration: 450,
           useNativeDriver: true,
         }),
       ]),
     ]);
 
-    animation.start(({ finished }) => {
+    dotsAnim.start();
+    mainTimeline.start(({ finished }) => {
       if (finished) {
+        dotsAnim.stop();
         onFinish();
       }
     });
 
     return () => {
-      animation.stop();
+      dotsAnim.stop();
+      mainTimeline.stop();
     };
   }, [
+    scene1Opacity,
+    scene1Scale,
     logoOpacity,
     logoScale,
     logoTranslateY,
-    ringScale,
-    ringOpacity,
-    titleOpacity,
-    titleTranslateY,
-    subtitleOpacity,
-    subtitleTranslateY,
-    underlineScale,
-    contentOpacity,
-    contentScale,
+    textOpacity,
+    textTranslateY,
+    screenOpacity,
+    screenScale,
+    duration,
     onFinish,
   ]);
 
@@ -223,195 +186,82 @@ export function SplashScreen({
       style={[
         styles.container,
         {
-          opacity: contentOpacity,
-          transform: [
-            {
-              scale: contentScale,
-            },
-          ],
+          opacity: screenOpacity,
+          transform: [{ scale: screenScale }],
         },
       ]}
     >
       <StatusBar style="dark" />
 
-      {/* =====================================================
-          TOP-RIGHT DECORATION
-          Same style as AuthHeader
-      ===================================================== */}
+      {/* Decorative Circles ផ្ទៃខាងក្រោយ */}
+      <View style={[styles.blueCircle, { width: 190, height: 190, top: -100, right: -70 }]} />
+      <View style={[styles.lightBlueCircle, { width: 100, height: 100, top: 60, right: -40 }]} />
+      <View style={[styles.blueCircle, { width: 170, height: 170, bottom: -110, left: -70 }]} />
+      <View style={[styles.lightBlueCircle, { width: 85, height: 85, bottom: -30, left: 60 }]} />
 
-      <View
+      {/* ================= SCENE 1: Delivery / Warehouse Animation ================= */}
+      <Animated.View
         style={[
-          styles.blueCircle,
+          styles.scene1Container,
           {
-            width: 180,
-            height: 180,
-            top: -110,
-            right: -75,
+            opacity: scene1Opacity,
+            transform: [{ scale: scene1Scale }],
           },
         ]}
-      />
+        pointerEvents="none"
+      >
+        <LottieView
+          ref={lottieRef}
+          source={require("../assets/delivery.json")}
+          autoPlay
+          loop={true}
+          speed={0.9}
+          resizeMode="contain"
+          style={styles.lottie}
+        />
+      </Animated.View>
 
-      <View
+      {/* ================= SCENE 2: Logo Reveal & Brand Info ================= */}
+      <Animated.View
         style={[
-          styles.lightBlueCircle,
+          styles.scene2Container,
           {
-            width: 90,
-            height: 90,
-            top: 70,
-            right: -45,
+            opacity: logoOpacity,
+            transform: [
+              { scale: logoScale },
+              { translateY: logoTranslateY },
+            ],
           },
         ]}
-      />
-
-      {/* =====================================================
-          BOTTOM-LEFT DECORATION
-          Same style as AuthHeader
-      ===================================================== */}
-
-      <View
-        style={[
-          styles.blueCircle,
-          {
-            width: 165,
-            height: 165,
-            bottom: -115,
-            left: -75,
-          },
-        ]}
-      />
-
-      <View
-        style={[
-          styles.lightBlueCircle,
-          {
-            width: 80,
-            height: 80,
-            bottom: -35,
-            left: 65,
-          },
-        ]}
-      />
-
-      {/* =====================================================
-          MAIN CONTENT
-      ===================================================== */}
-
-      <View style={styles.content}>
-        {/* ===================================================
-            Logo
-        =================================================== */}
-
-        <View style={styles.logoArea}>
-          {/* Soft ring */}
-          <Animated.View
-            style={{
-              position: "absolute",
-              width: 155,
-              height: 155,
-              borderRadius: 78,
-              borderWidth: 1.5,
-              borderColor: "rgba(37,99,235,0.10)",
-              opacity: ringOpacity,
-              transform: [
-                {
-                  scale: ringScale,
-                },
-              ],
-            }}
-          />
-
-          {/* Animated logo */}
-          <Animated.View
-            style={{
-              opacity: logoOpacity,
-              transform: [
-                {
-                  scale: logoScale,
-                },
-                {
-                  translateY: logoTranslateY,
-                },
-              ],
-            }}
-          >
-            <View style={styles.logoContainer}>
-              <Image
-                source={APP_LOGO}
-                resizeMode="contain"
-                style={styles.logo}
-              />
-            </View>
-          </Animated.View>
+      >
+        {/* Logo Card */}
+        <View style={styles.logoCard}>
+          <Image source={APP_LOGO} resizeMode="contain" style={styles.logo} />
         </View>
 
-        {/* ===================================================
-            App Name
-        =================================================== */}
-
-        <Animated.Text
-          style={{
-            ...styles.title,
-            opacity: titleOpacity,
-            transform: [
-              {
-                translateY: titleTranslateY,
-              },
-            ],
-          }}
-          numberOfLines={1}
-        >
-          DB Management
-        </Animated.Text>
-
-        {/* ===================================================
-            Subtitle
-        =================================================== */}
-
+        {/* Brand Text */}
         <Animated.View
           style={{
-            opacity: subtitleOpacity,
-            transform: [
-              {
-                translateY: subtitleTranslateY,
-              },
-            ],
+            opacity: textOpacity,
+            alignItems: "center",
+            transform: [{ translateY: textTranslateY }],
           }}
         >
-          <Text style={styles.subtitle} numberOfLines={2}>
-            ប្រព័ន្ធគ្រប់គ្រងអាជីវកម្មបែបឌីជីថល
-          </Text>
+          <Text style={styles.title}>DB Management</Text>
+          <Text style={styles.subtitle}>ប្រព័ន្ធគ្រប់គ្រងអាជីវកម្មបែបឌីជីថល</Text>
+          <Text style={styles.welcome}>Digital Business Management</Text>
 
-          <Text style={styles.welcome}>
-            WELCOME
-          </Text>
+          {/* 3 Bouncing Loading Dots ដូចក្នុងវីដេអូ To Go */}
+          <View style={styles.dotsContainer}>
+            <Animated.View style={[styles.dot, { transform: [{ translateY: dot1 }] }]} />
+            <Animated.View style={[styles.dot, { transform: [{ translateY: dot2 }] }]} />
+            <Animated.View style={[styles.dot, { transform: [{ translateY: dot3 }] }]} />
+          </View>
         </Animated.View>
-
-        {/* ===================================================
-            Underline
-        =================================================== */}
-
-        <View style={styles.underlineContainer}>
-          <Animated.View
-            style={[
-              styles.underline,
-              {
-                transform: [
-                  {
-                    scaleX: underlineScale,
-                  },
-                ],
-              },
-            ]}
-          />
-        </View>
-      </View>
+      </Animated.View>
     </Animated.View>
   );
 }
-
-// ===========================================================
-// Styles
-// ===========================================================
 
 const styles = StyleSheet.create({
   container: {
@@ -422,105 +272,92 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
 
-  content: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  // ---------------------------------------------------------
-  // Decorative circles
-  // ---------------------------------------------------------
-
+  // Decorative Background Circles
   blueCircle: {
     position: "absolute",
     borderRadius: 999,
     backgroundColor: "#2563EB",
   },
-
   lightBlueCircle: {
     position: "absolute",
     borderRadius: 999,
     backgroundColor: "#DBEAFE",
   },
 
-  // ---------------------------------------------------------
-  // Logo
-  // ---------------------------------------------------------
-
-  logoArea: {
-    width: 175,
-    height: 175,
+  // SCENE 1
+  scene1Container: {
+    position: "absolute",
+    width: "100%",
     alignItems: "center",
     justifyContent: "center",
   },
+  lottie: {
+    width: width * 0.9,
+    height: 280,
+  },
 
-  logoContainer: {
-    width: 90,
-    height: 90,
-    borderRadius: 25,
+  // SCENE 2
+  scene2Container: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    paddingHorizontal: 20,
+  },
+  logoCard: {
+    width: 105,
+    height: 105,
+    borderRadius: 28,
     backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
-
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    shadowOffset: {
-      width: 0,
-      height: 5,
-    },
-
-    elevation: 3,
+    shadowColor: "#2563EB",
+    shadowOpacity: 0.15,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 6,
+    marginBottom: 20,
   },
-
   logo: {
-    width: 92,
-    height: 66,
+    width: 80,
+    height: 80,
   },
 
-  // Text
-  
+  // Typography
   title: {
-    marginTop: 8,
-    color: "#111827",
-    fontSize: 30,
+    fontSize: 26,
+    color: "#0F172A",
     fontFamily: "KantumruyPro-Bold",
+    letterSpacing: 1.2,
     textAlign: "center",
   },
-
   subtitle: {
-    marginTop: 6,
-    paddingHorizontal: 24,
-    color: "#9CA3AF",
-    fontSize: 17,
+    marginTop: 8,
+    fontSize: 14,
+    color: "#64748B",
     fontFamily: "KantumruyPro-Medium",
     textAlign: "center",
   },
-
   welcome: {
-    marginTop: 7,
-    color: "#9CA3AF",
+    marginTop: 6,
     fontSize: 11,
+    color: "#94A3B8",
     fontFamily: "KantumruyPro-Medium",
-    letterSpacing: 3,
+    letterSpacing: 2.5,
     textAlign: "center",
   },
 
-  // ---------------------------------------------------------
-  // Underline
-  // ---------------------------------------------------------
-
-  underlineContainer: {
-    width: 70,
-    height: 2,
-    marginTop: 17,
+  // Loading Dots
+  dotsContainer: {
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    marginTop: 22,
+    gap: 8,
   },
-
-  underline: {
-    width: 70,
-    height: 2,
-    borderRadius: 999,
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: "#2563EB",
   },
 });
