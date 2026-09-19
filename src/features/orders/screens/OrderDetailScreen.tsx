@@ -11,10 +11,20 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useResponsive } from "@/hooks/useResponsive";
+import { useActiveRefresh } from "@/hooks/useActiveRefresh";
 
 import { OrderStatus } from "../types/types";
 import { useOrderDetail } from "../hooks/useOrderDetail";
 import { useUpdateOrderStatus } from "../hooks/useUpdateOrderStatus";
+import { useReorderOrder } from "../hooks/useReorderOrder";
+import {
+  isOrderClosedError,
+  isUnpaidBalanceError,
+} from "@/services";
+import {
+  Snackbar,
+  useSnackbar,
+} from "@/components/ui/Snackbar";
 import { OrderStatusBadge } from "../components/OrderStatusBadge";
 import { OrderStepper } from "../components/OrderStepper";
 import { OrderItemRow } from "../components/OrderItemRow";
@@ -26,11 +36,13 @@ import { ViewReport } from "./ViewReport";
 type OrderDetailScreenProps = {
   orderId: string;
   onBack: () => void;
+  onOpenOrder?: (orderId: string) => void;
+  isActive?: boolean;
 };
 
 const PAYMENT_STATUS_LABELS: Record<string, string> = {
   unpaid: "មិនទាន់បង់",
-  partial: "បង់រួចផ្នែក",
+  partial: "ជំពាក់ប្រាក់",
   paid: "បានបង់រួច",
 };
 
@@ -73,6 +85,8 @@ const formatKHR = (amount: number) => {
 export function OrderDetailScreen({
   orderId,
   onBack,
+  onOpenOrder,
+  isActive,
 }: OrderDetailScreenProps) {
   // =========================================================
   // HOOKS
@@ -82,7 +96,15 @@ export function OrderDetailScreen({
     order,
     isLoading,
     refresh,
+    refreshLatest,
   } = useOrderDetail(orderId);
+
+  /**
+   * The Orders tab stays mounted while the user pays a debt from the
+   * Income / Debtors tab, so this screen can hold stale payment data.
+   * Refetch whenever the Orders tab becomes active again.
+   */
+  useActiveRefresh(refresh, isActive);
 
   const insets = useSafeAreaInsets();
 
@@ -104,6 +126,14 @@ export function OrderDetailScreen({
     uncompleteOrder,
     cancelOrder,
   } = useUpdateOrderStatus();
+
+  const {
+    reorder,
+    isReordering,
+  } = useReorderOrder();
+
+  const { snackbar, showSnackbar } =
+    useSnackbar();
 
   const [
     assignDriverVisible,
@@ -142,6 +172,37 @@ export function OrderDetailScreen({
           `[ORDER ACTION] ${key} failed:`,
           error
         );
+      }
+
+      if (isUnpaidBalanceError(error)) {
+        void refresh();
+
+        Alert.alert(
+          "មិនអាចបញ្ចប់ការបញ្ជាទិញបានទេ",
+          "ការបញ្ជាទិញនេះនៅមានប្រាក់ជំពាក់។ សូមពិនិត្យព័ត៌មានការទូទាត់។",
+          [
+            {
+              text: "យល់ព្រម",
+            },
+          ]
+        );
+
+        return;
+      }
+
+      if (isOrderClosedError(error)) {
+        Alert.alert(
+          "ការបញ្ជាទិញបានបិទ",
+          "ការបញ្ជាទិញនេះត្រូវបានលុបចោល ឬបិទរួចហើយ។",
+          [
+            {
+              text: "យល់ព្រម",
+              style: "default",
+            },
+          ]
+        );
+        void refresh();
+        return;
       }
 
       Alert.alert(
@@ -296,57 +357,50 @@ const handleAssignDriver = (values: {
   const remainingAmountKHR =
     remainingAmountUSD * USD_TO_KHR;
 
-  /*
-   * Used by complete validation.
-   *
-   * Backend values are USD-equivalent,
-   * so this remains in USD internally.
-   */
-  const remainingForValidation =
-    remainingAmountUSD;
-
   // =========================================================
   // COMPLETE
   // =========================================================
 
-  const handleComplete = () => {
-    if (remainingForValidation > 0) {
-      const remainingText =
-        isKHRPayment
-          ? `${formatKHR(
-              remainingAmountKHR
-            )} (≈ ${formatUSD(
-              remainingAmountUSD
-            )})`
-          : formatUSD(
-              remainingAmountUSD
-            );
+  /**
+   * Payments can be recorded from the Income / Debtors screens while this
+   * order is open, so never trust the local copy. Always re-fetch the
+   * latest server state before completing.
+   */
+const handleComplete = () => {
+  const paidAmount = Number(order.paidAmount ?? 0);
 
-      Alert.alert(
-        "មិនអាចបញ្ចប់ការបញ្ជាទិញបានទេ",
-        `អតិថិជននៅមិនទាន់បង់ប្រាក់ ${remainingText}។ សូមទូទាត់ប្រាក់ជាមុនសិន។`,
-        [
-          {
-            text: "យល់ព្រម",
-          },
-        ]
-      );
-
-      return;
-    }
-
-    runAction(
-      "complete",
-      () =>
-        completeOrder(order.id)
+  // No payment yet → do not allow complete.
+  // Partial payment → allow complete and create customer debt.
+  if (paidAmount <= 0) {
+    Alert.alert(
+      "មិនអាចបញ្ចប់ការបញ្ជាទិញបានទេ",
+      "សូមកត់ត្រាការបង់ប្រាក់យ៉ាងហោចណាស់មួយចំនួនជាមុនសិន។",
+      [
+        {
+          text: "យល់ព្រម",
+        },
+      ]
+    
     );
-  };
+
+    return;
+  }
+
+  runAction(
+    "complete",
+    () => completeOrder(order.id)
+  );
+};
 
   // =========================================================
   // CANCEL
   // =========================================================
 
   const handleCancel = () => {
+    if (order.status === OrderStatus.Cancelled) {
+      return;
+    }
+
     Alert.alert(
       "បោះបង់ការបញ្ជាទិញ",
       "តើអ្នកប្រាកដថាចង់បោះបង់ការបញ្ជាទិញនេះទេ?",
@@ -378,6 +432,57 @@ const handleAssignDriver = (values: {
       "uncomplete",
       () =>
         uncompleteOrder(order.id)
+    );
+  };
+
+  // =========================================================
+  // REORDER
+  // =========================================================
+
+  /*
+   * Creates a brand-new order from the current order's products.
+   *
+   * - Current stock is validated first (Snackbar UI on failure).
+   * - Current product prices are applied by the backend.
+   * - The old order (payment/debt) is NEVER modified.
+   * - On success we navigate to the newly created order.
+   */
+  const handleReorder = async () => {
+    if (!order || isReordering) return;
+
+    const result = await reorder(order);
+
+    if (result.ok) {
+      if (onOpenOrder) {
+        onOpenOrder(result.orderId);
+      } else {
+        onBack();
+      }
+
+      return;
+    }
+
+    if (
+      result.failure.reason ===
+      "insufficient_stock"
+    ) {
+      const issue =
+        result.failure.issues[0];
+
+      if (issue) {
+        showSnackbar({
+          title: "ស្តុកមិនគ្រប់ចំនួន",
+          message: `${issue.productName} មានស្តុកតែ ${issue.available} ប៉ុណ្ណោះ ប៉ុន្តែត្រូវការ ${issue.requested}។`,
+        });
+      }
+
+      return;
+    }
+
+    Alert.alert(
+      "កំហុស",
+      result.failure.message ??
+        "មានបញ្ហាក្នុងការបង្កើតការបញ្ជាទិញម្តងទៀត។ សូមព្យាយាមម្តងទៀត។"
     );
   };
 
@@ -979,6 +1084,15 @@ const handleAssignDriver = (values: {
           </TouchableOpacity>
         </View>
       )}
+      {order.status !==
+        OrderStatus.Cancelled && (
+        <View
+          className="px-5 pt-3 bg-white border-t border-gray-100"
+          style={footerStyle}
+        >
+        </View>
+      )}
+      <Snackbar data={snackbar} />
       <AssignDriverModal
         visible={assignDriverVisible}
         loading={

@@ -132,9 +132,33 @@ async function persistToken(token: string | null): Promise<void> {
   }
 }
 
+type AccessTokenListener = () => void;
+const accessTokenListeners = new Set<AccessTokenListener>();
+
+function notifyAccessTokenChanged(): void {
+  accessTokenListeners.forEach((listener) => {
+    try {
+      listener();
+    } catch {
+      // A failed listener must never break token handling.
+    }
+  });
+}
+
+/**
+ * Registers a callback that runs whenever the in-memory access token changes
+ * (login, token refresh, or logout). Used by the SignalR service to resume
+ * reporting after an unauthorized pause. Returns an unsubscribe function.
+ */
+export function onAccessTokenChanged(listener: AccessTokenListener): () => void {
+  accessTokenListeners.add(listener);
+  return () => accessTokenListeners.delete(listener);
+}
+
 export function setAccessToken(token: string | null) {
   accessToken = token;
   persistToken(token);
+  notifyAccessTokenChanged();
 }
 
 /** Presence check only — never exposes the token value. */
@@ -240,6 +264,7 @@ function forceLogout() {
   logoutFired = true;
   accessToken = null;
   persistToken(null);
+  notifyAccessTokenChanged();
   clearTokens().catch(() => {});
   cacheClearAll().catch(() => {});
   logoutListeners.forEach((listener) => listener());
@@ -286,6 +311,7 @@ function doRefresh(): Promise<string> {
 
       accessToken = newTokens.accessToken;
       await setTokens(newTokens);
+      notifyAccessTokenChanged();
       if (__DEV__) console.log('[API] TOKEN REFRESH SUCCESS');
       return newTokens.accessToken;
     } catch (err) {
@@ -392,6 +418,71 @@ export function httpErrorMessage(error: unknown): string | null {
   if (error.response?.status === 401) return 'unauthorized';
   if (error.code === 'ERR_NETWORK') return 'network';
   return body?.message ?? body?.title ?? null;
+}
+
+/* ── Insufficient-stock validation errors (order approve, etc.) ── */
+
+export type InsufficientStockIssue = {
+  productName: string;
+  available: number;
+  requested: number;
+};
+
+const INSUFFICIENT_STOCK_MARKER = 'Insufficient stock for';
+const INSUFFICIENT_STOCK_PATTERN = /Insufficient stock for\s+"([^"]+)"\s*[—-]\s*only\s+(\d+)\s+available,\s*need\s+(\d+)\s*\.?/gi;
+
+export function isInsufficientStockError(error: unknown): boolean {
+  if (!isAxiosError(error)) return false;
+  if (error.response?.status !== 400) return false;
+  const body = error.response?.data as { error?: string } | undefined;
+  return typeof body?.error === 'string' && body.error.includes(INSUFFICIENT_STOCK_MARKER);
+}
+
+/* ── Order already closed errors (status-change on closed order) ── */
+
+const ORDER_CLOSED_MARKER = 'Order is already closed.';
+
+export function isOrderClosedError(error: unknown): boolean {
+  if (!isAxiosError(error)) return false;
+  const body = error.response?.data as { error?: string } | undefined;
+  return typeof body?.error === 'string' && body.error.includes(ORDER_CLOSED_MARKER);
+}
+
+/* ── Order unpaid-balance errors (complete on an order with debt) ── */
+
+const ORDER_UNPAID_BALANCE_MARKER = 'unpaid balance';
+
+export function isUnpaidBalanceError(error: unknown): boolean {
+  if (!isAxiosError(error)) return false;
+  if (error.response?.status !== 400) return false;
+  const body = error.response?.data as { error?: string } | undefined;
+  return (
+    typeof body?.error === 'string' &&
+    body.error.toLowerCase().includes(ORDER_UNPAID_BALANCE_MARKER)
+  );
+}
+
+/**
+ * Extracts all "Insufficient stock for "X" — only N available, need M."
+ * entries from the API error message. Handles one or multiple products.
+ */
+export function parseInsufficientStockErrors(error: unknown): InsufficientStockIssue[] {
+  if (!isAxiosError(error)) return [];
+  const body = error.response?.data as { error?: string } | undefined;
+  const text = body?.error ?? '';
+  if (!text.includes(INSUFFICIENT_STOCK_MARKER)) return [];
+
+  const issues: InsufficientStockIssue[] = [];
+  let match: RegExpExecArray | null;
+  INSUFFICIENT_STOCK_PATTERN.lastIndex = 0;
+  while ((match = INSUFFICIENT_STOCK_PATTERN.exec(text)) !== null) {
+    issues.push({
+      productName: match[1],
+      available: Number(match[2]),
+      requested: Number(match[3]),
+    });
+  }
+  return issues;
 }
 
 function unwrapData<T>(payload: BackendApiResponse<T> | T): T {

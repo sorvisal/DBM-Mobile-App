@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   ListRenderItemInfo,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -15,14 +16,39 @@ import { useDebtors } from "../hooks/useDebtors";
 import { DebtorListItem } from "../components/DebtorListItem";
 import { DebtorListItemSkeleton } from "../../customers/components/CustomerCardSkeleton";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useActiveRefresh } from "../../../hooks/useActiveRefresh";
 import { DetailLayout } from "../../../layouts/DetailLayout";
 import { DebtorDetailScreen } from "./DebtorDetailScreen";
+import type { Debtor } from "../types/income.types";
 
 type DebtorsScreenProps = {
   onBack: () => void;
+  isActive?: boolean;
+  /** Deep-link: debtor (customer) id to open (from a notification). */
+  openDebtorId?: string | null;
+  /** Called once `openDebtorId` has been consumed. */
+  onOpenDebtorHandled?: () => void;
 };
 
-export function DebtorsScreen({ onBack }: DebtorsScreenProps) {
+function createPlaceholderDebtor(id: string): Debtor {
+  return {
+    id,
+    code: "",
+    name: "",
+    initials: "",
+    avatarColor: "#2563EB",
+    phone: "",
+    amount: 0,
+    dueDate: "",
+  };
+}
+
+export function DebtorsScreen({
+  onBack,
+  isActive,
+  openDebtorId,
+  onOpenDebtorHandled,
+}: DebtorsScreenProps) {
   const [search, setSearch] = useState("");
 
   // =========================================================
@@ -44,7 +70,58 @@ export function DebtorsScreen({ onBack }: DebtorsScreenProps) {
     hasMore,
     loadMore,
     stale,
+    refresh,
   } = useDebtors();
+
+  // =========================================================
+  // PULL TO REFRESH
+  // =========================================================
+
+  const [refreshing, setRefreshing] =
+    useState(false);
+
+  const handleManualRefresh =
+    useCallback(async () => {
+      try {
+        setRefreshing(true);
+        await refresh();
+      } finally {
+        setRefreshing(false);
+      }
+    }, [refresh]);
+
+  // =========================================================
+  // AUTO REFRESH ON FOCUS
+  //
+  // Triggered when the income tab becomes active again, or when
+  // returning from the debtor detail screen (list becomes visible).
+  // =========================================================
+
+  const listActive =
+    Boolean(isActive) &&
+    !selectedDebtor;
+
+  useActiveRefresh(refresh, listActive);
+
+  // =========================================================
+  // DEEP LINK FROM NOTIFICATION
+  //
+  // Opens the debtor detail for a customer id even when that customer is
+  // not (or no longer) present in the receivables list — e.g. a "Debt paid"
+  // notification. Falls back to a placeholder that DebtorDetailScreen
+  // hydrates from the API by id.
+  // =========================================================
+
+  useEffect(() => {
+    if (!openDebtorId) return;
+
+    const match = allDebtors.find(
+      (debtor) => String(debtor.id) === String(openDebtorId)
+    );
+
+    setSelectedDebtor(match ?? createPlaceholderDebtor(openDebtorId));
+    onOpenDebtorHandled?.();
+  }, [openDebtorId, allDebtors, onOpenDebtorHandled]);
 
   // =========================================================
   // SEARCH DEBOUNCE
@@ -193,6 +270,7 @@ export function DebtorsScreen({ onBack }: DebtorsScreenProps) {
       <DebtorDetailScreen
         debtor={selectedDebtor}
         onBack={handleCloseDetail}
+        isActive={isActive}
       />
     );
   }
@@ -244,6 +322,7 @@ export function DebtorsScreen({ onBack }: DebtorsScreenProps) {
             <TouchableOpacity
               className="ml-2"
               activeOpacity={0.7}
+              onPress={handleManualRefresh}
               accessibilityRole="button"
               accessibilityLabel="Refresh"
             >
@@ -280,6 +359,14 @@ export function DebtorsScreen({ onBack }: DebtorsScreenProps) {
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.15}
         renderItem={renderRow}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing || isLoading}
+            onRefresh={handleManualRefresh}
+            colors={["#2563EB"]}
+            tintColor="#2563EB"
+          />
+        }
         ListFooterComponent={renderFooter}
         ListEmptyComponent={
           isLoading ? (

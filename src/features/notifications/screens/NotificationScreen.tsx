@@ -10,27 +10,32 @@ import {
   markAllAsRead,
   deleteNotification,
 } from "../hooks/useNotifications";
+import type { Notification } from "../types/notification.types";
 import { typography } from "@/theme";
 
 type NotificationScreenProps = {
   onClose: () => void;
+  onOpenNotification?: (notification: Notification) => void;
 };
 
-export function NotificationScreen({ onClose }: NotificationScreenProps) {
+export function NotificationScreen({
+  onClose,
+  onOpenNotification,
+}: NotificationScreenProps) {
   const { notifications, unreadCount, isLoading, isRefreshing, error } =
     useNotifications();
 
-  const handleItemPress = async (id: string, read: boolean) => {
-    if (read) return;
-
-    try {
-      await markAsRead(id);
-    } catch (readError) {
-      if (__DEV__) {
-        console.error("[NOTIFICATION] mark as read failed:", readError);
-      }
-      Alert.alert("មានបញ្ហា", "មិនអាចធ្វើបច្ចុប្បន្នភាពបានទេ");
+  const handleItemPress = (notification: Notification) => {
+    // Mark as read optimistically without blocking navigation.
+    if (!notification.read) {
+      markAsRead(notification.id).catch((readError) => {
+        if (__DEV__) {
+          console.error("[NOTIFICATION] mark as read failed:", readError);
+        }
+      });
     }
+
+    onOpenNotification?.(notification);
   };
 
   const handleDelete = (id: string) => {
@@ -102,7 +107,7 @@ export function NotificationScreen({ onClose }: NotificationScreenProps) {
         renderItem={({ item }) => (
           <NotificationItem
             notification={item}
-            onPress={() => handleItemPress(item.id, item.read)}
+            onPress={() => handleItemPress(item)}
             onDelete={() => handleDelete(item.id)}
           />
         )}

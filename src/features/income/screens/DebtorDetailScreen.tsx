@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import {
   View,
   Text,
@@ -17,16 +19,36 @@ import {
   DebtorOrder,
 } from "../hooks/useDebtorDetail";
 
+import {
+  PayDebtModal,
+  PayDebtResult,
+} from "../components/PayDebtModal";
+
+import {
+  Snackbar,
+  useSnackbar,
+} from "@/components/ui/Snackbar";
+
+import {
+  invalidateDebtorsCache,
+  invalidateOrderDetailCache,
+  invalidatePaymentCache,
+} from "@/services";
+
+import { useActiveRefresh } from "../../../hooks/useActiveRefresh";
+
 import { Debtor } from "../types/income.types";
 
 type DebtorDetailScreenProps = {
   debtor: Debtor;
   onBack: () => void;
+  isActive?: boolean;
 };
 
 export function DebtorDetailScreen({
   debtor,
   onBack,
+  isActive,
 }: DebtorDetailScreenProps) {
   const {
     data,
@@ -37,7 +59,62 @@ export function DebtorDetailScreen({
     refresh,
   } = useDebtorDetail(debtor);
 
+  const { snackbar, showSnackbar } =
+    useSnackbar();
+
+  const [payVisible, setPayVisible] =
+    useState(false);
+
+  useActiveRefresh(refresh, isActive);
+
   const customer = data?.customer;
+
+  // =========================================================
+  // PAY DEBT
+  // =========================================================
+
+  const handlePaid = async (
+    result: PayDebtResult
+  ) => {
+    setPayVisible(false);
+
+    if (__DEV__) {
+      console.log(
+        "[PAYMENT] Payment successful:",
+        result.succeeded,
+        "/",
+        result.attempted
+      );
+      console.log(
+        "[PAYMENT] Refreshing affected orders:",
+        result.orderIds
+      );
+    }
+
+    result.orderIds.forEach((id) =>
+      invalidateOrderDetailCache(id)
+    );
+
+    invalidateDebtorsCache();
+    invalidatePaymentCache();
+
+    await refresh();
+
+    const isFull =
+      result.succeeded >=
+      result.attempted;
+
+    showSnackbar({
+      title: isFull
+        ? "បានសងប្រាក់ជោគជ័យ"
+        : "ការទូទាត់មិនពេញលេញ",
+      message: isFull
+        ? `បានទូទាត់ ${money(
+            result.amountUSD
+          )} ។`
+        : `បានទូទាត់ខ្លះ (${result.succeeded}/${result.attempted})។ សូមព្យាយាមម្តងទៀត។`,
+    });
+  };
 
   // =========================================================
   // CALL CUSTOMER
@@ -251,6 +328,7 @@ export function DebtorDetailScreen({
   // =========================================================
 
   return (
+    <>
     <DetailLayout
       title="ព័ត៌មានអតិថិជនជំពាក់"
       onBack={onBack}
@@ -427,6 +505,29 @@ export function DebtorDetailScreen({
                 </Text>
               </View>
             </View>
+
+            {totalDebt > 0 && (
+              <TouchableOpacity
+                onPress={() =>
+                  setPayVisible(true)
+                }
+                disabled={isLoading}
+                activeOpacity={0.8}
+                className="bg-green-600 rounded-xl h-12 items-center justify-center mt-4"
+              >
+                <View className="flex-row items-center">
+                  <Ionicons
+                    name="cash-outline"
+                    size={20}
+                    color="white"
+                  />
+
+                  <Text className="font-khmerBold text-white text-xl ml-2">
+                    សងប្រាក់
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
@@ -661,5 +762,30 @@ export function DebtorDetailScreen({
         </View>
       </ScrollView>
     </DetailLayout>
+
+    {/* =====================================================
+        PAY DEBT MODAL
+    ====================================================== */}
+
+    <PayDebtModal
+      visible={payVisible}
+      customerName={
+        customer?.name ||
+        debtor.name
+      }
+      orders={orders}
+      totalDebt={totalDebt}
+      onCancel={() =>
+        setPayVisible(false)
+      }
+      onPaid={handlePaid}
+    />
+
+    {/* =====================================================
+        SNACKBAR
+    ====================================================== */}
+
+    <Snackbar data={snackbar} />
+    </>
   );
 }

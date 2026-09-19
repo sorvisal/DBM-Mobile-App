@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
-import { View } from "react-native";
+import { Alert, View } from "react-native";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -22,7 +22,10 @@ import {
   useNotifications,
   startNotificationService,
   stopNotificationService,
+  markAsRead,
 } from "../features/notifications/hooks/useNotifications";
+import { resolveNotificationTarget } from "../features/notifications/types/notification.types";
+import type { Notification } from "../features/notifications/types/notification.types";
 import type { StockTabKey } from "../features/stock/screens/StockScreen";
 type TabKey =
   | "dashboard"
@@ -131,6 +134,13 @@ export function RootLayout({
   const [notificationsVisible, setNotificationsVisible] =
     useState(false);
 
+  const [pendingNotificationNav, setPendingNotificationNav] =
+    useState<{
+      tab: TabKey;
+      kind: "order" | "customer" | "debt" | "product";
+      id: string;
+    } | null>(null);
+
   const [mountedTabs, setMountedTabs] =
     useState<Record<TabKey, boolean>>({
       dashboard: true,
@@ -185,6 +195,38 @@ const handleStockNavigation = useCallback(
   },
   [handleTabPress]
 );
+
+  const handleClearPendingNotificationNav = useCallback(() => {
+    setPendingNotificationNav(null);
+  }, []);
+
+  const handleNotificationPress = useCallback(
+    (notification: Notification) => {
+      setNotificationsVisible(false);
+
+      // Mark as read optimistically; never block navigation on the request.
+      if (!notification.read) {
+        markAsRead(notification.id).catch(() => {});
+      }
+
+      const target = resolveNotificationTarget(notification);
+      if (!target) {
+        Alert.alert(
+          "ការជូនដំណឹង",
+          "មិនអាចបើកព័ត៌មានលម្អិតបានទេ"
+        );
+        return;
+      }
+
+      setPendingNotificationNav({
+        tab: target.tab,
+        kind: target.kind,
+        id: target.id,
+      });
+      handleTabPress(target.tab);
+    },
+    [handleTabPress]
+  );
   const handleCustomersChromeChange =
     useCallback((hidden: boolean) => {
       setChromeHiddenByTab((prev) =>
@@ -279,7 +321,15 @@ return (
               activeTab={activeTab}
               enterFrom={enterFrom}
             >
-              <StockScreen initialTab={stockInitialTab} />
+              <StockScreen
+                initialTab={stockInitialTab}
+                openProductId={
+                  pendingNotificationNav?.kind === "product"
+                    ? pendingNotificationNav.id
+                    : null
+                }
+                onOpenProductHandled={handleClearPendingNotificationNav}
+              />
             </TabHost>
           )}
 
@@ -293,6 +343,15 @@ return (
                 onChromeChange={
                   handleOrdersChromeChange
                 }
+                isActive={
+                  activeTab === "orders"
+                }
+                openOrderId={
+                  pendingNotificationNav?.kind === "order"
+                    ? pendingNotificationNav.id
+                    : null
+                }
+                onOpenOrderHandled={handleClearPendingNotificationNav}
               />
             </TabHost>
           )}
@@ -307,6 +366,12 @@ return (
                 onChromeChange={
                   handleCustomersChromeChange
                 }
+                openCustomerId={
+                  pendingNotificationNav?.kind === "customer"
+                    ? pendingNotificationNav.id
+                    : null
+                }
+                onOpenCustomerHandled={handleClearPendingNotificationNav}
               />
             </TabHost>
           )}
@@ -321,6 +386,15 @@ return (
                 onChromeChange={
                   handleIncomeChromeChange
                 }
+                isActive={
+                  activeTab === "income"
+                }
+                openDebtorId={
+                  pendingNotificationNav?.kind === "debt"
+                    ? pendingNotificationNav.id
+                    : null
+                }
+                onOpenDebtorHandled={handleClearPendingNotificationNav}
               />
             </TabHost>
           )}
@@ -362,6 +436,7 @@ return (
             onClose={() =>
               setNotificationsVisible(false)
             }
+            onOpenNotification={handleNotificationPress}
           />
         </View>
       )}

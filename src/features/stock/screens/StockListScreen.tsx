@@ -10,11 +10,15 @@ import { useDebounce } from "@/hooks/useDebounce";
 
 type StockListScreenProps = {
   onNavigate: (tab: StockTabKey) => void;
+  onSelectProduct?: (productId: string) => void;
 };
 
 const ITEM_HEIGHT = 76;
 
-export function StockListScreen({ onNavigate }: StockListScreenProps) {
+export function StockListScreen({
+  onNavigate,
+  onSelectProduct,
+}: StockListScreenProps) {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
   const { data, isLoading, isFetchingMore, hasMore, loadMore, error, stale, refresh } = useStockList(debouncedSearch);
@@ -63,10 +67,10 @@ export function StockListScreen({ onNavigate }: StockListScreenProps) {
         sellPrice={`${item.sellPrice}$`}
         quantity={item.quantity}
         isLowStock={item.status !== "in_stock"}
-        onPress={() => {}}
+        onPress={() => onSelectProduct?.(item.id)}
       />
     );
-  }, []);
+  }, [onSelectProduct]);
 
   const renderFooter = useCallback(() => {
     if (!isFetchingMore) return null;

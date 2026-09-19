@@ -10,6 +10,10 @@ export {
   httpPut,
   httpErrorCode,
   httpErrorMessage,
+  isInsufficientStockError,
+  parseInsufficientStockErrors,
+  isOrderClosedError,
+  isUnpaidBalanceError,
   onUnauthorized,
   resolveMediaUrl,
   setAccessToken,
@@ -18,6 +22,7 @@ export {
   getAccessToken,
   cancelInflight,
   type AppErrorCode,
+  type InsufficientStockIssue,
 } from "./http";
 export { clearTokens, getTokens, setTokens } from "./storage";
 export {

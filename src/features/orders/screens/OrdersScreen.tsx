@@ -5,9 +5,19 @@ import { CreateOrderScreen } from "./CreateOrderScreen";
 
 type OrdersScreenProps = {
   onChromeChange?: (hidden: boolean) => void;
+  isActive?: boolean;
+  /** Deep-link: order id to open (from a notification). */
+  openOrderId?: string | null;
+  /** Called once `openOrderId` has been consumed. */
+  onOpenOrderHandled?: () => void;
 };
 
-export function OrdersScreen({ onChromeChange }: OrdersScreenProps) {
+export function OrdersScreen({
+  onChromeChange,
+  isActive,
+  openOrderId,
+  onOpenOrderHandled,
+}: OrdersScreenProps) {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [showCreateOrder, setShowCreateOrder] = useState(false);
 
@@ -16,6 +26,13 @@ export function OrdersScreen({ onChromeChange }: OrdersScreenProps) {
   useEffect(() => {
     onChromeChange?.(isSubView);
   }, [isSubView, onChromeChange]);
+
+  useEffect(() => {
+    if (!openOrderId) return;
+    setShowCreateOrder(false);
+    setSelectedOrderId(openOrderId);
+    onOpenOrderHandled?.();
+  }, [openOrderId, onOpenOrderHandled]);
 
   const handleSelectOrder = useCallback((id: string | null) => {
     setSelectedOrderId(id);
@@ -37,9 +54,11 @@ export function OrdersScreen({ onChromeChange }: OrdersScreenProps) {
 
   if (selectedOrderId) {
     return (
-      <OrderDetailScreen 
-        orderId={selectedOrderId} 
-        onBack={() => handleSelectOrder(null)} 
+      <OrderDetailScreen
+        orderId={selectedOrderId}
+        onBack={() => handleSelectOrder(null)}
+        onOpenOrder={handleSelectOrder}
+        isActive={isActive}
       />
     );
   }

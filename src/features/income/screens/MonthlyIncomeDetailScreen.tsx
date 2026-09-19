@@ -15,8 +15,7 @@ import * as Sharing from "expo-sharing";
 
 import { useMonthlyIncome } from "../hooks/useMonthlyIncome";
 import { RevenueBarChart } from "../components/RevenueBarChart";
-import { DebtorListItem } from "../components/DebtorListItem";
-import { OutstandingDebtCard } from "../components/OutstandingDebtCard";
+import { MonthlyOrderCard } from "../components/MonthlyOrderCard";
 import { generateMonthlyIncomeReport } from "../utils/generateMonthlyIncomeReport";
 import {
   LoadingState,
@@ -27,7 +26,6 @@ import { DetailLayout } from "../../../layouts/DetailLayout";
 
 type MonthlyIncomeDetailScreenProps = {
   onBack: () => void;
-  onGoDebtors: () => void;
 };
 
 const KHMER_MONTH_NAMES = [
@@ -78,7 +76,6 @@ function getMonthOptions(): MonthOption[] {
 
 export function MonthlyIncomeDetailScreen({
   onBack,
-  onGoDebtors,
 }: MonthlyIncomeDetailScreenProps) {
   const monthOptions = useMemo(
     () => getMonthOptions(),
@@ -186,8 +183,11 @@ export function MonthlyIncomeDetailScreen({
 
   /*
    * ========================================
-   * DOWNLOAD MONTHLY INCOME REPORT
+   * DOWNLOAD MONTHLY INCOME REPORT (PDF)
    * ========================================
+   * Reuses the existing generateMonthlyIncomeReport util. Sharing the file
+   * via the system share sheet; falls back to expo-print when sharing is
+   * unavailable.
    */
   const handleDownloadReport = async () => {
     if (isDownloading || isLoading) {
@@ -441,12 +441,12 @@ export function MonthlyIncomeDetailScreen({
       </Modal>
 
       {isLoading &&
-      summary.dailyChart.length === 0 ? (
+      summary.orders.length === 0 ? (
         <LoadingState
           text="កំពុងផ្ទុកទិន្នន័យចំណូល..."
         />
       ) : error &&
-        summary.dailyChart.length === 0 ? (
+        summary.orders.length === 0 ? (
         <ErrorState
           onRetry={refresh}
         />
@@ -454,7 +454,7 @@ export function MonthlyIncomeDetailScreen({
         <FlatList
           key={month}
           className="flex-1 px-5 pt-3"
-          data={summary.debtors}
+          data={summary.orders}
           keyExtractor={(item) =>
             item.id
           }
@@ -503,8 +503,6 @@ export function MonthlyIncomeDetailScreen({
                 </View>
               </View>
 
-             
-
               <View className="mt-4 rounded-2xl bg-white p-4">
                 <View className="mb-3 flex-row items-center justify-between">
                   <Text
@@ -535,44 +533,47 @@ export function MonthlyIncomeDetailScreen({
                 />
               </View>
 
-              <View className="mt-4">
-                <View className="mb-2 flex-row items-center justify-between">
+              <View className="mb-2 mt-4 flex-row items-center justify-between">
+                <Text
+                  className="mr-2 flex-1 font-khmerBold text-xl text-gray-900"
+                  numberOfLines={2}
+                  maxFontSizeMultiplier={1.3}
+                >
+                  ការបញ្ជាទិញប្រចាំខែ
+                </Text>
+
+                <View className="rounded-full bg-gray-100 px-3 py-1">
                   <Text
-                    className="mr-2 flex-1 font-khmerBold text-xl text-gray-900"
-                    numberOfLines={2}
+                    className="font-khmer text-xl text-gray-600"
                     maxFontSizeMultiplier={1.3}
                   >
-                    ចំណូលអតិថិជនសរុប
+                    {summary.orders.length} កម្មង់
                   </Text>
-
-                  <TouchableOpacity
-                    onPress={
-                      onGoDebtors
-                    }
-                    activeOpacity={0.7}
-                    className="flex-row items-center"
-                  >
-                    <Text
-                      className="font-khmer text-xl text-blue-600"
-                      numberOfLines={1}
-                      maxFontSizeMultiplier={1.3}
-                    >
-                      មើលទាំងអស់
-                    </Text>
-
-                    <Ionicons
-                      name="chevron-forward"
-                      size={13}
-                      color="#2563EB"
-                      style={{
-                        marginLeft: 3,
-                      }}
-                    />
-                  </TouchableOpacity>
                 </View>
               </View>
- {/* DOWNLOAD MONTHLY INCOME REPORT BUTTON */}
-
+            </>
+          }
+          ListEmptyComponent={
+            isLoading ? (
+              <LoadingState
+                compact
+                text="កំពុងផ្ទុកការបញ្ជាទិញ..."
+              />
+            ) : error ? (
+              <ErrorState
+                compact
+                onRetry={refresh}
+              />
+            ) : (
+              <EmptyState
+                compact
+                icon="receipt-outline"
+                text="មិនមានការកម្មង់ក្នុងខែនេះ"
+              />
+            )
+          }
+          ListFooterComponent={
+            <>
               <TouchableOpacity
                 onPress={handleDownloadReport}
                 disabled={isDownloading}
@@ -610,47 +611,18 @@ export function MonthlyIncomeDetailScreen({
                   </>
                 )}
               </TouchableOpacity>
-            </>
-          }
-          ListEmptyComponent={
-            isLoading ? (
-              <LoadingState
-                compact
-                text="កំពុងផ្ទុកចំណូលអតិថិជន..."
-              />
-            ) : error ? (
-              <ErrorState
-                compact
-                onRetry={refresh}
-              />
-            ) : (
-              <EmptyState
-                compact
-                icon="people-outline"
-                text="មិនមានចំណូលអតិថិជន"
-              />
-            )
-          }
-          ListFooterComponent={
-            <>
-              <OutstandingDebtCard
-                totalDebt={
-                  summary.totalDebt
-                }
-                debtorCount={
-                  summary.debtors.length
-                }
-              />
 
               <View className="h-6" />
             </>
           }
           renderItem={({ item }) => (
-            <DebtorListItem
-              debtor={item}
+            <MonthlyOrderCard
+              code={item.code}
+              customerName={item.customerName}
+              dateLabel={item.time}
+              amount={item.amount}
             />
           )}
-          
         />
       )}
     </DetailLayout>

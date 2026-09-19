@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { api, cacheGet, cacheGetStale, cacheSet, CacheTTL, suppressGlobalLoading, unsuppressGlobalLoading } from "@/services";
 import { resolveMediaUrl } from "@/services/http";
 import type { StockStatus, Product as StockProduct } from "../types/stock.types";
@@ -30,11 +30,6 @@ export function mapApiProduct(p: { id: string; name: string; category: string; s
   };
 }
 
-// --- Instant cross-instance sync -------------------------------------------------
-// Every mounted useStockList() has its own React state. When a product is created
-// elsewhere (e.g. AddStockScreen via useAddStock), we broadcast the newly created
-// product to every currently-mounted hook instance so the Stock/Product list
-// updates instantly — no refetch, navigation, or reload required.
 type NewProductListener = (product: StockProduct) => void;
 const newProductListeners = new Set<NewProductListener>();
 
@@ -42,10 +37,6 @@ export function notifyNewProduct(product: StockProduct) {
   newProductListeners.forEach((listener) => listener(product));
 }
 
-// Merges a newly created product into the default ("all", page 1) list cache so a
-// fresh mount — or a mount that briefly shows stale cache before its live fetch
-// resolves — also sees it immediately. Call this AFTER invalidateStockCache(),
-// since that clears the "products:" prefix and would otherwise wipe this merge.
 export async function mergeNewProductIntoCache(product: StockProduct): Promise<void> {
   const key = cacheKey("", 1);
   try {
@@ -188,6 +179,7 @@ export function useStockList(search?: string) {
 
   const hasMore = data.length < total;
   const loadMore = useCallback(() => {
+    
     if (isFetchingMore || !hasMore) return;
     const nextPage = page + 1;
     const searchVal = searchRef.current || "";
@@ -204,7 +196,21 @@ export function useStockList(search?: string) {
       }
       loadPage(nextPage, true);
     });
-  }, [isFetchingMore, hasMore, page, total, loadPage, prefetchRemainingPages]);
+   }, [isFetchingMore, hasMore, page, total, loadPage, prefetchRemainingPages]);
+ 
+    const sortedData = useMemo(() => {
+    return [...data].sort((a, b) => {
+      const stockDifference = Number(b.quantity ?? 0) - Number(a.quantity ?? 0);
 
-  return { data, isLoading, isFetchingMore, hasMore, loadMore, error, stale, refresh: () => loadPage(1) };
+      if (stockDifference !== 0) {
+        return stockDifference;
+      }
+
+      return String(a.name ?? "").localeCompare(String(b.name ?? ""), undefined, {
+        sensitivity: "base",
+      });
+    });
+  }, [data]);
+
+  return { data: sortedData, isLoading, isFetchingMore, hasMore, loadMore, error, stale, refresh: () => loadPage(1) };
 }

@@ -143,6 +143,79 @@ export function useOrderDetail(orderId: string) {
     refreshKey.current += 1;
   }, []);
 
+  /**
+   * Fetches the latest order state and resolves with it.
+   *
+   * Unlike `refresh()` (fire-and-forget, refreshes on the next effect
+   * tick), this can be awaited. Used before completing an order so the
+   * decision is always based on fresh server data — never stale state.
+   *
+   * Never throws; returns `null` when the request fails.
+   */
+  const refreshLatest = useCallback(async (): Promise<Order | null> => {
+    if (!orderId) return null;
+
+    try {
+      const o = await api.orders.get(orderId);
+
+      const mapped = await mapApiOrder(o);
+
+      /**
+       * Order API only provides customer ID + name. Fetch the customer
+       * separately so phone/address stay available after a refresh.
+       */
+      let enriched = mapped;
+
+      if (mapped.customer.id) {
+        const customer = await api.customers
+          .get(mapped.customer.id)
+          .catch(() => null);
+
+        if (customer) {
+          enriched = {
+            ...mapped,
+
+            customer: {
+              id: mapped.customer.id,
+
+              name: mapped.customer.name,
+
+              phone: customer.phone,
+
+              address: customer.address,
+            },
+          };
+        }
+      }
+
+      cacheSet(
+        `order:${orderId}`,
+        enriched,
+        STALE_TTL
+      ).catch(() => {});
+
+      setOrder(enriched);
+
+      if (__DEV__) {
+        console.log(
+          "[ORDER DETAIL] Refreshed order:",
+          orderId
+        );
+      }
+
+      return enriched;
+    } catch (error) {
+      if (__DEV__) {
+        console.error(
+          "[ORDER DETAIL] Failed to refresh order:",
+          error
+        );
+      }
+
+      return null;
+    }
+  }, [orderId]);
+
   useEffect(() => {
     if (!orderId) {
       setOrder(null);
@@ -278,6 +351,7 @@ export function useOrderDetail(orderId: string) {
     order,
     isLoading,
     refresh,
+    refreshLatest,
   };
 }
 

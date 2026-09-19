@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from "react";
 
@@ -254,8 +255,27 @@ export function useIncomeSummary(
     allDebtors,
     totalDebt,
     debtorCount,
+    refresh: refreshDebtors,
   } =
     useDebtors();
+
+  /*
+   * Keep the latest debtors data in a ref so the summary `load` callback
+   * does NOT re-run (re-fetching revenue/orders) every time the debtors
+   * list changes. Debtor values are synced into `overview` separately below.
+   */
+  const debtorsRef =
+    useRef({
+      allDebtors,
+      totalDebt,
+      debtorCount,
+    });
+
+  debtorsRef.current = {
+    allDebtors,
+    totalDebt,
+    debtorCount,
+  };
 
   const [
     overview,
@@ -282,17 +302,26 @@ export function useIncomeSummary(
         ] =
           await Promise.all([
 
+            /*
+             * Each call is guarded individually so one slow endpoint
+             * (e.g. /reports/revenue timing out) does not blank the
+             * whole Income screen.
+             */
             api.reports.revenue(
               "thisMonth"
-            ),
+            ).catch(() => ({
+              totalRevenue: 0,
+            })),
 
-           api.reports.revenueChart(range)
+            api.reports.revenueChart(range)
               .catch(() => []),
 
             api.orders.list({
               page: 1,
               pageSize: 100,
-            }),
+            }).catch(() => ({
+              items: [],
+            })),
           ]);
 
         const rawPoints =
@@ -338,6 +367,13 @@ export function useIncomeSummary(
         const currentYear =
           now.getFullYear();
 
+        const {
+          allDebtors: debtors,
+          totalDebt: debtTotal,
+          debtorCount: count,
+        } =
+          debtorsRef.current;
+
         setOverview({
           todayIncome,
 
@@ -363,17 +399,17 @@ export function useIncomeSummary(
 
           totalDebt:
             Number(
-              totalDebt ?? 0
+              debtTotal ?? 0
             ),
 
           debtorCount:
             Number(
-              debtorCount ?? 0
+              count ?? 0
             ),
           weeklyChart,
 
           topDebtors:
-            allDebtors.slice(
+            debtors.slice(
               0,
               3
             ),
@@ -384,6 +420,13 @@ export function useIncomeSummary(
           error
         );
 
+        const {
+          allDebtors: debtors,
+          totalDebt: debtTotal,
+          debtorCount: count,
+        } =
+          debtorsRef.current;
+
         setOverview({
           ...EMPTY_OVERVIEW,
 
@@ -392,16 +435,16 @@ export function useIncomeSummary(
 
           totalDebt:
             Number(
-              totalDebt ?? 0
+              debtTotal ?? 0
             ),
 
           debtorCount:
             Number(
-              debtorCount ?? 0
+              count ?? 0
             ),
 
           topDebtors:
-            allDebtors.slice(
+            debtors.slice(
               0,
               3
             ),
@@ -411,19 +454,34 @@ export function useIncomeSummary(
           false
         );
       }
-    }, [
-      allDebtors,
-      totalDebt,
-      debtorCount,
-      range,
-    ]);
+    }, [range]);
   useEffect(() => {
     load();
   }, [load]);
+
+  /*
+   * Keep the debt cards in sync with the debtors hook without re-running
+   * the whole summary `load` (which re-fetches revenue + orders).
+   */
+  useEffect(() => {
+    setOverview((previous) => ({
+      ...previous,
+      totalDebt: Number(totalDebt ?? 0),
+      debtorCount: Number(debtorCount ?? 0),
+      topDebtors: allDebtors.slice(0, 3),
+    }));
+  }, [allDebtors, totalDebt, debtorCount]);
+
   const refresh =
     useCallback(async () => {
-      await load();
-    }, [load]);
+      await Promise.allSettled([
+        refreshDebtors(),
+        load(),
+      ]);
+    }, [
+      refreshDebtors,
+      load,
+    ]);
   return {
     overview,
     isLoading,

@@ -22,6 +22,15 @@ const CUSTOMER_PAGE_SIZE = 20;
 const CACHE_KEY = "debtors:list";
 const STALE_TTL = CacheTTL.LONG;
 
+/*
+ * Customer phone scan is the heaviest part of this feature (it paginates
+ * through ALL /customers pages). Cache the resulting map in memory and bound
+ * the number of simultaneous page requests so a large customer list does not
+ * fire dozens of parallel requests that slow the API down.
+ */
+const PHONE_CACHE_TTL = 2 * 60_000;
+const PHONE_PAGE_CONCURRENCY = 4;
+
 const AVATAR_COLORS = [
   "#2563EB",
   "#EA580C",
@@ -47,6 +56,8 @@ type CustomerApiItem = {
   phone?: string | null;
 };
 
+type PhoneMap = Map<string, string>;
+
 /* =========================================================
    HELPERS
 ========================================================= */
@@ -61,6 +72,34 @@ function getInitials(
     .join("")
     .slice(0, 2)
     .toUpperCase();
+}
+
+/**
+ * Run `fn` over `items` with at most `limit` concurrent promises.
+ * Prevents a huge customer list from saturating the API with N parallel
+ * /customers requests at once.
+ */
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T) => Promise<R>
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let index = 0;
+
+  async function worker() {
+    while (index < items.length) {
+      const current = index++;
+      results[current] = await fn(items[current]);
+    }
+  }
+
+  const workers = Array.from(
+    { length: Math.min(limit, items.length) },
+    () => worker()
+  );
+  await Promise.all(workers);
+  return results;
 }
 
 /* =========================================================
@@ -82,9 +121,14 @@ function getInitials(
  *
  * We merge them by customer ID.
  */
-async function loadCustomerPhones(): Promise<
-  Map<string, string>
-> {
+
+/* Single-flight + short TTL memory cache so switching between Income
+   sub-screens does not re-scan every /customers page. */
+let phoneMapInFlight: Promise<PhoneMap> | null = null;
+let phoneMapMemory: PhoneMap | null = null;
+let phoneMapMemoryTs = 0;
+
+async function loadCustomerPhones(): Promise<PhoneMap> {
   const phoneMap =
     new Map<string, string>();
 
@@ -142,7 +186,7 @@ async function loadCustomerPhones(): Promise<
     }
 
     /* ===============================================
-       LOAD REMAINING PAGES
+       LOAD REMAINING PAGES (bounded concurrency)
     =============================================== */
 
     const pageNumbers =
@@ -156,15 +200,15 @@ async function loadCustomerPhones(): Promise<
       );
 
     const responses =
-      await Promise.all(
-        pageNumbers.map(
-          (page) =>
-            api.customers.list({
-              page,
-              pageSize:
-                CUSTOMER_PAGE_SIZE,
-            })
-        )
+      await mapWithConcurrency(
+        pageNumbers,
+        PHONE_PAGE_CONCURRENCY,
+        (page) =>
+          api.customers.list({
+            page,
+            pageSize:
+              CUSTOMER_PAGE_SIZE,
+          })
       );
 
     /* ===============================================
@@ -197,13 +241,40 @@ async function loadCustomerPhones(): Promise<
   return phoneMap;
 }
 
+/** Deduplicated phone map loader – shares one scan across simultaneous callers. */
+function resolvePhoneMap(): Promise<PhoneMap> {
+  if (phoneMapInFlight) {
+    return phoneMapInFlight;
+  }
+
+  if (
+    phoneMapMemory &&
+    Date.now() - phoneMapMemoryTs <
+      PHONE_CACHE_TTL
+  ) {
+    return Promise.resolve(phoneMapMemory);
+  }
+
+  phoneMapInFlight = loadCustomerPhones()
+    .then((map) => {
+      phoneMapMemory = map;
+      phoneMapMemoryTs = Date.now();
+      return map;
+    })
+    .finally(() => {
+      phoneMapInFlight = null;
+    });
+
+  return phoneMapInFlight;
+}
+
 /* =========================================================
    MAP DEBTOR
 ========================================================= */
 
 function mapDebtor(
   customer: ReceivableCustomer,
-  phoneMap: Map<string, string>,
+  phoneMap: PhoneMap,
   index: number
 ): Debtor {
   const customerId =
@@ -307,6 +378,75 @@ function filterRealDebtors(
 }
 
 /* =========================================================
+   FETCH DEBTORS (single-flight)
+========================================================= */
+
+/*
+ * /reports/receivables is slow. Make sure only ONE full fetch runs at a time:
+ * - Multiple mounted useDebtors instances (overview/monthly/yearly/debtors
+ *   screens) all share this single in-flight request.
+ * - The HTTP layer additionally dedupes the individual GET calls.
+ */
+
+let debtorsInFlight: Promise<Debtor[]> | null = null;
+
+async function fetchDebtors(): Promise<Debtor[]> {
+  if (debtorsInFlight) {
+    return debtorsInFlight;
+  }
+
+  debtorsInFlight = (async () => {
+    const [
+      receivables,
+      phoneMap,
+    ] =
+      await Promise.all([
+        api.reports.receivables(),
+
+        resolvePhoneMap(),
+      ]);
+
+    const receivableCustomers =
+      (receivables.customers ??
+        []) as ReceivableCustomer[];
+
+    const mapped =
+      receivableCustomers.map(
+        (
+          customer,
+          index
+        ) =>
+          mapDebtor(
+            customer,
+            phoneMap,
+            index
+          )
+      );
+
+    const debtors =
+      filterRealDebtors(
+        uniqueDebtors(
+          mapped
+        )
+      );
+
+    await cacheSet(
+      CACHE_KEY,
+      debtors,
+      STALE_TTL
+    ).catch(
+      () => {}
+    );
+
+    return debtors;
+  })().finally(() => {
+    debtorsInFlight = null;
+  });
+
+  return debtorsInFlight;
+}
+
+/* =========================================================
    HOOK
 ========================================================= */
 
@@ -347,6 +487,98 @@ export function useDebtors() {
   ] = useState(false);
 
   /* =======================================================
+     HYDRATE
+  ======================================================= */
+
+  /**
+   * Applies a full debtor list for the requested page. Keeps whatever is
+   * currently on screen when `append` is true; never blanks existing data
+   * (so cached content stays visible while a refresh runs / fails).
+   */
+  const hydrate =
+    useCallback(
+      (
+        debtors: Debtor[],
+        page: number,
+        append: boolean
+      ) => {
+        const start =
+          (page - 1) *
+          PAGE_SIZE;
+
+        const end =
+          page *
+          PAGE_SIZE;
+
+        const pageData =
+          debtors.slice(
+            start,
+            end
+          );
+
+        if (append) {
+          setAllDebtors(
+            (previous) => {
+              const existingIds =
+                new Set(
+                  previous.map(
+                    (item) =>
+                      item.id
+                  )
+                );
+
+              const newItems =
+                pageData.filter(
+                  (item) =>
+                    !existingIds.has(
+                      item.id
+                    )
+                );
+
+              return [
+                ...previous,
+                ...newItems,
+              ];
+            }
+          );
+        } else {
+          setAllDebtors(
+            pageData
+          );
+        }
+
+        const calculatedTotal =
+          debtors.reduce(
+            (
+              total,
+              debtor
+            ) =>
+              total +
+              Number(
+                debtor.amount ??
+                  0
+              ),
+            0
+          );
+
+        setTotalDebt(
+          calculatedTotal
+        );
+
+        setDebtorCount(
+          debtors.length
+        );
+
+        setDisplayedPage(
+          page
+        );
+
+        setStale(false);
+      },
+      []
+    );
+
+  /* =======================================================
      LOAD PAGE
   ======================================================= */
 
@@ -360,216 +592,65 @@ export function useDebtors() {
           setIsFetchingMore(true);
         } else {
           setIsLoading(true);
-
-          /*
-           * Remove old debtor data.
-           */
-          setAllDebtors([]);
         }
 
         try {
           /* ===============================================
-             LOAD RECEIVABLES + CUSTOMER PHONES
+             USE FRESH CACHE FIRST
           =============================================== */
 
           const [
-            receivables,
-            phoneMap,
+            cached,
+            cachedIsStale,
           ] =
-            await Promise.all([
-              api.reports.receivables(),
-
-              loadCustomerPhones(),
-            ]);
-
-          /* ===============================================
-             RECEIVABLE CUSTOMERS
-          =============================================== */
-
-          const receivableCustomers =
-            (receivables.customers ??
-              []) as ReceivableCustomer[];
-
-          /* ===============================================
-             MAP DEBTORS
-          =============================================== */
-
-          const mapped =
-            receivableCustomers.map(
-              (
-                customer,
-                index
-              ) =>
-                mapDebtor(
-                  customer,
-                  phoneMap,
-                  index
-                )
+            await cacheGetStale<
+              Debtor[]
+            >(
+              CACHE_KEY
             );
 
-          /* ===============================================
-             REMOVE DUPLICATES
-          =============================================== */
-
-          const unique =
-            uniqueDebtors(
-              mapped
+          if (
+            cached &&
+            cached.length > 0 &&
+            !cachedIsStale
+          ) {
+            hydrate(
+              cached,
+              page,
+              append
             );
+            return;
+          }
 
           /* ===============================================
-             ONLY CUSTOMERS WITH DEBT
+             NETWORK (single-flight)
           =============================================== */
 
           const debtors =
-            filterRealDebtors(
-              unique
-            );
+            await fetchDebtors();
 
-          /* ===============================================
-             PAGINATION
-          =============================================== */
-
-          const start =
-            (page - 1) *
-            PAGE_SIZE;
-
-          const end =
-            page *
-            PAGE_SIZE;
-
-          const pageData =
-            debtors.slice(
-              start,
-              end
-            );
-
-          /* ===============================================
-             UPDATE LIST
-          =============================================== */
-
-          if (page === 1) {
-            setAllDebtors(
-              pageData
-            );
-          } else {
-            setAllDebtors(
-              (previous) => {
-                const existingIds =
-                  new Set(
-                    previous.map(
-                      (item) =>
-                        item.id
-                    )
-                  );
-
-                const newItems =
-                  pageData.filter(
-                    (item) =>
-                      !existingIds.has(
-                        item.id
-                      )
-                  );
-
-                return [
-                  ...previous,
-                  ...newItems,
-                ];
-              }
-            );
-          }
-
-          /* ===============================================
-             TOTAL DEBT
-          =============================================== */
-
-          const calculatedTotal =
-            debtors.reduce(
-              (
-                total,
-                debtor
-              ) =>
-                total +
-                Number(
-                  debtor.amount ??
-                    0
-                ),
-              0
-            );
-
-          setTotalDebt(
-            calculatedTotal
+          hydrate(
+            debtors,
+            page,
+            append
           );
-
-          /* ===============================================
-             DEBTOR COUNT
-          =============================================== */
-
-          setDebtorCount(
-            debtors.length
-          );
-
-          setDisplayedPage(
-            page
-          );
-
-          setStale(false);
-
-          /* ===============================================
-             SAVE CACHE
-          =============================================== */
-
-          if (page === 1) {
-            await cacheSet(
-              CACHE_KEY,
-              debtors,
-              STALE_TTL
-            ).catch(
-              () => {}
-            );
-          }
-
-          /* ===============================================
-             DEBUG
-          =============================================== */
-
-          if (__DEV__) {
-            console.log(
-              "[DEBTORS] Loaded:"
-            );
-
-            console.log(
-              debtors.map(
-                (debtor) => ({
-                  id: debtor.id,
-                  name: debtor.name,
-                  phone: debtor.phone,
-                  debt: debtor.amount,
-                })
-              )
-            );
-
-            console.log(
-              "[DEBTORS] Total debt:",
-              calculatedTotal
-            );
-          }
         } catch (error) {
+          /*
+           * Keep whatever is already rendered (fresh cache, stale cache,
+           * or the previous page) instead of blanking the whole screen
+           * when /reports/receivables is slow.
+           */
           console.error(
             "[DEBTORS] Failed:",
             error
           );
-
-          if (!append) {
-            setAllDebtors([]);
-            setTotalDebt(0);
-            setDebtorCount(0);
-          }
+          setStale(true);
         } finally {
           setIsLoading(false);
           setIsFetchingMore(false);
         }
       },
-      []
+      [hydrate]
     );
 
   /* =======================================================
@@ -583,11 +664,12 @@ export function useDebtors() {
     const initialize =
       async () => {
         /* ===============================================
-           CACHE
+           CACHE (show immediately if available)
         =============================================== */
 
         const [
           cached,
+          cachedIsStale,
         ] =
           await cacheGetStale<
             Debtor[]
@@ -597,66 +679,77 @@ export function useDebtors() {
 
         if (
           cached &&
+          cached.length > 0 &&
           !cancelled
         ) {
-          const unique =
-            uniqueDebtors(
-              cached
-            );
-
-          const debtors =
-            filterRealDebtors(
-              unique
-            );
-
-          setAllDebtors(
-            debtors.slice(
-              0,
-              PAGE_SIZE
-            )
-          );
-
-          const cachedTotal =
-            debtors.reduce(
-              (
-                total,
-                debtor
-              ) =>
-                total +
-                Number(
-                  debtor.amount ??
-                    0
-                ),
-              0
-            );
-
-          setTotalDebt(
-            cachedTotal
-          );
-
-          setDebtorCount(
-            debtors.length
+          hydrate(
+            cached,
+            1,
+            false
           );
 
           setIsLoading(false);
-          setStale(true);
+          setStale(cachedIsStale);
         }
 
         if (cancelled) {
           return;
         }
 
-        if (cached) {
+        /*
+         * Fresh cache: there is nothing to revalidate, so skip the network
+         * entirely. /reports/receivables is only requested when it is
+         * actually needed (no cache, or stale cache).
+         */
+        if (
+          cached &&
+          cached.length > 0 &&
+          !cachedIsStale
+        ) {
+          return;
+        }
+
+        /* ===============================================
+           STALE-WHILE-REVALIDATE
+        =============================================== */
+
+        let suppressed =
+          false;
+
+        if (
+          cached &&
+          cached.length > 0
+        ) {
           suppressGlobalLoading();
+          suppressed = true;
         }
 
         try {
-          await loadPage(
-            1
-          );
+          const debtors =
+            await fetchDebtors();
+
+          if (!cancelled) {
+            hydrate(
+              debtors,
+              1,
+              false
+            );
+          }
+        } catch (error) {
+          if (!cancelled) {
+            console.error(
+              "[DEBTORS] Failed:",
+              error
+            );
+            setStale(true);
+          }
         } finally {
-          if (cached) {
+          if (suppressed) {
             unsuppressGlobalLoading();
+          }
+
+          if (!cancelled) {
+            setIsLoading(false);
           }
         }
       };
@@ -666,12 +759,63 @@ export function useDebtors() {
     return () => {
       cancelled = true;
     };
-  }, [loadPage]);
+  }, [hydrate]);
 
 
   const hasMore =
     allDebtors.length <
     debtorCount;
+
+  /* =======================================================
+     REFRESH (background)
+  ======================================================= */
+
+  /**
+   * Force a fresh fetch of the latest debtor list (bypassing the cache) and
+   * rehydrate every page the user has already loaded so the visible list stays
+   * consistent. Keeps current data on screen while the request runs and never
+   * blanks existing data on failure.
+   */
+  const refresh =
+    useCallback(async () => {
+      const page = Math.max(
+        1,
+        displayedPage
+      );
+
+      try {
+        setIsLoading(true);
+
+        const debtors =
+          await fetchDebtors();
+
+        for (
+          let p = 1;
+          p <= page;
+          p += 1
+        ) {
+          hydrate(
+            debtors,
+            p,
+            p > 1
+          );
+        }
+
+        setStale(false);
+      } catch (error) {
+        console.error(
+          "[DEBTORS] Refresh failed:",
+          error
+        );
+
+        setStale(true);
+      } finally {
+        setIsLoading(false);
+      }
+    }, [
+      displayedPage,
+      hydrate,
+    ]);
 
   const loadMore =
     useCallback(() => {
@@ -697,49 +841,22 @@ export function useDebtors() {
               nextPage *
                 PAGE_SIZE
           ) {
-            const cleanCache =
-              filterRealDebtors(
-                uniqueDebtors(
-                  cached
-                )
-              );
-
-            const nextPageData =
-              cleanCache
-                .slice(
-                  (nextPage - 1) *
-                    PAGE_SIZE,
-
-                  nextPage *
-                    PAGE_SIZE
-                )
-                .filter(
-                  (item) =>
-                    !allDebtors.some(
-                      (existing) =>
-                        existing.id ===
-                        item.id
-                    )
-                );
-
-            setAllDebtors(
-              (previous) => [
-                ...previous,
-                ...nextPageData,
-              ]
+            hydrate(
+              cached,
+              nextPage,
+              true
             );
-
-            setDisplayedPage(
-              nextPage
-            );
-
-            setIsFetchingMore(
-              false
-            );
-
+            setIsFetchingMore(false);
             return;
           }
 
+          loadPage(
+            nextPage,
+            true
+          );
+        }
+      ).catch(
+        () => {
           loadPage(
             nextPage,
             true
@@ -750,7 +867,7 @@ export function useDebtors() {
       isFetchingMore,
       hasMore,
       displayedPage,
-      allDebtors,
+      hydrate,
       loadPage,
     ]);
 
@@ -763,6 +880,7 @@ export function useDebtors() {
     hasMore,
     loadMore,
     stale,
+    refresh,
   };
 }
 export function getDebtors() {

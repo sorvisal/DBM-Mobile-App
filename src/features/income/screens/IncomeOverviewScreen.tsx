@@ -11,6 +11,8 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { useIncomeSummary } from "../hooks/useIncomeSummary";
 
+import { useActiveRefresh } from "../../../hooks/useActiveRefresh";
+
 import { IncomeTimeTabs } from "../components/IncomeTimeTabs";
 import { IncomeSummaryCard } from "../components/IncomeSummaryCard";
 import { OutstandingDebtCard } from "../components/OutstandingDebtCard";
@@ -25,6 +27,7 @@ type IncomeOverviewScreenProps = {
   onGoMonthly: () => void;
   onGoYearly: () => void;
   onGoDebtors: () => void;
+  isActive?: boolean;
 };
 
 const RANGE_TITLE: Record<RevenueRange, string> = {
@@ -38,6 +41,7 @@ export function IncomeOverviewScreen({
   onGoMonthly,
   onGoYearly,
   onGoDebtors,
+  isActive,
 }: IncomeOverviewScreenProps) {
 const [chartRange, setChartRange] =
   useState<RevenueRange>("7");
@@ -50,6 +54,17 @@ const {
 
   const [refreshing, setRefreshing] =
     useState(false);
+
+  /*
+   * ==========================================
+   * AUTO REFRESH ON FOCUS
+   * ==========================================
+   *
+   * Background refresh (no spinner) whenever the income tab becomes active
+   * again. Initial load is left to the hook.
+   */
+
+  useActiveRefresh(refresh, isActive);
 
   /*
    * ==========================================

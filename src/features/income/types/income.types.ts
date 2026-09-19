@@ -8,6 +8,8 @@ export type IncomeOrder = {
   customerName: string;
   amount: number;
   status: IncomeOrderStatus;
+  /** Raw order date (YYYY-MM-DD...), used for grouping by month/year. Optional for orders mapped without it. */
+  createdAt?: string;
 };
 
 export type Debtor = {
@@ -42,6 +44,7 @@ export type MonthlyIncomeSummary = {
   totalIncome: number;
   orderCount: number;
   dailyChart: ChartPoint[];
+  orders: IncomeOrder[];
   debtors: Debtor[];
   totalDebt: number;
 };
@@ -65,6 +68,7 @@ export type YearlyIncomeSummary = {
   totalIncome: number;
   orderCount: number;
   monthlyChart: ChartPoint[];
+  orders: IncomeOrder[];
   debtors: Debtor[];
   totalDebt: number;
   growthPercent: number;

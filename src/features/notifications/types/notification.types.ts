@@ -1,4 +1,5 @@
 import type { AppNotification } from "@/types/api";
+import { resolveNotificationType } from "@/types/api";
 
 /**
  * Notification domain types for the mobile app.
@@ -17,6 +18,8 @@ export const NOTIFICATION_TYPES: readonly NotificationType[] = [
   "order",
   "stock",
   "payment",
+  "debt",
+  "customer",
   "system",
 ] as const;
 
@@ -24,6 +27,8 @@ const NOTIFICATION_ICONS: Record<NotificationType, string> = {
   order: "cart-outline",
   stock: "cube-outline",
   payment: "card-outline",
+  debt: "wallet-outline",
+  customer: "people-outline",
   system: "notifications-outline",
 };
 
@@ -31,6 +36,8 @@ const NOTIFICATION_ICON_COLORS: Record<NotificationType, string> = {
   order: "#2563EB",
   stock: "#D97706",
   payment: "#16A34A",
+  debt: "#DC2626",
+  customer: "#7C3AED",
   system: "#6B7280",
 };
 
@@ -38,6 +45,8 @@ const NOTIFICATION_ICON_BACKGROUNDS: Record<NotificationType, string> = {
   order: "bg-blue-50",
   stock: "bg-amber-50",
   payment: "bg-green-50",
+  debt: "bg-red-50",
+  customer: "bg-purple-50",
   system: "bg-gray-100",
 };
 
@@ -54,20 +63,6 @@ export function notificationIconBackground(type: NotificationType): string {
     NOTIFICATION_ICON_BACKGROUNDS[type] ??
     NOTIFICATION_ICON_BACKGROUNDS.system
   );
-}
-
-function inferNotificationType(title: string, body: string): NotificationType {
-  const text = `${title} ${body}`.toLowerCase();
-  if (text.includes("stock") || text.includes("expir")) return "stock";
-  if (
-    text.includes("payment") ||
-    text.includes(" paid ") ||
-    text.includes("pay")
-  ) {
-    return "payment";
-  }
-  if (text.includes("order")) return "order";
-  return "system";
 }
 
 function asString(value: unknown): string | null {
@@ -115,14 +110,57 @@ export function parseNotificationPayload(payload: unknown): Notification | null 
   const createdAt =
     asString(source.createdAt) ?? new Date().toISOString();
 
+  const entityType =
+    asString(source.entityType) ?? asString(source.entity_type) ?? null;
+
+  const entityIdValue = source.entityId ?? source.entity_id;
+  const entityId =
+    entityIdValue === undefined || entityIdValue === null
+      ? null
+      : String(entityIdValue);
+
   return {
     id,
-    type: inferNotificationType(title, body),
+    type: resolveNotificationType(entityType, title, body),
     title,
     body,
     read: isRead,
     createdAt,
+    entityType,
+    entityId,
   };
+}
+
+/** A deep-link target derived from a notification's entity metadata. */
+export type NotificationTarget =
+  | { tab: "orders"; kind: "order"; id: string }
+  | { tab: "customers"; kind: "customer"; id: string }
+  | { tab: "income"; kind: "debt"; id: string }
+  | { tab: "stock"; kind: "product"; id: string };
+
+/**
+ * Maps a notification to the screen it should open. Returns null for
+ * notifications without entity metadata (e.g. older records), which callers
+ * should handle gracefully instead of navigating.
+ */
+export function resolveNotificationTarget(
+  notification: Notification
+): NotificationTarget | null {
+  const { entityType, entityId } = notification;
+  if (!entityType || !entityId) return null;
+
+  switch (entityType.toLowerCase()) {
+    case "order":
+      return { tab: "orders", kind: "order", id: entityId };
+    case "customer":
+      return { tab: "customers", kind: "customer", id: entityId };
+    case "debt":
+      return { tab: "income", kind: "debt", id: entityId };
+    case "product":
+      return { tab: "stock", kind: "product", id: entityId };
+    default:
+      return null;
+  }
 }
 
 /**

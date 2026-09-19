@@ -6,6 +6,10 @@ import {
 } from "@/services";
 import type { MonthlyIncomeSummary } from "../types/income.types";
 import { useDebtors } from "./useDebtors";
+import {
+  filterOrdersByMonth,
+  type IncomeOrderSource,
+} from "./incomeOrders";
 
 const ERROR_MESSAGE = "មិនអាចទាញយកទិន្នន័យបាន";
 
@@ -34,6 +38,7 @@ export function useMonthlyIncome(month: string) {
       totalIncome: 0,
       orderCount: 0,
       dailyChart: [],
+      orders: [],
       debtors: allDebtors,
       totalDebt,
     });
@@ -48,6 +53,7 @@ export function useMonthlyIncome(month: string) {
       totalIncome: 0,
       orderCount: 0,
       dailyChart: [],
+      orders: [],
       debtors: debtorsRef.current.allDebtors,
       totalDebt: debtorsRef.current.totalDebt,
     });
@@ -93,17 +99,27 @@ export function useMonthlyIncome(month: string) {
           });
         }
 
-        const points =
-          await api.reports.monthlyRevenueChart(month);
+        /*
+         * Fetch the revenue chart AND the order list together. Each call is
+         * guarded individually so one slow endpoint does not blank the whole
+         * month screen.
+         */
+        const [points, orderResponse] = await Promise.all([
+          api.reports.monthlyRevenueChart(month),
+
+          api.orders
+            .list({ page: 1, pageSize: 100 })
+            .catch(() => ({ items: [] })),
+        ]);
 
         if (requestId !== requestIdRef.current) {
           return;
         }
 
-          const chart = (points ?? []).map((point) => ({
-        label: String(point.date),
-        amount: Number(point.revenue) || 0,
-      }));
+        const chart = (points ?? []).map((point) => ({
+          label: String(point.date),
+          amount: Number(point.revenue) || 0,
+        }));
 
         if (__DEV__) {
           console.log(
@@ -117,13 +133,51 @@ export function useMonthlyIncome(month: string) {
           0
         );
 
+        /*
+         * =====================================================
+         * MONTHLY ORDERS
+         * =====================================================
+         *
+         * The API order shape is FLAT (`customerName` string). Filter to the
+         * selected month, keep only COMPLETED orders (income), dedupe by id,
+         * then map to the shared IncomeOrder shape with safe defaults.
+         */
+        const monthKey = `${String(monthValue).padStart(
+          2,
+          "0"
+        )}/${yearValue}`;
+
+        const rawOrders = (orderResponse?.items ??
+          []) as IncomeOrderSource[];
+
+        const orders = filterOrdersByMonth(
+          rawOrders,
+          monthKey
+        );
+
+        if (__DEV__) {
+          console.log(
+            "[MonthlyIncome] Completed orders for month:",
+            orders.length
+          );
+
+          console.log(
+            "[MonthlyIncome] Orders:",
+            orders.map((order) => ({
+              id: order.id,
+              code: order.code,
+              customerName: order.customerName,
+              amount: order.amount,
+            }))
+          );
+        }
+
         setSummary({
           month,
           totalIncome,
-          orderCount: chart.filter(
-            (point) => point.amount > 0
-          ).length,
+          orderCount: orders.length,
           dailyChart: chart,
+          orders,
           debtors: debtorsRef.current.allDebtors,
           totalDebt: debtorsRef.current.totalDebt,
         });
@@ -133,6 +187,7 @@ export function useMonthlyIncome(month: string) {
             month,
             totalIncome,
             points: chart.length,
+            orderCount: orders.length,
             chart,
           });
         }
@@ -151,6 +206,7 @@ export function useMonthlyIncome(month: string) {
           totalIncome: 0,
           orderCount: 0,
           dailyChart: [],
+          orders: [],
           debtors: debtorsRef.current.allDebtors,
           totalDebt: debtorsRef.current.totalDebt,
         });

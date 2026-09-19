@@ -9,15 +9,30 @@ type ViewState = "overview" | "daily" | "monthly" | "yearly" | "debtors";
 
 type IncomeScreenProps = {
   onChromeChange?: (hidden: boolean) => void;
+  isActive?: boolean;
+  /** Deep-link: debtor (customer) id to open (from a notification). */
+  openDebtorId?: string | null;
+  /** Called once `openDebtorId` has been consumed. */
+  onOpenDebtorHandled?: () => void;
 };
 
-export function IncomeScreen({ onChromeChange }: IncomeScreenProps) {
+export function IncomeScreen({
+  onChromeChange,
+  isActive,
+  openDebtorId,
+  onOpenDebtorHandled,
+}: IncomeScreenProps) {
   const [view, setView] = useState<ViewState>("overview");
 
   // Hide MainLayout header & footer whenever we are inside any detail/sub-screen
   useEffect(() => {
     onChromeChange?.(view !== "overview");
   }, [view, onChromeChange]);
+
+  useEffect(() => {
+    if (!openDebtorId) return;
+    setView("debtors");
+  }, [openDebtorId]);
 
   if (view === "daily") {
     return <DailyIncomeDetailScreen onBack={() => setView("overview")} />;
@@ -27,26 +42,28 @@ export function IncomeScreen({ onChromeChange }: IncomeScreenProps) {
     return (
       <MonthlyIncomeDetailScreen
         onBack={() => setView("overview")}
-        onGoDebtors={() => setView("debtors")}
       />
     );
   }
 
   if (view === "yearly") {
+    return <YearlyIncomeDetailScreen onBack={() => setView("overview")} />;
+  }
+
+  if (view === "debtors") {
     return (
-      <YearlyIncomeDetailScreen
+      <DebtorsScreen
         onBack={() => setView("overview")}
-        onGoDebtors={() => setView("debtors")}
+        isActive={isActive}
+        openDebtorId={openDebtorId}
+        onOpenDebtorHandled={onOpenDebtorHandled}
       />
     );
   }
 
-  if (view === "debtors") {
-    return <DebtorsScreen onBack={() => setView("overview")} />;
-  }
-
   return (
     <IncomeOverviewScreen
+      isActive={isActive}
       onGoDaily={() => setView("daily")}
       onGoMonthly={() => setView("monthly")}
       onGoYearly={() => setView("yearly")}

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import {
   View,
   Text,
@@ -23,6 +23,10 @@ import {
 import { Header } from "@/components/layout/Header";
 import { useResponsive } from "@/hooks/useResponsive";
 import { api, invalidateOrderCache } from "@/services";
+import {
+  Snackbar,
+  useSnackbar,
+} from "@/components/ui/Snackbar";
 
 type CreateOrderScreenProps = {
   onBack: () => void;
@@ -33,6 +37,7 @@ type OrderItem = {
   name: string;
   price: number;
   quantity: number;
+  stock: number;
   imageUrl: string;
 };
 
@@ -136,6 +141,9 @@ export function CreateOrderScreen({ onBack }: CreateOrderScreenProps) {
 
   const { isSmallPhone } = useResponsive();
 
+  const { snackbar, showSnackbar } =
+    useSnackbar();
+
   const [code] = useState(generateCode);
 
   const [date, setDate] = useState<Date | null>(
@@ -149,6 +157,10 @@ export function CreateOrderScreen({ onBack }: CreateOrderScreenProps) {
   const [orderItems, setOrderItems] = useState<OrderItem[]>(
     []
   );
+
+  const orderItemsRef =
+    useRef<OrderItem[]>([]);
+  orderItemsRef.current = orderItems;
 
   const [selectedProductId, setSelectedProductId] =
     useState<string | null>(null);
@@ -228,6 +240,23 @@ const remainingKHR = Math.round(
   const subtotalKHR =
     subtotal * USD_TO_KHR;
 
+  const showStockValidation = (
+    productName: string,
+    availableStock: number,
+    requestedQuantity: number
+  ) => {
+    if (__DEV__) {
+      console.warn(
+        `[ORDER] Stock validation: "${productName}" available=${availableStock} requested=${requestedQuantity}`
+      );
+    }
+
+    showSnackbar({
+      title: "ស្តុកមិនគ្រប់ចំនួន",
+      message: `${productName} មានក្នុងស្តុកតែ ${availableStock} ប៉ុណ្ណោះ។`,
+    });
+  };
+
   const handleSelectCustomer = (
     id: string
   ) => {
@@ -257,38 +286,6 @@ const remainingKHR = Math.round(
 
     if (!product) return;
 
-    setOrderItems((prev) => {
-      const existing = prev.find(
-        (item) =>
-          item.productId ===
-          product.id
-      );
-
-      if (existing) {
-        return prev.map((item) =>
-          item.productId === product.id
-            ? {
-                ...item,
-                quantity:
-                  item.quantity + 1,
-              }
-            : item
-        );
-      }
-
-      return [
-        ...prev,
-        {
-          productId: product.id,
-          name: product.name,
-          price: product.sellPrice,
-          quantity: 1,
-          imageUrl:
-            product.imageUrl ?? "",
-        },
-      ];
-    });
-
     setSelectedProductId(null);
 
     setErrors((prev) => {
@@ -296,14 +293,105 @@ const remainingKHR = Math.round(
       delete next.product;
       return next;
     });
+
+    const maxStock = Number(
+      product.quantity ?? 0
+    );
+
+    const existing =
+      orderItemsRef.current.find(
+        (item) =>
+          item.productId ===
+          product.id
+      );
+
+    if (existing) {
+      if (
+        existing.quantity >=
+        maxStock
+      ) {
+        showStockValidation(
+          product.name,
+          maxStock,
+          existing.quantity + 1
+        );
+
+        return;
+      }
+
+      setOrderItems((prev) =>
+        prev.map((item) =>
+          item.productId ===
+          product.id
+            ? {
+                ...item,
+                quantity:
+                  item.quantity + 1,
+              }
+            : item
+        )
+      );
+
+      return;
+    }
+
+    if (maxStock < 1) {
+      showStockValidation(
+        product.name,
+        maxStock,
+        1
+      );
+
+      return;
+    }
+
+    setOrderItems((prev) => [
+      ...prev,
+      {
+        productId: product.id,
+        name: product.name,
+        price: product.sellPrice,
+        quantity: 1,
+        stock: maxStock,
+        imageUrl:
+          product.imageUrl ?? "",
+      },
+    ]);
   };
 
   const handleIncrementQuantity = (
     productId: string
   ) => {
+    const item =
+      orderItemsRef.current.find(
+        (i) =>
+          i.productId ===
+          productId
+      );
+
+    if (!item) return;
+
+    const maxStock = Number(
+      item.stock ?? 0
+    );
+
+    if (
+      item.quantity >=
+      maxStock
+    ) {
+      showStockValidation(
+        item.name,
+        maxStock,
+        item.quantity + 1
+      );
+
+      return;
+    }
+
     setOrderItems((prev) =>
       prev.map((item) =>
-        item.productId === productId
+        item.productId ===
+        productId
           ? {
               ...item,
               quantity:
@@ -326,6 +414,80 @@ const remainingKHR = Math.round(
               ...item,
               quantity:
                 item.quantity - 1,
+            }
+          : item
+      )
+    );
+  };
+
+  const handleQuantityChange = (
+    productId: string,
+    value: string
+  ) => {
+    const numericValue = value.replace(
+      /[^0-9]/g,
+      ""
+    );
+
+    if (numericValue === "") {
+      setOrderItems((prev) =>
+        prev.map((item) =>
+          item.productId ===
+          productId
+            ? {
+                ...item,
+                quantity: 0,
+              }
+            : item
+        )
+      );
+
+      return;
+    }
+
+    const quantity =
+      Number(numericValue);
+
+    if (
+      !Number.isFinite(quantity)
+    ) {
+      return;
+    }
+
+    const item =
+      orderItemsRef.current.find(
+        (i) =>
+          i.productId ===
+          productId
+      );
+
+    if (!item) return;
+
+    const maxStock = Number(
+      item.stock ?? 0
+    );
+
+    if (quantity > maxStock) {
+      showStockValidation(
+        item.name,
+        maxStock,
+        quantity
+      );
+
+      return;
+    }
+
+    if (quantity < 1) {
+      return;
+    }
+
+    setOrderItems((prev) =>
+      prev.map((item) =>
+        item.productId ===
+        productId
+          ? {
+              ...item,
+              quantity,
             }
           : item
       )
@@ -648,12 +810,23 @@ if (subtotal > 0) {
                   />
                 </TouchableOpacity>
 
-                <Text
-                  className="font-khmerBold text-gray-900 text-lg w-8 text-center"
-                  allowFontScaling={false}
-                >
-                  {item.quantity}
-                </Text>
+                <TextInput
+                  value={String(
+                    item.quantity
+                  )}
+                  onChangeText={(text) =>
+                    handleQuantityChange(
+                      item.productId,
+                      text
+                    )
+                  }
+                  keyboardType="numeric"
+                  inputMode="numeric"
+                  selectTextOnFocus
+                  maxLength={6}
+                  className="w-12 h-9 rounded-lg bg-white border border-gray-200 text-center font-khmerBold text-gray-900 text-lg"
+                  style={androidInputStyle}
+                />
 
                 <TouchableOpacity
                   onPress={() =>
@@ -1071,6 +1244,8 @@ if (subtotal > 0) {
           </TouchableOpacity>
         </View>
       </KeyboardAwareScrollView>
+
+      <Snackbar data={snackbar} />
     </View>
   );
 }

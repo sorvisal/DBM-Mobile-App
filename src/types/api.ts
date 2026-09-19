@@ -187,14 +187,66 @@ export type ReceivablesSummary = {
   customers: ReceivableItem[];
 };
 
+export type AppNotificationType =
+  | 'order'
+  | 'stock'
+  | 'payment'
+  | 'debt'
+  | 'customer'
+  | 'system';
+
 export type AppNotification = {
   id: string;
-  type: 'order' | 'stock' | 'payment' | 'system';
+  type: AppNotificationType;
   title: string;
   body: string;
   read: boolean;
   createdAt: string;
+  /** Backend entity this notification refers to (order, customer, debt, product). */
+  entityType?: string | null;
+  /** Id of the referenced entity, used to deep-link into a detail screen. */
+  entityId?: string | null;
 };
+
+/**
+ * Resolves the display type for a notification. Prefers the backend
+ * `entityType` and falls back to keyword inference on the title/body so older
+ * notifications (without entity metadata) still get a sensible icon.
+ */
+export function resolveNotificationType(
+  entityType: string | null | undefined,
+  title: string,
+  body: string,
+): AppNotificationType {
+  switch ((entityType ?? '').toLowerCase()) {
+    case 'order':
+      return 'order';
+    case 'customer':
+      return 'customer';
+    case 'debt':
+      return 'debt';
+    case 'product':
+      return 'stock';
+    case 'payment':
+      return 'payment';
+    default:
+      break;
+  }
+
+  const text = `${title} ${body}`.toLowerCase();
+  if (text.includes('stock') || text.includes('expir')) return 'stock';
+  if (
+    text.includes('debt') ||
+    text.includes('payment') ||
+    text.includes(' paid ') ||
+    text.includes('pay')
+  ) {
+    return 'payment';
+  }
+  if (text.includes('customer')) return 'customer';
+  if (text.includes('order')) return 'order';
+  return 'system';
+}
 
 export type NotificationListParams = {
   unread?: boolean;

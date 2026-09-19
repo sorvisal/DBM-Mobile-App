@@ -15,6 +15,7 @@ export type { NotificationsState } from "./hooks/useNotifications";
 export type {
   Notification,
   NotificationType,
+  NotificationTarget,
 } from "./types/notification.types";
 export {
   notificationIcon,
@@ -23,5 +24,6 @@ export {
   parseNotificationPayload,
   parseUnreadCountPayload,
   parseNotificationIdPayload,
+  resolveNotificationTarget,
   NOTIFICATION_TYPES,
 } from "./types/notification.types";

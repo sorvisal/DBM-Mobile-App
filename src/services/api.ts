@@ -50,6 +50,7 @@ import type {
   AdminUserDto,
   ResetPasswordRequest,
 } from '@/types/api';
+import { resolveNotificationType } from '@/types/api';
 
 type UploadFileInput = { uri: string; name?: string; type?: string };
 
@@ -211,6 +212,8 @@ type BackendNotificationDto = {
   body: string;
   isRead: boolean;
   createdAt: string;
+  entityType?: string | null;
+  entityId?: number | null;
 };
 
 /* ── Helpers ── */
@@ -503,22 +506,19 @@ function mapSupplier(dto: BackendSupplierDto): Supplier {
   };
 }
 
-function inferNotificationType(title: string, body: string): AppNotification['type'] {
-  const text = `${title} ${body}`.toLowerCase();
-  if (text.includes('stock') || text.includes('expir')) return 'stock';
-  if (text.includes('payment') || text.includes(' paid ') || text.includes('pay')) return 'payment';
-  if (text.includes('order')) return 'order';
-  return 'system';
-}
-
 function mapNotification(dto: BackendNotificationDto): AppNotification {
   return {
     id: String(dto.id),
-    type: inferNotificationType(dto.title, dto.body),
+    type: resolveNotificationType(dto.entityType, dto.title, dto.body),
     title: dto.title,
     body: dto.body,
     read: dto.isRead,
     createdAt: dto.createdAt,
+    entityType: dto.entityType ?? null,
+    entityId:
+      dto.entityId === undefined || dto.entityId === null
+        ? null
+        : String(dto.entityId),
   };
 }
 

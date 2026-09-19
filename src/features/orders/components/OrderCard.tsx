@@ -1,18 +1,13 @@
-import { useRef } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
-  Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Swipeable } from "react-native-gesture-handler";
 import {
   Order,
-  OrderStatus,
 } from "../types/types";
 import { OrderStatusBadge } from "./OrderStatusBadge";
-import { deleteOrder } from "../hooks/useOrderList";
 
 const USD_TO_KHR = 4046.81;
 
@@ -31,56 +26,10 @@ const formatKHR = (amount: number) => {
   )} ៛`;
 };
 
-function DeleteAction({
-  progress,
-  orderId,
-}: {
-  progress: Animated.AnimatedInterpolation<number>;
-  orderId: string;
-}) {
-  const scale = progress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.8, 1],
-  });
-
-  return (
-    <TouchableOpacity
-      onPress={() => deleteOrder(orderId)}
-      className="bg-red-500 rounded-2xl mb-3 ml-2 items-center justify-center"
-      style={{
-        width: 72,
-      }}
-    >
-      <Animated.View
-        style={{
-          transform: [{ scale }],
-        }}
-        className="items-center"
-      >
-        <Ionicons
-          name="trash-outline"
-          size={20}
-          color="white"
-        />
-
-        <Text className="font-khmer text-white text-[10px] mt-1">
-          លុប
-        </Text>
-      </Animated.View>
-    </TouchableOpacity>
-  );
-}
-
 export function OrderCard({
   order,
   onPress,
 }: OrderCardProps) {
-  const swipeableRef =
-    useRef<Swipeable>(null);
-
-  const isCancelled =
-    order.status ===
-    OrderStatus.Cancelled;
 
   const isKHRPayment =
     order.paymentMethod === "cash";
@@ -175,24 +124,5 @@ export function OrderCard({
     </TouchableOpacity>
   );
 
-  if (!isCancelled) {
-    return cardContent;
-  }
-
-  return (
-    <Swipeable
-      ref={swipeableRef}
-      renderRightActions={(
-        progress
-      ) => (
-        <DeleteAction
-          progress={progress}
-          orderId={order.id}
-        />
-      )}
-      overshootRight={false}
-    >
-      {cardContent}
-    </Swipeable>
-  );
+  return cardContent;
 }

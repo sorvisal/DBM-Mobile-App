@@ -290,12 +290,23 @@ onReconnected(handleReconnected);
 export async function startNotificationService(): Promise<void> {
   try {
     await startNotificationSignalR();
-  } catch {
+  } catch (error) {
     // Connection errors must never crash the app.
+    if (__DEV__) {
+      console.warn(
+        "[SignalR:notifications] start failed:",
+        error instanceof Error ? error.message : String(error)
+      );
+    }
   }
 
   if (!loadedOnce) {
-    await loadNotifications().catch(() => {});
+    await loadNotifications().catch((error) => {
+      // loadNotifications records the error in state; only log the failure.
+      if (__DEV__) {
+        console.warn("[Notifications] initial load failed:", String(error));
+      }
+    });
   }
 }
 
